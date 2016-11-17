@@ -1,0 +1,116 @@
+body {
+	background-color: #edeef0;
+}
+
+.container-edit {
+	background-color: #fdfdfd;
+}
+
+.fa-btn {
+    margin-right: 8px;
+}
+
+.navbar{
+	background-color: #507299;
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav>li>a {
+	color: #fff;
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav>li>a:hover {
+	color: #fff;
+}
+
+.navbar-default .navbar-nav>.open>a,
+.navbar-default .navbar-nav>.open>a:focus,
+.navbar-default .navbar-nav>.open>a:hover {
+	color: #fff;
+	background-color: #486991;
+}
+
+/* Убираем border и backgrount кнопки меню */
+.navbar-default .navbar-toggle:focus, 
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle {
+	background-color: inherit;
+    border: none;
+}
+
+/* dropdown список миеню белым цветом */
+@media (max-width: 767px) {
+ .navbar-default .navbar-nav .open .dropdown-menu>li>a {
+     color: #fff;
+ }
+}
+
+/* страница formControl список элементов */
+.forms-list,
+.elements-list,
+.table-padding>tbody>tr>td,
+.table-padding>tbody>tr>th {
+    padding: 5px 10px;
+}
+
+.btn-padding-0,
+.forms-btn,
+.elements-btn {
+	padding-top: 0px;
+	padding-bottom: 0px; 
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #fff;
+}
+
+.dropdown-menu>li>a:focus,
+.dropdown-menu>li>a:hover {
+	background-color: #f5f7fa;
+}
+
+.dropdown-menu,
+.panel-group .panel {
+	border-radius: 2px;
+}
+
+.panel {
+	border-radius: 2px;
+}
+
+.list-users {	
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.list-users tr:hover {
+	background-color: #f5f7fa;
+	text-decoration: none;
+}
+
+.list-users tr td a {
+	margin: 0 auto;
+}
+
+
+/* Конструктор форм */
+
+.panel-heading-constructorForm {
+	padding: 10px 0px 0px 3px;
+}
+.nav-tabs-constructorForm {
+	border: none;
+}
+
+.table-constructorForm {
+	width: 540px;
+}
+
+.lable-constructorForm {
+	margin-top: 10px;
+}
+/**/
+.emptySpace {
+	background-color: #6cc778;
+}
