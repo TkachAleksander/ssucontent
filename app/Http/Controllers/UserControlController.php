@@ -14,8 +14,10 @@ class UserControlController extends Controller
 	{
         $users = DB::table('users')->join('roles', 'roles.id', '=', 'users.id_roles')
                                    ->where('name_roles', '!=', 'administrator')->get();
+        $administrators = DB::table('users')->join('roles', 'roles.id', '=', 'users.id_roles')
+                                            ->where('name_roles', '=', 'administrator')->get();
         $roles = DB::table('roles')->get();
-		return view('userControl', ['users' => $users, 'roles' => $roles]);
+		return view('userControl', ['users' => $users, 'roles' => $roles, 'administrators' => $administrators]);
 	}
 
     public function registration(Request $request)
@@ -41,10 +43,10 @@ class UserControlController extends Controller
             'middle_name' => $request->input('middle_name'),
             'email' => $request->input('email'),
             'password' => bcrypt( $request->input('password') ),
-            'id_roles' =>$request->input('roles'),
+            'id_roles' =>$request->input('id_roles')
         ]);
 
-        return redirect('/');
+        return redirect('/registration');
     }
 
     public function removeUser($id)

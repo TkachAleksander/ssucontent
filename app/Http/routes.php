@@ -56,10 +56,27 @@ Route::group(['middleware' => 'auth'], function(){
 
 
     // Конструктор форм
-    Route::get('/constructorForm', 'ConstructorFormController@constructorForm');
-    Route::post('/getSetElements', 'ConstructorFormController@getSetElements');
-    Route::get('/newElement', 'ConstructorFormController@newElement');
-    Route::post('/addNewElement', 'ConstructorFormController@addNewElementToServer');
-    Route::post('/addSetFormsElements', 'ConstructorFormController@addSetFormsElementsToServer');
+
+    /// Вкладка Собрать форму
+    Route::get('/constructor/addForm', 'ConstructorFormController@addForm');
+    Route::post('/constructor/getSetElements', 'ConstructorFormController@getSetElements');
+    Route::post('/constructor/addSetFormsElements', 'ConstructorFormController@addSetFormsElementsToServer');
+
+    /// Вкладка Добавить элемент
+    Route::get('/constructor/newElement', 'ConstructorFormController@newElement');
+    Route::post('/constructor/addNewElement', 'ConstructorFormController@addNewElementToServer');
+    //// Кнопки редактирования set_elements (вызов из js)
+    Route::post('/editElementFromForm', 'ConstructorFormController@editElementFromForm');
+    Route::post('/addEditedNewElement', 'ConstructorFormController@addEditedNewElement');
+
+    /// Вкладка Просмотр списка форм
+    Route::get('/constructor/showForms', 'ConstructorFormController@showForms');
+    Route::post('/constructor/getFormInfo', 'ConstructorFormController@getFormInfo');
+
+    /// Вкладка Форма/Пользователь
+    Route::get('/constructor/formsConnectUsers', 'ConstructorFormController@formsConnectUsers');
+    Route::post('/constructor/getTableConnectUsers', 'ConstructorFormController@getTableConnectUsers');
+    Route::post('/constructor/setTableConnectUsers', 'ConstructorFormController@setTableConnectUsers');
+    Route::post('/constructor/setTableDisconnectUsers', 'ConstructorFormController@setTableDisconnectUsers');
 
 });

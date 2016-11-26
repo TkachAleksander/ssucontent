@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url('css/project.css') }}">
     <!-- MULTISELECT -->
     <link rel="stylesheet" type="text/css" href="{{ url('css/bootstrap-multiselect.css') }}">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js" integrity="sha384-I6F5OKECLVtK/BL+8iSLDEHowSAfUo76ZL9+kGAgTRdiByINKJaqTPH/QVNS1VDb" crossorigin="anonymous"></script>
     <style>
         body {
             font-family: 'Lato';
@@ -61,7 +61,7 @@
                                 <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список доступных статей</a></li>
                                 <li><a href="{{ url('/contactsMessages') }}"><i class="fa fa-btn fa-envelope-o"></i>Сообщения</a></li>
                                 @if (Auth::user()->id_roles == 1)
-                                    <li><a href="{{ url('/constructorForm') }}"><i class="fa fa-btn fa-file-text-o"></i> Конструктор форм </a></li>                     
+                                    <li><a href="{{ url('/constructor/addForm') }}"><i class="fa fa-btn fa-file-text-o"></i> Конструктор форм </a></li>
                                     <li><a href="{{ url('/registration') }}"><i class="fa fa-btn fa-user"></i> Управление пользователями </a></li>
                                 @endif
                                 <li><a href="{{ url('/logout') }}"><i class="fa fa-btn fa-sign-out"></i> Выйти </a></li>

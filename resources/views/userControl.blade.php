@@ -95,11 +95,11 @@
                             </div>
                         </div>
 
-                        <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }}">
+                        <div class="form-group{{ $errors->has('id_roles') ? ' has-error' : '' }}">
                             <label for="name" class="col-md-4 control-label">Роль</label>
 
                             <div class="col-md-6">
-                                <select class="multiselect" name="roles">
+                                <select class="multiselect" name="id_roles">
                                     @foreach($roles as $role)
                                         <option value="{{ $role->id }}">{{ $role->name_roles }}</option>
                                     @endforeach
@@ -122,25 +122,43 @@
                 <div class="panel-heading">Удаление пользователя</div>
                 <div class="panel-body">
                     <div class="row">
-                    <div class="col-sm-offset-3 col-sm-6">
 
-                        <table class="table table-bordered table-padding">
-                            <tr>
-                                <th class="text-center">Список пользователей</th>
-                            </tr> 
-                            @foreach($users as $user)
-                            <tr>
-                                <td>
-                                {{ $user->name }}
-                                <span class="pull-right">
-                                    <a href="removeUser/{{$user->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
-                                </span>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </table>  
+                        <div class="col-sm-6">
+                            <table class="table table-bordered table-padding table-striped">
+                                <tr>
+                                    <th class="text-center">Список администраторов</th>
+                                </tr>
+                                @foreach($administrators as $administrator)
+                                    <tr>
+                                        <td>
+                                            {{$administrator->surname." ".$administrator->name." ".$administrator->middle_name}}
+                                            <span class="pull-right">
+                                                <a href="removeUser/{{$administrator->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </table>
+                        </div>
 
-                    </div>
+                        <div class="col-sm-6">
+                            <table class="table table-bordered table-padding .table-striped">
+                                <tr>
+                                    <th class="text-center">Список пользователей</th>
+                                </tr>
+                                @foreach($users as $user)
+                                <tr>
+                                    <td>
+                                        {{$user->surname." ".$user->name." ".$user->middle_name}}
+                                        <span class="pull-right">
+                                            <a href="removeUser/{{$user->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </table>
+                        </div>
+
                     </div>
                 </div>
                 </div>

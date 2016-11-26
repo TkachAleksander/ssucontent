@@ -103,13 +103,25 @@ body {
 	border: none;
 }
 
-.table-constructorForm {
-	width: 540px;
-}
-
 .lable-constructorForm {
 	margin-top: 10px;
 }
+
+.img-add,
+.img-remove {
+	height: 20px;
+}
+
+.entry:not(:first-of-type)
+{
+	margin-top: 10px;
+}
+
+.glyphicon
+{
+	font-size: 12px;
+}
+
 /**/
 .emptySpace {
 	background-color: #6cc778;

@@ -1,0 +1,282 @@
+# Webalizer V2.23-08 Incremental Data - 11/17/2016 01:40:22
+2016 11 17 1 40 22
+2339 1982 7 48 13 11 39119491 799 25 0 0 0
+1 8 291 9 17
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+12 0 4999 5 7 6 0 0
+289 120 2021781 4 105 7 0 0
+15 14 166188 2 8 2 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+771 745 13713356 1 283 2 0 0
+1244 1097 23067190 3 394 7 0 0
+8 6 145977 1 2 1 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0
+226 170 3034595 157 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+167 139 3123060 31 0 0
+245 204 5060996 41 0 0
+76 76 1761974 13 0 0
+293 290 5931406 54 0 0
+448 266 5309532 156 0 0
+6 4 7102 5 0 0
+30 21 346666 18 0 0
+44 41 503524 25 0 0
+0 0 0 0 0 0
+8 6 145974 2 0 0
+115 101 1754555 42 0 0
+169 159 3104856 55 0 0
+281 277 5057995 107 0 0
+231 228 3977256 93 0 0
+0
+0
+0
+1982
+0
+0
+0
+0
+0
+0
+0
+3
+27
+0
+85
+0
+0
+0
+0
+0
+23
+200
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+19
+0
+0
+0
+0
+0
+# -urls- 
+/public/js/cookies.js
+0 3 0 4851 0 0 0 0
+/public/css/bootstrap-multiselect.css
+0 3 0 2370 0 0 0 0
+/public/img/products/581c7c9e84c4a.jpg
+1 3 0 799775 0 0 0 0
+/js/project.js
+0 252 0 535237 0 0 0 0
+/js/jquery-ui.js
+0 233 0 29109786 0 0 0 0
+/addNewElement
+0 9 0 12249 0 0 0 0
+/public/img/products/581c7e2b600bc.jpg
+1 1 0 577590 0 0 0 0
+/js/bootstrap.min.js
+0 31 0 317963 0 0 0 0
+/password/reset
+0 2 0 5300 0 1 0 0
+/public/showCart
+0 8 0 11132 0 0 0 0
+/public/css/bootstrap.min.css.map
+0 2 0 203902 0 0 0 0
+/favicon.ico
+0 50 0 11328 0 0 0 0
+/registration
+0 6 0 20091 0 0 0 0
+/public/
+0 7 0 23076 1 0 0 0
+/public/img/products/581c7ffe502d8.jpg
+1 1 0 85529 0 0 0 0
+/public/js/bootstrap.min.js
+0 3 0 30528 0 0 0 0
+/public/setCookie
+0 3 0 3031 0 0 0 0
+/img/remove.png
+1 28 0 5273 0 0 0 0
+/public/login
+0 6 0 16329 0 0 0 0
+/public/js/bootstrap-multiselect.js
+0 3 0 37614 0 0 0 0
+/css/project.css
+0 235 0 255491 0 0 0 0
+/public/js/jquery-3.1.1.min.js
+0 3 0 91275 0 0 0 0
+/login
+0 21 0 64715 2 2 0 0
+/public/img/products/581c7fef087a4.jpg
+1 1 0 85529 0 0 0 0
+/public/css/bootstrap.min.css
+0 3 0 60222 0 0 0 0
+/public/js/jquery-ui.js
+0 3 0 374805 0 0 0 0
+/constructorForm
+0 253 0 1070805 3 4 0 0
+/public/basketPlus
+0 31 0 30237 0 0 0 0
+/js/field.js
+0 4 0 2307 0 0 0 0
+/
+0 54 0 135235 8 2 0 0
+/addSetFormsElements
+0 1 0 1077 0 0 0 0
+/public/img/products/581c7c0379710.jpg
+1 3 0 149375 0 0 0 0
+/public/css/project.css
+0 6 0 8268 0 0 0 0
+/getFormInfo
+0 178 0 305544 1 3 0 0
+/js/bootstrap-multiselect.js
+0 234 0 2933844 0 0 0 0
+/contactsMessages
+0 1 0 2840 0 0 0 0
+/public/img/products/581c8026e0c01.jpg
+1 1 0 79682 0 0 0 0
+/public/js/project.js
+0 6 0 9407 0 0 0 0
+/public/pillow
+0 3 0 8535 0 0 0 0
+/public/updateSum
+0 53 0 55097 0 0 0 0
+/public/img/products/581c7e43565b3.jpg
+1 1 0 37173 0 0 0 0
+/public/img/background3.jpg
+1 3 0 91883 0 0 0 0
+/img/add.png
+1 29 0 5185 0 0 0 0
+/public/basketMinus
+0 22 0 21675 0 0 0 0
+/css/bootstrap-multiselect.css
+0 234 0 184846 0 0 0 0
+/server.php
+0 1 0 2405 0 0 0 0
+/getSetElements
+0 28 0 36317 0 0 0 0
+/public/img/products/581c8012172cd.jpg
+1 1 0 252442 0 0 0 0
+# End Of Table - urls
+# -sites- (monthly)
+176.8.217.152
+0 2148 1908 38295487 14 1479346821 0 0
+/login
+104.45.18.178
+0 3 2 7204 2 1478800179 0 0
+/login
+93.79.31.53
+0 3 0 1249 1 1478725824 0 0
+-
+95.133.185.30
+0 17 14 166093 1 1479318895 0 0
+/
+192.168.8.55
+0 2 0 833 1 1478702148 0 0
+-
+192.168.8.60
+0 155 52 625195 2 1479308547 0 0
+/getSetElements
+23.101.61.176
+0 11 6 23430 4 1478897429 0 0
+/
+# End Of Table - sites (monthly)
+# -sites- (daily)
+176.8.217.152
+0 8 6 145977 1 1479346821 0 0
+/login
+# End Of Table - sites (daily)
+# -referrers- 
+http://content.sumdu.edu.ua/constructorForm
+0 1617
+http://content.sumdu.edu.ua/public/index.php
+0 7
+http://content.sumdu.edu.ua/server.php
+0 7
+- (Direct Request)
+0 94
+http://content.sumdu.edu.ua/public/pillow
+0 162
+http://content.sumdu.edu.ua/contactsMessages
+0 8
+http://content.sumdu.edu.ua/registration
+0 102
+http://content.sumdu.edu.ua/public/
+0 33
+http://content.sumdu.edu.ua/login
+0 58
+http://content.sumdu.edu.ua/public/css/project.css
+0 3
+http://content.sumdu.edu.ua/
+0 234
+http://content.sumdu.edu.ua/public/login
+0 12
+http://content.sumdu.edu.ua/password/reset
+0 2
+# End Of Table - referrers
+# -agents- 
+Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36
+0 134
+Mozilla/5.0 (Windows NT 10.0; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0
+0 3
+Jakarta Commons-HttpClient/3.1
+0 1
+Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36
+0 1985
+Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36
+0 2
+Jakarta-Commons-VFS
+0 1
+Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36
+0 21
+Mozilla/5.0 (Linux; Android 5.1; M3s Build/LMY47I) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.85 Mobile Safari/5
+0 17
+Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36
+0 140
+Mozilla/5.0 (Windows NT 6.3; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0
+0 21
+Mozilla/5.0 (Windows NT 6.1; WOW64) SkypeUriPreview Preview/0.5
+0 14
+# End Of Table - agents
+# -search strings- 
+# End Of Table - search strings
+# -usernames- 
+# End Of Table - usernames
