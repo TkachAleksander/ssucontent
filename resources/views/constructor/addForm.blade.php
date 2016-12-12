@@ -7,52 +7,82 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
 
+                    {{--Вывод меню вкладок--}}
                     @include('constructor.constructorTabs')
                     <script defer> $('ul[role=tablist]').removeClass('active');$('#tab1').addClass('active') </script>
 
+
                     <div class="panel-body">
-                        <div class="row">
-
-                            <div class="col-sm-12">
-                                <div class="col-sm-4">
-                                    <input type="text" id="name_forms" class="form-control" name="name_forms" placeholder="Имя  формы" required>
-                                </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#accordionListForms" class="collapsed" >
+                                        Просмотреть список форм
+                                    </a>
+                                </h4>
                             </div>
-                            <div class="col-sm-6">
-                                <div id="container" class="col-sm-12">
-
-                                    <p><div class="text-center">Порядок элементов в форме</div></p>
-                                    <table class="table table-bordered">
-
-                                        <tr>
-                                            <th class="text-center"> Имя элемента </th>
-                                            <th class="text-center"> Под элементы </th>
-                                            <th class="text-center"> Удалить </th>
-                                        </tr>
-                                        <tbody id="sortContainer"></tbody>
-
-                                    </table>
-                                    <button id="getArray" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
-
-                                </div>
-                            </div>
-
-                            <div class="col-sm-6">
-                                <p><div class="text-center">Список возможных элементов</div></p>
-                                <table class="table table-bordered table-constructorForm table-padding">
-
-                                    @foreach($set_elements as $set_element)
-                                        <tr>
-                                            <td><button id="{{ $set_element->id_set_elements }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
-                                            <td>{{ $set_element->id_set_elements }}</td>
-                                            <td>{{ $set_element->name_set_elements }}</td>
-                                            <td>{{ $set_element->name_elements }}</td>
-                                            <td>{{ $set_element->value_sub_elements }}</td>
-                                        </tr>
+                            <div id="accordionListForms" class="panel-collapse collapse ">
+                                <div class="panel-body showAllForms">
+                                    <table class="table table-padding table-striped">
+                                    @foreach($name_forms as $name)
+                                         <tr>
+                                             <td>
+                                                 {{$name->name_forms}}
+                                                  <span class="pull-right">
+                                                      <button type="button" class="btn btn-sm btn-success btn-padding-0 editForms" data-id-form="{{$name->id}}"> Редактировать </button>
+                                                      <button type="button" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$name->id}}"> Удалить </button>
+                                                  </span>
+                                             </td>
+                                         </tr>
                                     @endforeach
-                                </table>
+                                    </table>
+                                </div>
                             </div>
+                        </div>
 
+
+                        <div class="col-sm-12">
+                            <div class="col-sm-6">
+                                <input type="text" id="name_form" class="form-control" name="name_forms" placeholder="Имя  формы" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div id="container" class="col-sm-12">
+
+                                <p><div class="text-center">Порядок элементов в форме</div></p>
+                                <table class="table table-bordered table-padding table-sort">
+
+                                    <tr>
+                                        <th class="text-center"> Имя элемента </th>
+                                        <th class="text-center"> Под элементы </th>
+                                        <th class="text-center"> * </th>
+                                        <th class="text-center"> Удалить </th>
+                                    </tr>
+                                    <tbody id="sortContainer"></tbody>
+
+                                </table>
+                                <button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
+
+                            </div>
+                            <div class="col-sm-12" style="margin-top:20px;">
+                                * - поле станет обязательным к заполнению если checkbox активен
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <p><div class="text-center">Список возможных элементов</div></p>
+                            <table class="table table-bordered table-constructorForm table-padding">
+
+                                @foreach($set_elements as $set_element)
+                                    <tr>
+                                        <td><button id="{{ $set_element->id_set_elements }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
+                                        <td>{{ $set_element->id_set_elements }}</td>
+                                        <td>{{ $set_element->name_set_elements }}</td>
+                                        <td>{{ $set_element->name_elements }}</td>
+                                        <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---"}}</td>
+                                    </tr>
+                                @endforeach
+                            </table>
                         </div>
                     </div>
 

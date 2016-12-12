@@ -72,7 +72,7 @@
                                                 <td>{{ $set_element->name_set_elements }}</td>
                                                 <td>{{ $set_element->label_set_elements }}</td>
                                                 <td>{{ $set_element->name_elements }}</td>
-                                                <td>{{ $set_element->value_sub_elements }}</td>
+                                                <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---" }}</td>
                                                 <td><button type="button" id="{{ $set_element->id_set_elements }}" class="editElementFromForm btn btn-sm btn-default btn-padding-0 pull-right"> Редактировать </button></td>
                                             </tr>
                                         @endforeach

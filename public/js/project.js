@@ -163,24 +163,31 @@ $(document).ready(function() {
         helper: fixHelper,
         placeholder: 'emptySpace',
         axis: "y",
-        containment: "table"
+        containment: ".table-sort"
     }).disableSelection();
 
     // Кнопка добавления формы на сервер
-    $('#getArray').on('click', function() {
-        var name_forms = $('#name_forms').val();
+    $('#addNewForm').on('click', function() {
+        var name_forms = $('#name_form').val();
         var queue = $('#sortContainer').sortable("toArray");
+        var required = [];
+        var i = 0;
+        $('#sortContainer input:checkbox:checked').each(function(){
+                required[i++] = $(this).val();
+        });
 
+        console.log(name_forms, queue, required);
         $.ajax({
             type: "POST",
             url: "addSetFormsElements",
-            data: { name_forms:name_forms, queue:queue },
+            data: { name_forms:name_forms, queue:queue, required:required },
             datatype: "JSON",
             beforeSend: function (xhr){
                 xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
             },
             success: function(message){
                 alert(message);
+                (message != "Форма заполнена неверно !") ? location.reload() : "";
             }
         });
 
@@ -201,18 +208,24 @@ $(document).ready(function() {
                 },
                 success: function (data)
                 {
+                    data[0].value_sub_elements =(data[0].value_sub_elements == "") ? "---" : data[0].value_sub_elements;
                     $('#sortContainer').append( '<tr id="' +data[0].id+ '">'+
-                                                   '<td>' +data[0].name_set_elements+ '</td>'+
-                                                   '<td>' + data[0].value_sub_elements+ '</td>'+
-                                                   '<td><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm"> X </button></td>'+
-                                                '</tr>'
-                                                );
+                        '<td>' +data[0].name_set_elements+ '</td>'+
+                        '<td>' +data[0].value_sub_elements+ '</td>'+
+                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
+                        '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm"> X </button></td>'+
+                        '</tr>');
                 }
             });
     });
 
 });
 
+$('#sortContainer').on('click','.dellElementFromForm', function(){
+    console.log($(this).attr('id'));
+    var id = $(this).attr('id');
+    $(this).parents('tr').remove();
+});
 
 
 
@@ -252,17 +265,26 @@ $('.editElementFromForm').on('click',function() {
     var id_set_elements = $(this).attr('id');
     $.ajax({
         type:"POST",
-        url :"/editElementFromForm",
+        url :"/editSetElementFromForm",
         data:{id_set_elements:id_set_elements},
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
         success: function (value) {
+            // Очищаем hidden поля
+            $('#old_name_set_elements').remove();
+            $('#old_label_set_elements').remove();
+            $('#id_set_elements').remove();
 
             // Вставка Имени и Label
             $('#name_set_elements').val(value.set_elements[0].name_set_elements);
             $('#label_set_elements').val(value.set_elements[0].label_set_elements);
+
+            // Вставка Имени и Label в hidden поля
+            $('#name_set_elements').after('<input id="old_name_set_elements" type="hidden" name="old_name_set_elements" value="'+value.set_elements[0].name_set_elements+'" required>'+
+                '<input id="id_set_elements" type="hidden" name="id_set_elements" value="'+value.set_elements[0].id+'" required>');
+            $('#label_set_elements').after('<input id="old_label_set_elements" type="hidden" name="old_label_set_elements" value="'+value.set_elements[0].label_set_elements+'" required>');
 
             // Вставка значения в multiselect
             $('#select_labels option').removeAttr('selected');
@@ -289,8 +311,9 @@ $('.editElementFromForm').on('click',function() {
             $('.sub_elements').attr({'disabled':false, 'required':false});
 
             // Вставляем кнопку редактировать / отменить
-            $('#btn-add').before('<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:15px"> Отмена </button>'+
-                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement();" style="margin-left:15px"> Редактировать </button>')
+            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right" onclick="removeSetElement();" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
+                                 '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
+                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement();" style="margin-left:10px"> Редактировать </button>');
             $('#btn-add').remove();
 
             // создаем куки для элементов которые будут скрыты в бд после редактирования
@@ -305,6 +328,11 @@ $('.editElementFromForm').on('click',function() {
          // Очистка Имени и Label
          $('#name_set_elements').val('');
          $('#label_set_elements').val('');
+
+         // Очищаем hidden поля
+         $('#old_name_set_elements').remove();
+         $('#old_label_set_elements').remove();
+         $('#id_set_elements').remove();
 
          // Очистка значения в multiselect
          $('#select_labels option').removeAttr('selected');
@@ -327,10 +355,33 @@ $('.editElementFromForm').on('click',function() {
      }
 
      function editNewSetElement() {
-         $('form').attr('action', '/addEditedNewElement');
+         $('form').attr('action', '/addEditedNewSetElement');
      }
 
-    // Отображение содержимого формы (Просмотр списка форм constructorForm)
+    function removeSetElement() {
+        var id_set_element = $('#id_set_elements').val();
+        console.log(id_set_element);
+        $.ajax({
+            type: "POST",
+            url: "/removeSetElement",
+            data: {id_set_elements: id_set_element},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (data) {
+                location.reload();
+            }
+        });
+    }
+
+    function cleanTableNewForm() {
+        $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
+        $('#btn-edit-form, #btn-cancel-form').remove();
+        $('#sortContainer').empty();
+        $('#name-form').val('');
+    }
+    // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
         var contentForm = $('#content-form'+id_forms);
@@ -349,12 +400,37 @@ $('.editElementFromForm').on('click',function() {
                     formsInfo.forEach(function (value, key, formsInfo) {
 
                         switch (formsInfo[key].name_elements) {
+
+                            case "input(text)":
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b>');
+                                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"><p></p>');
+                                break;
+
+                            case "input(email)":
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b>');
+                                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].name_set_elements + '"><p></p>');
+                                break;
+
+                            case "textarea":
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b>');
+                                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"></textarea><p></p>');
+                                break;
+                            //????????????????????????
+                            case "radiobutton":
+                                contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
+                                var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                                sub_elements.forEach(function (value, key, sub_elements) {
+                                    contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key] + '"> ' + sub_elements[key] + '</br>');
+                                });
+                                break;
+                            //????????????????????????
                             case "checkbox":
                                 contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
                                 var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
                                 sub_elements.forEach(function (value, key, sub_elements) {
                                     contentForm.append('<input type="checkbox" name="' + sub_elements[key] + '" value="' + sub_elements[key] + '"> ' + sub_elements[key] + '</br>');
                                 });
+                                contentForm.append('<p></p>');
                                 break;
                             
                             case "option":
@@ -379,6 +455,65 @@ $('.editElementFromForm').on('click',function() {
         var sub_elements = str.split(' | ');
         return sub_elements;
     }
+
+    // Удалить форму (Просмотр списка форм) constructorForm
+    $('.removeForms').on('click', function() {
+        var id_forms = $(this).data("idForm");
+        $.ajax({
+            type:"POST",
+            url:"/constructor/removeForms",
+            data:{id_forms:id_forms},
+            dataType:"JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (value) {
+                if(value == 'redirect'){
+                    location.reload();
+                }
+            }
+        })
+    });
+
+    // Редактировать форму (Просмотр списка форм) constructorForm
+    $('.editForms').on('click', function () {
+        var id_form = $(this).data("idForm");
+        $.ajax({
+            type:"POST",
+            url:"/constructor/editForm",
+            data:{id_form:id_form},
+            dataType:"JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (set_elements) {
+
+                var sortContainer = $('#sortContainer');
+                sortContainer.empty();
+                $('#name_form').empty().val(set_elements[0].name_forms);
+
+                $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
+                                       '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewForm();" style="margin-left:10px"> Редактировать </button>')
+                                .remove();
+
+
+                set_elements.forEach(function (set_element, key, set_elements) {
+                    set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
+                    var checked = (set_element.required == 1) ? "checked=true" : "";
+                    sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
+                        '<td>' +set_element.name_set_elements+ '</td>'+
+                        '<td>' +set_element.value_sub_elements+ '</td>'+
+                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
+                        '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm"> X </button></td>'+
+                        '</tr>'
+                    );
+                });
+            }
+        })
+
+    });
+
+
 
 
 

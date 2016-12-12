@@ -58,7 +58,7 @@
                             </a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список доступных статей</a></li>
+                                <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список доступных форм</a></li>
                                 <li><a href="{{ url('/contactsMessages') }}"><i class="fa fa-btn fa-envelope-o"></i>Сообщения</a></li>
                                 @if (Auth::user()->id_roles == 1)
                                     <li><a href="{{ url('/constructor/addForm') }}"><i class="fa fa-btn fa-file-text-o"></i> Конструктор форм </a></li>

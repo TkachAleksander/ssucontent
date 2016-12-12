@@ -3,7 +3,7 @@
 Route::auth();
 
 // Вывод статей
-Route::get('/', 'ArticleController@index');
+Route::get('/', 'FormController@index');
 Route::get('/showArticle/{id}', 'ArticleController@showArticle');
 
 
@@ -59,19 +59,23 @@ Route::group(['middleware' => 'auth'], function(){
 
     /// Вкладка Собрать форму
     Route::get('/constructor/addForm', 'ConstructorFormController@addForm');
+    Route::get('/constructor/addForm/{id}', 'ConstructorFormController@editForms');
     Route::post('/constructor/getSetElements', 'ConstructorFormController@getSetElements');
     Route::post('/constructor/addSetFormsElements', 'ConstructorFormController@addSetFormsElementsToServer');
+    Route::post('/constructor/editForm', 'ConstructorFormController@editForm');
 
     /// Вкладка Добавить элемент
     Route::get('/constructor/newElement', 'ConstructorFormController@newElement');
     Route::post('/constructor/addNewElement', 'ConstructorFormController@addNewElementToServer');
     //// Кнопки редактирования set_elements (вызов из js)
-    Route::post('/editElementFromForm', 'ConstructorFormController@editElementFromForm');
-    Route::post('/addEditedNewElement', 'ConstructorFormController@addEditedNewElement');
+    Route::post('/editSetElementFromForm', 'ConstructorFormController@editSetElementFromForm');
+    Route::post('/addEditedNewSetElement', 'ConstructorFormController@addEditedNewSetElement');
+    Route::post('/removeSetElement', 'ConstructorFormController@removeSetElement');
 
     /// Вкладка Просмотр списка форм
     Route::get('/constructor/showForms', 'ConstructorFormController@showForms');
     Route::post('/constructor/getFormInfo', 'ConstructorFormController@getFormInfo');
+    Route::post('/constructor/removeForms', 'ConstructorFormController@removeFormsToServer');
 
     /// Вкладка Форма/Пользователь
     Route::get('/constructor/formsConnectUsers', 'ConstructorFormController@formsConnectUsers');

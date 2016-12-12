@@ -122,6 +122,14 @@ body {
 	font-size: 12px;
 }
 
+.showAllForms{
+	max-height: 150px;
+	box-shadow: inset -5px -5px 10px 0px #dfdfdf;
+	overflow-y: scroll;
+}
+.showAllForms>table{
+	margin-bottom: 0px;
+}
 /**/
 .emptySpace {
 	background-color: #6cc778;

@@ -3,11 +3,11 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="30943324-39fe-4c69-9a35-8bb3d99538ed" name="content" url="http://content.sumdu.edu.ua">
-        <fileTransfer host="content.sumdu.edu.ua" port="21" rootFolder="/home/ssucontent/public_html" password="dfcbdfc4dfebdffedfd9dfd8dffcdfccdfc4dfd8dfffdffcdfdbdff9dfdadffcdfe0dfe7dffcdfe0dfe4dfc0df9cdfdcdfc9" username="ssucontent">
+        <fileTransfer host="content.sumdu.edu.ua" port="2222" rootFolder="/home/ssucontent/public_html" accessType="SFTP" password="dfcbdfc4dfebdffedfd9dfd8dffcdfccdfc4dfd8dfffdffcdfdbdff9dfdadffcdfe0dfe7dffcdfe0dfe4dfc0df9cdfdcdfc9" username="ssucontent">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" />
           </advancedOptions>
-          <option name="port" value="21" />
+          <option name="port" value="2222" />
         </fileTransfer>
       </webServer>
     </option>
