@@ -21,7 +21,8 @@
                                     </a>
                                 </h4>
                             </div>
-                            <div id="accordionListForms" class="panel-collapse collapse ">
+                            {{--<div id="accordionListForms" class="panel-collapse collapse ">--}}
+                            <div id="accordionListForms" class="panel-collapse collapse in" aria-expanded="true">
                                 <div class="panel-body showAllForms">
                                     <table class="table table-padding table-striped">
                                     @foreach($name_forms as $name)

@@ -165,9 +165,70 @@ $(document).ready(function() {
         axis: "y",
         containment: ".table-sort"
     }).disableSelection();
+});
+
+    // Удалить форму(скрыть) constructorForm
+    $('.removeForms').on('click', function() {
+        var id_forms = $(this).data("idForm");
+        $.ajax({
+            type:"POST",
+            url:"/constructor/removeForms",
+            data:{id_forms:id_forms},
+            dataType:"JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (value) {
+                if(value == 'redirect'){
+                    location.reload();
+                }
+            }
+        })
+    });
+
+    // Выбрать форму для редактирования
+    $('.editForms').on('click', function () {
+        var id_form = $(this).data("idForm");
+        $.ajax({
+            type:"POST",
+            url:"/constructor/editForm",
+            data:{id_form:id_form},
+            dataType:"JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (set_elements) {
+
+                var sortContainer = $('#sortContainer');
+                sortContainer.empty();
+                $('#name_form').empty().val(set_elements[0].name_forms);
+
+                $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
+                        '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'"<!--onclick="editNewForm();-->" style="margin-left:10px"> Редактировать </button>')
+                    .remove();
+
+                console.log(set_elements);
+                set_elements.forEach(function (set_element, key, set_elements) {
+                    set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
+                    var checked = (set_element.required == 1) ? "checked=true" : "";
+                    sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
+                        '<td>' +set_element.name_set_elements+ '</td>'+
+                        '<td>' +set_element.value_sub_elements+ '</td>'+
+                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
+                        '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="'+set_element.id+'"> X </button></td>'+
+                        '</tr>'
+                    );
+                });
+
+                // создаем куки для элементов которые будут скрыты в бд после редактирования
+                $.cookie('uninstalled_elements_from_form', new Array(), {expires: 1, path:'/'});
+            }
+        })
+
+    });
 
     // Кнопка добавления формы на сервер
-    $('#addNewForm').on('click', function() {
+    $('#container').on('click','#addNewForm', function() {
         var name_forms = $('#name_form').val();
         var queue = $('#sortContainer').sortable("toArray");
         var required = [];
@@ -176,12 +237,12 @@ $(document).ready(function() {
                 required[i++] = $(this).val();
         });
 
-        console.log(name_forms, queue, required);
+        // console.log(name_forms, queue, required);
         $.ajax({
             type: "POST",
             url: "addSetFormsElements",
             data: { name_forms:name_forms, queue:queue, required:required },
-            datatype: "JSON",
+            dataType: "JSON",
             beforeSend: function (xhr){
                 xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
             },
@@ -194,7 +255,7 @@ $(document).ready(function() {
     });
 
     // Добаление элементов в область перетаскивания
-    $('.addElementInForm').on('click', function(){
+    $('.table-constructorForm').on('click','.addElementInForm', function(){
             var idSetElement = $(this).attr('id');
 
             $.ajax({
@@ -213,19 +274,72 @@ $(document).ready(function() {
                         '<td>' +data[0].name_set_elements+ '</td>'+
                         '<td>' +data[0].value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
-                        '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm"> X </button></td>'+
+                        '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="0"> X </button></td>'+
                         '</tr>');
                 }
             });
     });
 
-});
 
+
+// Стереть элементы с таблицы сбора формы
 $('#sortContainer').on('click','.dellElementFromForm', function(){
-    console.log($(this).attr('id'));
+    // console.log($(this).attr('id'));
+    var element_id = $(this).attr('data-id');
+    console.log(element_id);
+    if (element_id != 0) {
+        // не пишем первую запятую
+        if ($.cookie('uninstalled_elements_from_form') != Array()) {
+            element_id += "," + $.cookie('uninstalled_elements_from_form');
+        }
+        $.cookie('uninstalled_elements_from_form', element_id, {expires: 1, path:'/'});
+    }
     var id = $(this).attr('id');
     $(this).parents('tr').remove();
 });
+
+// Кнопка отмены редактируемой формы
+function cleanTableNewForm() {
+    $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
+    $('#btn-edit-form, #btn-cancel-form').remove();
+    $('#sortContainer').empty();
+    $('#name_form').val("");
+    $.cookie('uninstalled_elements_from_form', '', {expires: -1, path:'/'});
+}
+
+// Кнопка отправки отредактированной формы
+$('#container').on('click','#btn-edit-form',function () {
+    var id_form = $(this).data('idForm');
+    var name_forms = $('#name_form').val();
+    var queue = $('#sortContainer').sortable("toArray");
+    var required = [];
+    var i = 0;
+    $('#sortContainer input:checkbox:checked').each(function(){
+        required[i++] = $(this).val();
+    });
+
+    console.log(name_forms, queue, required, id_form);
+    $.ajax({
+        type:"POST",
+        url:"/constructor/addEditedNewForm",
+        data:{name_forms: name_forms, queue:queue, required:required, id_form:id_form},
+        dataType:"JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function () {
+            location.reload();
+        }
+    })
+});
+
+
+
+
+
+
+
+
 
 
 
@@ -254,7 +368,7 @@ $(document).on('click', '.btn-add', function(e)
         if ($.cookie('uninstalled_sub_elements') != Array()) {
             id += "," + $.cookie('uninstalled_sub_elements');
         }
-        $.cookie('uninstalled_sub_elements', id);
+        $.cookie('uninstalled_sub_elements', id, {expires: 1, path:'/'});
     }
     e.preventDefault();
     return false;
@@ -375,12 +489,11 @@ $('.editElementFromForm').on('click',function() {
         });
     }
 
-    function cleanTableNewForm() {
-        $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
-        $('#btn-edit-form, #btn-cancel-form').remove();
-        $('#sortContainer').empty();
-        $('#name-form').val('');
-    }
+
+
+
+
+
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
@@ -456,66 +569,6 @@ $('.editElementFromForm').on('click',function() {
         return sub_elements;
     }
 
-    // Удалить форму (Просмотр списка форм) constructorForm
-    $('.removeForms').on('click', function() {
-        var id_forms = $(this).data("idForm");
-        $.ajax({
-            type:"POST",
-            url:"/constructor/removeForms",
-            data:{id_forms:id_forms},
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (value) {
-                if(value == 'redirect'){
-                    location.reload();
-                }
-            }
-        })
-    });
-
-    // Редактировать форму (Просмотр списка форм) constructorForm
-    $('.editForms').on('click', function () {
-        var id_form = $(this).data("idForm");
-        $.ajax({
-            type:"POST",
-            url:"/constructor/editForm",
-            data:{id_form:id_form},
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (set_elements) {
-
-                var sortContainer = $('#sortContainer');
-                sortContainer.empty();
-                $('#name_form').empty().val(set_elements[0].name_forms);
-
-                $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
-                                       '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewForm();" style="margin-left:10px"> Редактировать </button>')
-                                .remove();
-
-
-                set_elements.forEach(function (set_element, key, set_elements) {
-                    set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
-                    var checked = (set_element.required == 1) ? "checked=true" : "";
-                    sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
-                        '<td>' +set_element.name_set_elements+ '</td>'+
-                        '<td>' +set_element.value_sub_elements+ '</td>'+
-                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
-                        '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm"> X </button></td>'+
-                        '</tr>'
-                    );
-                });
-            }
-        })
-
-    });
-
-
-
-
 
     // Вкладка Форма/Пользователь отображение уже существующих связей
     $("#id_forms").change(function(){
@@ -563,26 +616,26 @@ $('.editElementFromForm').on('click',function() {
         });
     });
 
-// Кнопка удаления связей
-$('#btn-forms-disconnect-users').on('click', function(){
-    var id_forms = $('#id_forms option:selected').val();
-    var id_users = $('#id_users option:selected').val();
-    // alert (id_forms+id_users);
-    $.ajax({
-        type:"POST",
-        url:"setTableDisconnectUsers",
-        data:{ id_forms:id_forms, id_users:id_users },
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (value) {
-            alert(value);
-            if(value == 'Связь успешно разорвана.')
-                location.reload();
-        }
+    // Кнопка удаления связей
+    $('#btn-forms-disconnect-users').on('click', function(){
+        var id_forms = $('#id_forms option:selected').val();
+        var id_users = $('#id_users option:selected').val();
+        // alert (id_forms+id_users);
+        $.ajax({
+            type:"POST",
+            url:"setTableDisconnectUsers",
+            data:{ id_forms:id_forms, id_users:id_users },
+            dataType:"JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (value) {
+                alert(value);
+                if(value == 'Связь успешно разорвана.')
+                    location.reload();
+            }
+        });
     });
-});
 
 
 

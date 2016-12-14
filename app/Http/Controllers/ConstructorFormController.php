@@ -15,14 +15,7 @@ class ConstructorFormController extends Controller
             ->orderBy('set_elements.name_set_elements', 'asc')
             ->get();
 
-        foreach ($set_elements as $key => $set_element) {
-            $id_set_element = $set_element->id_set_elements;
-            $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)
-                ->pluck('value_sub_elements');
-            $value_sub_elements = implode(" | ", $sub_elements);
-            $set_elements[$key]->value_sub_elements = $value_sub_elements;
-        }
+        $this->FOREACH_IMPLODE($set_elements);
 
         $name_forms = DB::table('forms')->where('show','=',1)->get();
 
@@ -72,6 +65,50 @@ class ConstructorFormController extends Controller
         }
     }
 
+    public function addEditedNewForm(Request $request)
+    {
+        // Собираем информацию о элементах формы
+        $set_elements = DB::table('forms as f')->where('f.id', '=', $request->input('id_form'))->where('f.show', '=', 1)
+            ->join('set_forms_elements as sfe', 'sfe.id_forms', '=', 'f.id')
+            ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+            ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->select('f.name_forms', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
+            ->get();
+        // Дополняем информацию под элементами
+        $this->FOREACH_IMPLODE($set_elements);
+
+        // Изменение старого имени формы на новое
+        if ($set_elements[0]->name_forms != $request->input('name_forms')) {
+            DB::table('forms')->where('id', '=', $request->input('id_form'))
+                ->update(['name_forms' => $request->input('name_forms')]);
+        }
+
+        $bool = false;
+        DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_form'))->delete();
+        if (!empty($request->input('required'))){
+            foreach($request->input('queue') as $id_set_elements){
+                foreach($request->input('required') as $required){
+                    if($id_set_elements == $required){
+                        $bool = true;
+                        break 1;
+                    } else {
+                        $bool = false;
+                    }
+                }
+                DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+            }
+        } else {
+            foreach($request->input('queue') as $id_set_elements){
+                DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+            }
+        }
+//        dd($set_elements);
+        return response()->json('');
+
+    }
+
+
+
 
 
 
@@ -83,14 +120,7 @@ class ConstructorFormController extends Controller
             ->orderBy('set_elements.name_set_elements', 'asc')
             ->get();
 
-        foreach ($set_elements as $key => $set_element) {
-            $id_set_element = $set_element->id_set_elements;
-            $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)
-                ->pluck('value_sub_elements');
-            $value_sub_elements = implode(" | ", $sub_elements);
-            $set_elements[$key]->value_sub_elements = $value_sub_elements;
-        }
+        $this->FOREACH_IMPLODE($set_elements);
 
         return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements]);
     }
@@ -116,7 +146,6 @@ class ConstructorFormController extends Controller
     }
 
     public function editSetElementFromForm(Request $request){
-
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
         $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $request->input('id_set_elements'))
@@ -127,9 +156,6 @@ class ConstructorFormController extends Controller
 
     public function addEditedNewSetElement(Request $request) {
 
-//        $set_elements = DB::table('set_elements')->where('name_set_elements', '=', $request->input('old_name_set_elements'))
-//            ->where('label_set_elements', '=', $request->input('old_label_set_elements'))
-//            ->get();
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
@@ -173,6 +199,7 @@ class ConstructorFormController extends Controller
                 DB::table('sub_elements')->where('id', '=', $id_sub_element)->update(['show' => 0]);
             }
         }
+        setcookie ("uninstalled_sub_elements", "", time() - 3600);
         return redirect('/constructor/newElement');
     }
 
@@ -192,15 +219,22 @@ class ConstructorFormController extends Controller
             ->select('sfe.id_set_elements', 'sfe.width', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
 //            ->orderBy('id_set_elements', 'desc')
             ->get();
-        foreach ($form_info as $key => $set_element) {
+
+        $this->FOREACH_IMPLODE($form_info);
+
+        return $form_info;
+    }
+
+    public function FOREACH_IMPLODE($arr){
+        foreach ($arr as $key => $set_element) {
             $id_set_element = $set_element->id_set_elements;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
                 ->where('show','=',1)
                 ->pluck('value_sub_elements');
             $value_sub_elements = implode(" | ", $sub_elements);
-            $form_info[$key]->value_sub_elements = $value_sub_elements;
+            $arr[$key]->value_sub_elements = $value_sub_elements;
         }
-        return $form_info;
+        return $arr;
     }
 
     public function showForms(){
@@ -222,19 +256,11 @@ class ConstructorFormController extends Controller
         $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
             ->join('forms as f', 'f.id','=','sfe.id_forms')
             ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
-//            ->orderBy('id','desc')
-            ->select('sfe.id_set_elements', 'sfe.required','f.name_forms','se.*')
+            ->orderBy('sfe.id','asc')
+            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements')
             ->get();
 
-
-        foreach ($set_elements as $key => $set_element) {
-            $id_set_element = $set_element->id_set_elements;
-            $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)
-                ->pluck('value_sub_elements');
-            $value_sub_elements = implode(" | ", $sub_elements);
-            $set_elements[$key]->value_sub_elements = $value_sub_elements;
-        }
+        $this->FOREACH_IMPLODE($set_elements);
 
         return response()->json($set_elements);
     }
