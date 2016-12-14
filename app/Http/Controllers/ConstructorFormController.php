@@ -59,9 +59,9 @@ class ConstructorFormController extends Controller
                     'required' => $required
                 ]);
             }
-            return "Форма успешно добавлена !";
+            return response()->json(['message'=>'Форма успешно добавлена !', 'bool'=>true]);
         } else {
-            return "Форма заполнена неверно !";
+            return response()->json(['message'=>'Форма заполнена неверно !', 'bool'=>false]);
         }
     }
 
@@ -78,32 +78,37 @@ class ConstructorFormController extends Controller
         $this->FOREACH_IMPLODE($set_elements);
 
         // Изменение старого имени формы на новое
-        if ($set_elements[0]->name_forms != $request->input('name_forms')) {
-            DB::table('forms')->where('id', '=', $request->input('id_form'))
-                ->update(['name_forms' => $request->input('name_forms')]);
-        }
+        $repeat_name_forms = DB::table('forms')->where('name_forms','=',$request->input('name_forms'))->get();
+        if (empty($repeat_name_forms) || $repeat_name_forms[0]->name_forms == $request->input('old_name_forms')) {
 
-        $bool = false;
-        DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_form'))->delete();
-        if (!empty($request->input('required'))){
-            foreach($request->input('queue') as $id_set_elements){
-                foreach($request->input('required') as $required){
-                    if($id_set_elements == $required){
-                        $bool = true;
-                        break 1;
-                    } else {
-                        $bool = false;
+            if ($set_elements[0]->name_forms != $request->input('name_forms')) {
+                DB::table('forms')->where('id', '=', $request->input('id_form'))
+                    ->update(['name_forms' => $request->input('name_forms')]);
+            }
+
+            $bool = false;
+            DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))->delete();
+            if (!empty($request->input('required'))) {
+                foreach ($request->input('queue') as $id_set_elements) {
+                    foreach ($request->input('required') as $required) {
+                        if ($id_set_elements == $required) {
+                            $bool = true;
+                            break 1;
+                        } else {
+                            $bool = false;
+                        }
                     }
+                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
-                DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+            } else {
+                foreach ($request->input('queue') as $id_set_elements) {
+                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+                }
             }
+            return response()->json(['message'=>'Форма успешно отредактирована!','bool'=>true]);
         } else {
-            foreach($request->input('queue') as $id_set_elements){
-                DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
-            }
+            return response()->json(['message' => 'Форма с таким именем уже существует. Пожалуйста измените имя формы.', 'bool' => false]);
         }
-//        dd($set_elements);
-        return response()->json('');
 
     }
 
@@ -205,7 +210,7 @@ class ConstructorFormController extends Controller
 
     public function removeSetElement(Request $request){
         DB::table('set_elements')->where('id','=',$request->input('id_set_elements'))->delete();
-        return response()->json(' ');
+        return response()->json();
     }
 
 
@@ -249,7 +254,7 @@ class ConstructorFormController extends Controller
 
     public function removeFormsToServer(Request $request){
         DB::table('forms')->where('id','=',$request->input('id_forms'))->update(['show' => 0]);
-        return response()->json("redirect");
+        return response()->json();
     }
 
     public function editForm(Request $request){
@@ -299,11 +304,10 @@ class ConstructorFormController extends Controller
         if($value == null) {
             DB::table('set_forms_users')->insert(['id_forms' => $request->input('id_forms'),
                 'id_users' => $request->input('id_users')]);
-            $value = "Связь успешно добавлена.";
+            return response()->json(['message'=>'Связь успешно добавлена.', 'bool'=>true]);
         } else {
-            $value = "Такая связь уже существует !";
+            return response()->json(['message'=>'Такая связь уже существует!', 'bool'=>false]);
         }
-        return response()->json($value);
 
     }
 
@@ -314,10 +318,9 @@ class ConstructorFormController extends Controller
 
         if($value != null) {
             DB::table('set_forms_users')->where('id', '=', $value)->delete();
-            $value = "Связь успешно разорвана.";
+            return response()->json(['message'=>'Связь успешно разорвана.', 'bool'=>true]);
         } else {
-            $value = "Такой связи не существует !";
+            return response()->json(['message'=>'Такой связи не существует!', 'bool'=>false]);
         }
-        return response()->json($value);
     }
 }

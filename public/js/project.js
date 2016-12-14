@@ -178,10 +178,8 @@ $(document).ready(function() {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function (value) {
-                if(value == 'redirect'){
-                    location.reload();
-                }
+            success: function () {
+                location.reload();
             }
         })
     });
@@ -201,13 +199,14 @@ $(document).ready(function() {
 
                 var sortContainer = $('#sortContainer');
                 sortContainer.empty();
-                $('#name_form').empty().val(set_elements[0].name_forms);
+                $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="'+set_elements[0].name_forms+'" required>')
+                               .empty().val(set_elements[0].name_forms);
 
                 $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
-                        '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'"<!--onclick="editNewForm();-->" style="margin-left:10px"> Редактировать </button>')
+                        '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'" style="margin-left:10px"> Редактировать </button>')
                     .remove();
 
-                console.log(set_elements);
+                // console.log(set_elements);
                 set_elements.forEach(function (set_element, key, set_elements) {
                     set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
                     var checked = (set_element.required == 1) ? "checked=true" : "";
@@ -220,8 +219,6 @@ $(document).ready(function() {
                     );
                 });
 
-                // создаем куки для элементов которые будут скрыты в бд после редактирования
-                $.cookie('uninstalled_elements_from_form', new Array(), {expires: 1, path:'/'});
             }
         })
 
@@ -238,17 +235,20 @@ $(document).ready(function() {
         });
 
         // console.log(name_forms, queue, required);
+
         $.ajax({
             type: "POST",
             url: "addSetFormsElements",
             data: { name_forms:name_forms, queue:queue, required:required },
-            dataType: "JSON",
+            dataType:"JSON",
             beforeSend: function (xhr){
                 xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
             },
-            success: function(message){
-                alert(message);
-                (message != "Форма заполнена неверно !") ? location.reload() : "";
+            success: function(data){
+                alert(data.message);
+                if(data.bool) {
+                    location.reload();
+                }
             }
         });
 
@@ -262,7 +262,7 @@ $(document).ready(function() {
                 url: 'getSetElements',
                 data: {idSetElement:idSetElement},
                 type: 'POST',
-                datatype: 'JSON',
+                dataType: 'JSON',
                 beforeSend: function(xhr)
                 {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -284,16 +284,6 @@ $(document).ready(function() {
 
 // Стереть элементы с таблицы сбора формы
 $('#sortContainer').on('click','.dellElementFromForm', function(){
-    // console.log($(this).attr('id'));
-    var element_id = $(this).attr('data-id');
-    console.log(element_id);
-    if (element_id != 0) {
-        // не пишем первую запятую
-        if ($.cookie('uninstalled_elements_from_form') != Array()) {
-            element_id += "," + $.cookie('uninstalled_elements_from_form');
-        }
-        $.cookie('uninstalled_elements_from_form', element_id, {expires: 1, path:'/'});
-    }
     var id = $(this).attr('id');
     $(this).parents('tr').remove();
 });
@@ -304,13 +294,14 @@ function cleanTableNewForm() {
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
     $('#name_form').val("");
-    $.cookie('uninstalled_elements_from_form', '', {expires: -1, path:'/'});
+    $('#old_name_forms').remove();
 }
 
 // Кнопка отправки отредактированной формы
 $('#container').on('click','#btn-edit-form',function () {
     var id_form = $(this).data('idForm');
-    var name_forms = $('#name_form').val();
+    var name_forms = $('#name_forms').val();
+    var old_name_forms = $('#old_name_forms').val();
     var queue = $('#sortContainer').sortable("toArray");
     var required = [];
     var i = 0;
@@ -322,13 +313,16 @@ $('#container').on('click','#btn-edit-form',function () {
     $.ajax({
         type:"POST",
         url:"/constructor/addEditedNewForm",
-        data:{name_forms: name_forms, queue:queue, required:required, id_form:id_form},
+        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form},
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
-        success: function () {
-            location.reload();
+        success: function (data) {
+            alert(data.message);
+            if(data.bool) {
+                location.reload();
+            }
         }
     })
 });
@@ -483,7 +477,7 @@ $('.editElementFromForm').on('click',function() {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function (data) {
+            success: function () {
                 location.reload();
             }
         });
@@ -608,10 +602,11 @@ $('.editElementFromForm').on('click',function() {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function (value) {
-                alert(value);
-                if(value == 'Связь успешно добавлена.')
+            success: function (data) {
+                alert(data.message);
+                if(data.bool) {
                     location.reload();
+                }
             }
         });
     });
@@ -629,10 +624,11 @@ $('.editElementFromForm').on('click',function() {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function (value) {
-                alert(value);
-                if(value == 'Связь успешно разорвана.')
+            success: function (data) {
+                alert(data.message);
+                if(data.bool) {
                     location.reload();
+                }
             }
         });
     });

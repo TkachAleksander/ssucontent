@@ -21,7 +21,6 @@
                                     </a>
                                 </h4>
                             </div>
-                            {{--<div id="accordionListForms" class="panel-collapse collapse ">--}}
                             <div id="accordionListForms" class="panel-collapse collapse in" aria-expanded="true">
                                 <div class="panel-body showAllForms">
                                     <table class="table table-padding table-striped">
@@ -44,7 +43,7 @@
 
                         <div class="col-sm-12">
                             <div class="col-sm-6">
-                                <input type="text" id="name_form" class="form-control" name="name_forms" placeholder="Имя  формы" required>
+                                <input type="text" id="name_forms" class="form-control" name="name_forms" placeholder="Имя  формы" required>
                             </div>
                         </div>
                         <div class="col-sm-6">
@@ -77,9 +76,8 @@
                                 @foreach($set_elements as $set_element)
                                     <tr>
                                         <td><button id="{{ $set_element->id_set_elements }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
-                                        <td>{{ $set_element->id_set_elements }}</td>
                                         <td>{{ $set_element->name_set_elements }}</td>
-                                        <td>{{ $set_element->name_elements }}</td>
+                                        <td>{{ $set_element->label_set_elements }}</td>
                                         <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---"}}</td>
                                     </tr>
                                 @endforeach
