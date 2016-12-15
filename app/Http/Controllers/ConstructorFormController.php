@@ -232,7 +232,6 @@ class ConstructorFormController extends Controller
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->select('sfe.id_set_elements', 'sfe.width', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
-//            ->orderBy('id_set_elements', 'desc')
             ->get();
 
         $this->FOREACH_IMPLODE($form_info);
@@ -242,12 +241,24 @@ class ConstructorFormController extends Controller
 
     public function FOREACH_IMPLODE($arr){
         foreach ($arr as $key => $set_element) {
+            
             $id_set_element = $set_element->id_set_elements;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show','=',1)
-                ->pluck('value_sub_elements');
-            $value_sub_elements = implode(" | ", $sub_elements);
+                ->where('show','=',1)->select('name_sub_elements','value_sub_elements')->get();
+
+            if(!empty($sub_elements)) {
+                foreach ($sub_elements as $key_sub => $value) {
+                    $values[$key_sub] = $value->value_sub_elements;
+                }
+                $name_sub_element = $sub_elements[0]->name_sub_elements;
+            } else {
+                $values = [];
+                $name_sub_element = [];
+            }
+            $value_sub_elements = implode(" | ", $values);
+
             $arr[$key]->value_sub_elements = $value_sub_elements;
+            $arr[$key]->name_sub_elements = $name_sub_element;
         }
         return $arr;
     }

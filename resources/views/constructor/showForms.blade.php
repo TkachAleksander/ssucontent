@@ -23,7 +23,6 @@
                                                 {{ $f_name->name_forms }}
                                                 <span class="pull-right">
                                                      <?php $show = ($f_name->show == 0) ? "[скрыта]" : "[видна]" ;?>
-                                                    {{--<button type="button" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$f_name->id}}"> Удалить </button>--}}
                                                     {{ $show }}
                                                 </span>
                                             </a>

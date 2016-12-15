@@ -504,6 +504,7 @@ $('.editElementFromForm').on('click',function() {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
+                    console.log(formsInfo);
                     formsInfo.forEach(function (value, key, formsInfo) {
 
                         switch (formsInfo[key].name_elements) {
@@ -522,14 +523,15 @@ $('.editElementFromForm').on('click',function() {
                                 contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b>');
                                 contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"></textarea><p></p>');
                                 break;
-                            //????????????????????????
+
                             case "radiobutton":
                                 contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
                                 var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                sub_elements.forEach(function (value, key, sub_elements) {
-                                    contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key] + '"> ' + sub_elements[key] + '</br>');
+                                sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                    contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"> ' + sub_elements[key_sub] + '</br>');
                                 });
                                 break;
+                            
                             //????????????????????????
                             case "checkbox":
                                 contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
