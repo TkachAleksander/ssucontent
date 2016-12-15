@@ -37,7 +37,6 @@ class ConstructorFormController extends Controller
     }
 
     public function addSetFormsElementsToServer(Request $request){
-//        dd($request->input('name_forms'));
         if (!empty($request->input('name_forms'))){
             $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms') ]);
 
@@ -119,6 +118,15 @@ class ConstructorFormController extends Controller
 
 
 // newElement
+    public function generateString($length = 8){
+        $chars = 'abdefhiknrstyzABDEFGHKNQRSTYZ23456789';
+        $numChars = strlen($chars);
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= substr($chars, rand(1, $numChars) - 1, 1);
+        }
+        return $string;
+    }
     public function newElement(){
         $elements = DB::table('elements')->get();
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
@@ -127,8 +135,8 @@ class ConstructorFormController extends Controller
             ->get();
 
         $this->FOREACH_IMPLODE($set_elements);
-
-        return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements]);
+        $name_set_elements = $this->generateString();
+        return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements,'name_set_elements' => $name_set_elements]);
     }
     
     public function addNewElementToServer(Request $request){
@@ -143,6 +151,7 @@ class ConstructorFormController extends Controller
                     $value = trim ($value ," \t\n\r\0\x0B");
                     DB::table('sub_elements')->insert([
                         'id_set_elements' => $id,
+                        'name_sub_elements' => $request->input('name_set_elements'),
                         'value_sub_elements' => $value
                     ]);
                 }
