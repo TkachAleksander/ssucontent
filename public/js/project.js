@@ -124,12 +124,7 @@
 
 // Подтверждение нажатия на кнопку
 $('.confirmDelete').on('click', function() {
-
-    if (confirm("Вы подтверждаете удаление?")) {
-        return true;
-    } else {
-        return false;
-    }
+    return (confirm("Вы подтверждаете удаление?")) ? true : false ;
 });
 
 $(document).ready(function() {
