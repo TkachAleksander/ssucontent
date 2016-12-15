@@ -226,7 +226,7 @@ $(document).ready(function() {
 
     // Кнопка добавления формы на сервер
     $('#container').on('click','#addNewForm', function() {
-        var name_forms = $('#name_form').val();
+        var name_forms = $('#name_forms').val();
         var queue = $('#sortContainer').sortable("toArray");
         var required = [];
         var i = 0;

@@ -37,6 +37,7 @@ class ConstructorFormController extends Controller
     }
 
     public function addSetFormsElementsToServer(Request $request){
+//        dd($request->input('name_forms'));
         if (!empty($request->input('name_forms'))){
             $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms') ]);
 
