@@ -64,7 +64,6 @@
 
                                         @foreach($set_elements as $set_element)
                                             <tr>
-                                                <td>{{ $set_element->name_set_elements }}</td>
                                                 <td>{{ $set_element->label_set_elements }}</td>
                                                 <td>{{ $set_element->name_elements }}</td>
                                                 <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---" }}</td>
