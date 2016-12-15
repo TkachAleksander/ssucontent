@@ -211,7 +211,7 @@ $(document).ready(function() {
                     set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
                     var checked = (set_element.required == 1) ? "checked=true" : "";
                     sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
-                        '<td>' +set_element.name_set_elements+ '</td>'+
+                        '<td>' +set_element.label_set_elements+ '</td>'+
                         '<td>' +set_element.value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
                         '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="'+set_element.id+'"> X </button></td>'+
@@ -271,7 +271,7 @@ $(document).ready(function() {
                 {
                     data[0].value_sub_elements =(data[0].value_sub_elements == "") ? "---" : data[0].value_sub_elements;
                     $('#sortContainer').append( '<tr id="' +data[0].id+ '">'+
-                        '<td>' +data[0].name_set_elements+ '</td>'+
+                        '<td>' +data[0].label_set_elements+ '</td>'+
                         '<td>' +data[0].value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
                         '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="0"> X </button></td>'+
