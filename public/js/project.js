@@ -134,12 +134,17 @@ $(document).ready(function() {
 
     // Страница newElement проверка активное/неактивное поле после выбора select
     $("#select_labels").change(function(){
-        $val = $('#select_labels :selected').val();
-        if($val == 1 || $val == 2 || $val == 3){
-            $('.sub_elements').val('');
-            $('.sub_elements').attr('disabled', true);
-        } else
-            $('.sub_elements').attr('disabled', false);
+        var sub_elements = $('.sub_elements');
+
+        var val = $('#select_labels :selected').val();
+        switch (val) {
+            case '5':
+            case '6':
+                sub_elements.attr('disabled', false);
+                break;
+            default:
+                sub_elements.attr('disabled', true);
+        }
     });
 
 
