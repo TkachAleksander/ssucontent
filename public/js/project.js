@@ -138,6 +138,7 @@ $(document).ready(function() {
 
         var val = $('#select_labels :selected').val();
         switch (val) {
+            case '4':
             case '5':
             case '6':
                 sub_elements.attr('disabled', false);
