@@ -380,19 +380,22 @@ $('.editElementFromForm').on('click',function() {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
         success: function (value) {
+            var name_set_elements = $('#name_set_elements');
+            var label_set_elements = $('#label_set_elements');
+
             // Очищаем hidden поля
             $('#old_name_set_elements').remove();
             $('#old_label_set_elements').remove();
             $('#id_set_elements').remove();
 
             // Вставка Имени и Label
-            $('#name_set_elements').val(value.set_elements[0].name_set_elements);
-            $('#label_set_elements').val(value.set_elements[0].label_set_elements);
+            name_set_elements.val(value.set_elements[0].name_set_elements);
+            label_set_elements.val(value.set_elements[0].label_set_elements);
 
             // Вставка Имени и Label в hidden поля
-            $('#name_set_elements').after('<input id="old_name_set_elements" type="hidden" name="old_name_set_elements" value="'+value.set_elements[0].name_set_elements+'" required>'+
+            name_set_elements.after('<input id="old_name_set_elements" type="hidden" name="old_name_set_elements" value="'+value.set_elements[0].name_set_elements+'" required>'+
                 '<input id="id_set_elements" type="hidden" name="id_set_elements" value="'+value.set_elements[0].id+'" required>');
-            $('#label_set_elements').after('<input id="old_label_set_elements" type="hidden" name="old_label_set_elements" value="'+value.set_elements[0].label_set_elements+'" required>');
+            label_set_elements.after('<input id="old_label_set_elements" type="hidden" name="old_label_set_elements" value="'+value.set_elements[0].label_set_elements+'" required>');
 
             // Вставка значения в multiselect
             $('#select_labels option').removeAttr('selected');
@@ -454,9 +457,8 @@ $('.editElementFromForm').on('click',function() {
          $('.sub_elements').attr({'disabled':true, 'required':true});
 
          // Вставляем кнопку добавить, удаляем кнопки редактировать и отменить
-         $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>');
-         $('#btn-edit').remove();
-         $('#btn-cancel').remove();
+         $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>').remove();
+         $('#btn-edit, #btn-remove').remove();
 
          // удаляем куки
          $.cookie('uninstalled_sub_elements', new Array(), {expires: -1, path:'/'});
