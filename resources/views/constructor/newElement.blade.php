@@ -19,15 +19,10 @@
                                     <table class="table-padding">
                                         {{ csrf_field() }}
                                         <tr>
-                                            <td> Имя элемента </td>
-                                            <td>
-                                                <input id="name_set_elements" class="form-control" type="text" name="name_set_elements" required>
-                                            </td>
-                                        </tr>
-                                        <tr>
                                             <td> Заголовок (lable) </td>
                                             <td>
                                                 <input id="label_set_elements" class="form-control" type="text" name="label_set_elements" required>
+                                                <input id="name_set_elements" type="hidden" name="name_set_elements" value="{{$name_set_elements}}"required>
                                             </td>
                                         </tr>
                                         <tr>
@@ -69,7 +64,6 @@
 
                                         @foreach($set_elements as $set_element)
                                             <tr>
-                                                <td>{{ $set_element->name_set_elements }}</td>
                                                 <td>{{ $set_element->label_set_elements }}</td>
                                                 <td>{{ $set_element->name_elements }}</td>
                                                 <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---" }}</td>

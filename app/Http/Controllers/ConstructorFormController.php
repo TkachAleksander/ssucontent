@@ -6,8 +6,14 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
 
+//define("RADIOBUTTON", "radiobutton");
+//define("CHECKBOX", 'checkbox');
 class ConstructorFormController extends Controller
 {
+    const RADIOBUTTON = "radiobutton";
+    const CHECKBOX = "checkbox";
+    const OPTION = "option";
+
 // addForm
     public function addForm(){
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
@@ -37,7 +43,6 @@ class ConstructorFormController extends Controller
     }
 
     public function addSetFormsElementsToServer(Request $request){
-//        dd($request->input('name_forms'));
         if (!empty($request->input('name_forms'))){
             $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms') ]);
 
@@ -119,6 +124,15 @@ class ConstructorFormController extends Controller
 
 
 // newElement
+    public function generateString($length = 8){
+        $chars = 'abdefhiknrstyzABDEFGHKNQRSTYZ23456789';
+        $numChars = strlen($chars);
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= substr($chars, rand(1, $numChars) - 1, 1);
+        }
+        return $string;
+    }
     public function newElement(){
         $elements = DB::table('elements')->get();
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
@@ -127,8 +141,8 @@ class ConstructorFormController extends Controller
             ->get();
 
         $this->FOREACH_IMPLODE($set_elements);
-
-        return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements]);
+        $name_set_elements = $this->generateString();
+        return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements,'name_set_elements' => $name_set_elements]);
     }
     
     public function addNewElementToServer(Request $request){
@@ -137,14 +151,32 @@ class ConstructorFormController extends Controller
             'label_set_elements' => $request->input('label_set_elements'),
             'id_elements' => $request->input('id_elements')
         ]);
+        $name_element = DB::table('elements')->where('id','=',$request->input('id_elements'))->pluck('name_elements');
+
         if(!empty($request->input('value_sub_elements'))) {
-            foreach ($request->input('value_sub_elements') as $key => $value) {
-                if (!empty($value)) {
-                    $value = trim ($value ," \t\n\r\0\x0B");
-                    DB::table('sub_elements')->insert([
-                        'id_set_elements' => $id,
-                        'value_sub_elements' => $value
-                    ]);
+
+            if($name_element[0] == self::RADIOBUTTON || $name_element[0] == self::OPTION) {
+                foreach ($request->input('value_sub_elements') as $key => $value) {
+                    if (!empty($value)) {
+                        $value = trim($value, " \t\n\r\0\x0B");
+                        DB::table('sub_elements')->insert([
+                            'id_set_elements' => $id,
+                            'name_sub_elements' => $request->input('name_set_elements'),
+                            'value_sub_elements' => $value
+                        ]);
+                    }
+                }
+            }
+            if($name_element[0] == self::CHECKBOX) {
+                foreach ($request->input('value_sub_elements') as $key => $value) {
+                    if (!empty($value)) {
+                        $value = trim($value, " \t\n\r\0\x0B");
+                        DB::table('sub_elements')->insert([
+                            'id_set_elements' => $id,
+                            'name_sub_elements' => $this->generateString(),
+                            'value_sub_elements' => $value
+                        ]);
+                    }
                 }
             }
         }
@@ -222,8 +254,8 @@ class ConstructorFormController extends Controller
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->orderBy('sfe.id','asc')
             ->select('sfe.id_set_elements', 'sfe.width', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
-//            ->orderBy('id_set_elements', 'desc')
             ->get();
 
         $this->FOREACH_IMPLODE($form_info);
@@ -233,12 +265,34 @@ class ConstructorFormController extends Controller
 
     public function FOREACH_IMPLODE($arr){
         foreach ($arr as $key => $set_element) {
+            
             $id_set_element = $set_element->id_set_elements;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show','=',1)
-                ->pluck('value_sub_elements');
-            $value_sub_elements = implode(" | ", $sub_elements);
+                ->where('show','=',1)->select('name_sub_elements','value_sub_elements')->get();
+
+            if(!empty($sub_elements)){
+                $names = [];
+                $values = [];
+                if($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
+                    foreach ($sub_elements as $key_sub => $value) {
+                        $values[$key_sub] = $value->value_sub_elements;
+                    }
+                    $names = $sub_elements[0]->name_sub_elements;
+                }
+                if($set_element->name_elements == self::CHECKBOX) {
+                    foreach ($sub_elements as $key_sub => $value) {
+                        $values[$key_sub] = $value->value_sub_elements;
+                        $names[$key_sub] = $value->name_sub_elements;
+                    }
+                }
+            } else {
+                $values = [];
+                $names = [];
+            }
+            $value_sub_elements = implode(" | ", $values);
+
             $arr[$key]->value_sub_elements = $value_sub_elements;
+            $arr[$key]->name_sub_elements = $names;
         }
         return $arr;
     }
@@ -262,8 +316,9 @@ class ConstructorFormController extends Controller
         $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
             ->join('forms as f', 'f.id','=','sfe.id_forms')
             ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
+            ->join('elements as e', 'e.id','=','se.id_elements')
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements')
+            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
 
         $this->FOREACH_IMPLODE($set_elements);
