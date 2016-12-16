@@ -251,6 +251,7 @@ class ConstructorFormController extends Controller
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->orderBy('sfe.id','asc')
             ->select('sfe.id_set_elements', 'sfe.width', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
 
@@ -317,7 +318,7 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id','asc')
             ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
-        
+
         $this->FOREACH_IMPLODE($set_elements);
 
         return response()->json($set_elements);

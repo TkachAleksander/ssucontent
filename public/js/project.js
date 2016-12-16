@@ -525,6 +525,7 @@ $('.editElementFromForm').on('click',function() {
                                 sub_elements.forEach(function (value, key_sub, sub_elements) {
                                     contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"> ' + sub_elements[key_sub] + '</br>');
                                 });
+                                contentForm.append('<p></p>');
                                 break;
 
                             case "checkbox":
