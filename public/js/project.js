@@ -196,7 +196,6 @@ $(document).ready(function() {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
             success: function (set_elements) {
-
                 var sortContainer = $('#sortContainer');
                 sortContainer.empty();
                 $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="'+set_elements[0].name_forms+'" required>')
@@ -206,12 +205,11 @@ $(document).ready(function() {
                         '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'" style="margin-left:10px"> Редактировать </button>')
                     .remove();
 
-                // console.log(set_elements);
                 set_elements.forEach(function (set_element, key, set_elements) {
                     set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
                     var checked = (set_element.required == 1) ? "checked=true" : "";
                     sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
-                        '<td>' +set_element.name_set_elements+ '</td>'+
+                        '<td>' +set_element.label_set_elements+ '</td>'+
                         '<td>' +set_element.value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
                         '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="'+set_element.id+'"> X </button></td>'+
@@ -233,8 +231,6 @@ $(document).ready(function() {
         $('#sortContainer input:checkbox:checked').each(function(){
                 required[i++] = $(this).val();
         });
-
-        // console.log(name_forms, queue, required);
 
         $.ajax({
             type: "POST",
@@ -269,7 +265,6 @@ $(document).ready(function() {
                 },
                 success: function (data)
                 {
-                    console.log(data);
                     data[0].value_sub_elements =(data[0].value_sub_elements == "") ? "---" : data[0].value_sub_elements;
                     $('#sortContainer').append( '<tr id="' +data[0].id+ '">'+
                         '<td>' +data[0].label_set_elements+ '</td>'+
@@ -310,7 +305,6 @@ $('#container').on('click','#btn-edit-form',function () {
         required[i++] = $(this).val();
     });
 
-    console.log(name_forms, queue, required, id_form);
     $.ajax({
         type:"POST",
         url:"/constructor/addEditedNewForm",

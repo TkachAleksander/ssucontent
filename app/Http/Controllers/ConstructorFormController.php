@@ -269,6 +269,7 @@ class ConstructorFormController extends Controller
             if(!empty($sub_elements)){
                 $names = [];
                 $values = [];
+//                dd($set_element);
                 if($set_element->name_elements == self::RADIOBUTTON) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
@@ -312,10 +313,11 @@ class ConstructorFormController extends Controller
         $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
             ->join('forms as f', 'f.id','=','sfe.id_forms')
             ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
+            ->join('elements as e', 'e.id','=','se.id_elements')
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements')
+            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
-
+        
         $this->FOREACH_IMPLODE($set_elements);
 
         return response()->json($set_elements);
