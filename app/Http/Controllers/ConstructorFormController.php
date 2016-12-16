@@ -273,8 +273,7 @@ class ConstructorFormController extends Controller
             if(!empty($sub_elements)){
                 $names = [];
                 $values = [];
-//                dd($set_element);
-                if($set_element->name_elements == self::RADIOBUTTON) {
+                if($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                     }

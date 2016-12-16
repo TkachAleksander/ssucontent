@@ -530,7 +530,7 @@ $('.editElementFromForm').on('click',function() {
 
                             case "checkbox":
                                 contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b><br>');
-                                var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                                sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
                                 var name_sub_elements = formsInfo[key].name_sub_elements;
                                 sub_elements.forEach(function (value, key_sub, sub_elements) {
                                     contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"> ' + sub_elements[key_sub] + '</br>');
@@ -539,13 +539,15 @@ $('.editElementFromForm').on('click',function() {
                                 break;
                             
                             case "option":
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b>');
                                 sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                contentForm.append('<p><select id="select' + key + '" class="multiselect">');
+                                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' +formsInfo[key].name_set_elements+ '" style="margin-left: 10px;">');
                                 var id = key;
                                 sub_elements.forEach(function (value, key, sub_elements) {
-                                    $('#select' + id).append('<option value="' + key + '">' + sub_elements[key] + '</option>');
+                                    $('#select' + id).append('<option value="' +sub_elements[key]+ '">' + sub_elements[key] + '</option>');
                                 });
-                                contentForm.append('</select></p>');
+                                contentForm.append('</select>');
+                                contentForm.append('<p></p>');
                                 break;
                         }
                     });
