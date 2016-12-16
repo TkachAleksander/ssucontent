@@ -525,19 +525,19 @@ $('.editElementFromForm').on('click',function() {
                                 break;
 
                             case "radiobutton":
-                                contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b><br>');
                                 var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
                                 sub_elements.forEach(function (value, key_sub, sub_elements) {
                                     contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"> ' + sub_elements[key_sub] + '</br>');
                                 });
                                 break;
-                            
-                            //????????????????????????
+
                             case "checkbox":
-                                contentForm.append('<p><b>' + formsInfo[key].label_set_elements + '</b></p>');
+                                contentForm.append('<b>' + formsInfo[key].label_set_elements + '</b><br>');
                                 var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                sub_elements.forEach(function (value, key, sub_elements) {
-                                    contentForm.append('<input type="checkbox" name="' + sub_elements[key] + '" value="' + sub_elements[key] + '"> ' + sub_elements[key] + '</br>');
+                                var name_sub_elements = formsInfo[key].name_sub_elements;
+                                sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                    contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"> ' + sub_elements[key_sub] + '</br>');
                                 });
                                 contentForm.append('<p></p>');
                                 break;
