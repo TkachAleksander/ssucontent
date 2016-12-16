@@ -12,6 +12,8 @@ class ConstructorFormController extends Controller
 {
     const RADIOBUTTON = "radiobutton";
     const CHECKBOX = "checkbox";
+    const OPTION = "option";
+
 // addForm
     public function addForm(){
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
@@ -152,7 +154,8 @@ class ConstructorFormController extends Controller
         $name_element = DB::table('elements')->where('id','=',$request->input('id_elements'))->pluck('name_elements');
 
         if(!empty($request->input('value_sub_elements'))) {
-            if($name_element[0] == self::RADIOBUTTON) {
+
+            if($name_element[0] == self::RADIOBUTTON || $name_element[0] == self::OPTION) {
                 foreach ($request->input('value_sub_elements') as $key => $value) {
                     if (!empty($value)) {
                         $value = trim($value, " \t\n\r\0\x0B");
