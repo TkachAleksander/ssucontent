@@ -269,9 +269,10 @@ $(document).ready(function() {
                 },
                 success: function (data)
                 {
+                    console.log(data);
                     data[0].value_sub_elements =(data[0].value_sub_elements == "") ? "---" : data[0].value_sub_elements;
                     $('#sortContainer').append( '<tr id="' +data[0].id+ '">'+
-                        '<td>' +data[0].name_set_elements+ '</td>'+
+                        '<td>' +data[0].label_set_elements+ '</td>'+
                         '<td>' +data[0].value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
                         '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="0"> X </button></td>'+
