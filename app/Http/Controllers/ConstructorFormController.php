@@ -246,19 +246,27 @@ class ConstructorFormController extends Controller
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
                 ->where('show','=',1)->select('name_sub_elements','value_sub_elements')->get();
 
-            if(!empty($sub_elements)) {
-                foreach ($sub_elements as $key_sub => $value) {
-                    $values[$key_sub] = $value->value_sub_elements;
+            if(!empty($sub_elements)){
+                if($set_element->name_elements == 'radiobutton') {
+                    foreach ($sub_elements as $key_sub => $value) {
+                        $values[$key_sub] = $value->value_sub_elements;
+                    }
+                    $names = $sub_elements[0]->name_sub_elements;
                 }
-                $name_sub_element = $sub_elements[0]->name_sub_elements;
+                if($set_element->name_elements == 'checkbox') {
+                    foreach ($sub_elements as $key_sub => $value) {
+                        $values[$key_sub] = $value->value_sub_elements;
+                        $names[$key_sub] = $value->name_sub_elements;
+                    }
+                }
             } else {
                 $values = [];
-                $name_sub_element = [];
+                $names = [];
             }
             $value_sub_elements = implode(" | ", $values);
 
             $arr[$key]->value_sub_elements = $value_sub_elements;
-            $arr[$key]->name_sub_elements = $name_sub_element;
+            $arr[$key]->name_sub_elements = $names;
         }
         return $arr;
     }
