@@ -6,8 +6,12 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
 
+//define("RADIOBUTTON", "radiobutton");
+//define("CHECKBOX", 'checkbox');
 class ConstructorFormController extends Controller
 {
+    const RADIOBUTTON = "radiobutton";
+    const CHECKBOX = "checkbox";
 // addForm
     public function addForm(){
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
@@ -145,15 +149,31 @@ class ConstructorFormController extends Controller
             'label_set_elements' => $request->input('label_set_elements'),
             'id_elements' => $request->input('id_elements')
         ]);
+        $name_element = DB::table('elements')->where('id','=',$request->input('id_elements'))->pluck('name_elements');
+
         if(!empty($request->input('value_sub_elements'))) {
-            foreach ($request->input('value_sub_elements') as $key => $value) {
-                if (!empty($value)) {
-                    $value = trim ($value ," \t\n\r\0\x0B");
-                    DB::table('sub_elements')->insert([
-                        'id_set_elements' => $id,
-                        'name_sub_elements' => $request->input('name_set_elements'),
-                        'value_sub_elements' => $value
-                    ]);
+            if($name_element[0] == self::RADIOBUTTON) {
+                foreach ($request->input('value_sub_elements') as $key => $value) {
+                    if (!empty($value)) {
+                        $value = trim($value, " \t\n\r\0\x0B");
+                        DB::table('sub_elements')->insert([
+                            'id_set_elements' => $id,
+                            'name_sub_elements' => $request->input('name_set_elements'),
+                            'value_sub_elements' => $value
+                        ]);
+                    }
+                }
+            }
+            if($name_element[0] == self::CHECKBOX) {
+                foreach ($request->input('value_sub_elements') as $key => $value) {
+                    if (!empty($value)) {
+                        $value = trim($value, " \t\n\r\0\x0B");
+                        DB::table('sub_elements')->insert([
+                            'id_set_elements' => $id,
+                            'name_sub_elements' => $this->generateString(),
+                            'value_sub_elements' => $value
+                        ]);
+                    }
                 }
             }
         }
@@ -247,13 +267,15 @@ class ConstructorFormController extends Controller
                 ->where('show','=',1)->select('name_sub_elements','value_sub_elements')->get();
 
             if(!empty($sub_elements)){
-                if($set_element->name_elements == 'radiobutton') {
+                $names = [];
+                $values = [];
+                if($set_element->name_elements == self::RADIOBUTTON) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                     }
                     $names = $sub_elements[0]->name_sub_elements;
                 }
-                if($set_element->name_elements == 'checkbox') {
+                if($set_element->name_elements == self::CHECKBOX) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                         $names[$key_sub] = $value->name_sub_elements;
