@@ -61,12 +61,14 @@
                                     <tbody id="sortContainer"></tbody>
 
                                 </table>
+                                <input type="datetime">
                                 <button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
 
                             </div>
                             <div class="col-sm-12" style="margin-top:20px;">
                                 * - поле станет обязательным к заполнению если checkbox активен
                             </div>
+
                         </div>
 
                         <div class="col-sm-6">
@@ -76,8 +78,8 @@
                                 @foreach($set_elements as $set_element)
                                     <tr>
                                         <td><button id="{{ $set_element->id_set_elements }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
-                                        <td>{{ $set_element->name_set_elements }}</td>
                                         <td>{{ $set_element->label_set_elements }}</td>
+                                        <td>{{ $set_element->name_elements }}</td>
                                         <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---"}}</td>
                                     </tr>
                                 @endforeach
