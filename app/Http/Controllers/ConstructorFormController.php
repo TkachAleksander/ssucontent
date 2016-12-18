@@ -43,7 +43,8 @@ class ConstructorFormController extends Controller
     }
 
     public function addSetFormsElementsToServer(Request $request){
-        if ( !empty($request->input('name_forms')) && !empty($request->input('queue')) && !empty($request->input('updateDate')) ){
+
+        if ( !empty($request->input('name_forms')) && !empty($request->input('queue')) && !empty($request->input('update_date')) ){
             $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms'), 'update_date' => $request->input('update_date') ]);
 
             foreach ($request->input('queue') as $key => $value) {
