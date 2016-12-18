@@ -61,7 +61,7 @@
                                     <tbody id="sortContainer"></tbody>
 
                                 </table>
-                                <input type="datetime">
+                                <input id="update_date" type="text" name="date" class="tcal" value="" placeholder=" Дата обновления формы" required/>
                                 <button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
 
                             </div>
