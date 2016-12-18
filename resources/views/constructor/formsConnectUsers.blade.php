@@ -16,6 +16,7 @@
                             <div class="col-sm-12">
                                 <div class="col-sm-4">
                                     <select id="id_forms" class="multiselect" name="id_forms">
+                                        <option value="*"> Все формы </option>
                                         @foreach($forms as $form)
                                             <option value="{{ $form->id }}">{{ $form->name_forms }}</option>
                                         @endforeach
@@ -30,8 +31,8 @@
                                 </div>
                                 <div class="row">
                                 <div class="col-sm-2">
-                                    <button id="btn-forms-connect-users" type="button" class="btn btn-sm btn-primary"> Связать </button>
-                                    <button id="btn-forms-disconnect-users" type="button" class="btn btn-sm btn-danger"> Удалить связь </button>
+                                    <button id="btn-forms-connect-users" type="button" class="btn btn-sm btn-primary" disabled> Связать </button>
+                                    <button id="btn-forms-disconnect-users" type="button" class="btn btn-sm btn-danger" disabled> Удалить связь </button>
                                 </div>
                                 </div>
                             </div>

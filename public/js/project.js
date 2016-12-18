@@ -572,7 +572,7 @@ $('.editElementFromForm').on('click',function() {
     // Вкладка Форма/Пользователь отображение уже существующих связей
     $("#id_forms").change(function(){
         var id_forms = $('#id_forms option:selected').val();
-        var name_forms = $('#id_forms option:selected').text();
+        (id_forms == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled','true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
         $.ajax({
             type:"POST",
             url:"getTableConnectUsers",
@@ -586,7 +586,7 @@ $('.editElementFromForm').on('click',function() {
                 $('.new_tr').empty();
                 users.forEach( function(user, key, users){
                     table.after('<tr class="new_tr">'+
-                                    '<td>'+name_forms+'</td>'+
+                                    '<td>'+users[key].name_forms+'</td>'+
                                     '<td>'+users[key].surname+' '+users[key].name+' '+users[key].middle_name+'</td>'+
                                 '</tr>');
                 });

@@ -351,11 +351,21 @@ class ConstructorFormController extends Controller
     }
 
     public function getTableConnectUsers(Request $request){
-        $users = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
-                                                    ->join('users as u', 'u.id', '=', 'sfu.id_users')
-                                                    ->select('u.surname', 'u.name', 'u.middle_name')
-                                                    ->orderBy('u.surname', 'asc')
-                                                    ->get();
+        if($request->input('id_forms') == '*'){
+            $users = DB::table('set_forms_users as sfu')
+                ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
+                ->join('users as u', 'u.id', '=', 'sfu.id_users')
+                ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
+                ->orderBy('u.surname', 'asc')
+                ->get();
+        } else {
+            $users = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
+                ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
+                ->join('users as u', 'u.id', '=', 'sfu.id_users')
+                ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
+                ->orderBy('u.surname', 'asc')
+                ->get();
+        }
         return response()->json($users);
     }
 
