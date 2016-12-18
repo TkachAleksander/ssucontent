@@ -43,8 +43,8 @@ class ConstructorFormController extends Controller
     }
 
     public function addSetFormsElementsToServer(Request $request){
-        if (!empty($request->input('name_forms'))){
-            $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms') ]);
+        if ( !empty($request->input('name_forms')) && !empty($request->input('queue')) && !empty($request->input('updateDate')) ){
+            $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms'), 'update_date' => $request->input('update_date') ]);
 
             foreach ($request->input('queue') as $key => $value) {
                 if (!empty($request->input('required'))) {
@@ -78,7 +78,7 @@ class ConstructorFormController extends Controller
             ->join('set_forms_elements as sfe', 'sfe.id_forms', '=', 'f.id')
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->select('f.name_forms', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
+            ->select('f.name_forms','f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
             ->get();
         // Дополняем информацию под элементами
         $this->FOREACH_IMPLODE($set_elements);
@@ -87,9 +87,11 @@ class ConstructorFormController extends Controller
         $repeat_name_forms = DB::table('forms')->where('name_forms','=',$request->input('name_forms'))->get();
         if (empty($repeat_name_forms) || $repeat_name_forms[0]->name_forms == $request->input('old_name_forms')) {
 
-            if ($set_elements[0]->name_forms != $request->input('name_forms')) {
+            if ($set_elements[0]->name_forms != $request->input('name_forms') || $set_elements[0]->name_forms != $request->input('update_date')) {
                 DB::table('forms')->where('id', '=', $request->input('id_form'))
-                    ->update(['name_forms' => $request->input('name_forms')]);
+                    ->update([
+                        'name_forms' => $request->input('name_forms'),
+                        'update_date' => $request->input('update_date')]);
             }
 
             $bool = false;
@@ -117,6 +119,27 @@ class ConstructorFormController extends Controller
         }
 
     }
+
+    public function removeFormsToServer(Request $request){
+        DB::table('forms')->where('id','=',$request->input('id_forms'))->update(['show' => 0]);
+        return response()->json();
+    }
+
+    public function editForm(Request $request){
+        $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
+            ->join('forms as f', 'f.id','=','sfe.id_forms')
+            ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
+            ->join('elements as e', 'e.id','=','se.id_elements')
+            ->orderBy('sfe.id','asc')
+            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
+            ->get();
+
+        $this->FOREACH_IMPLODE($set_elements);
+
+        return response()->json($set_elements);
+    }
+
+
 
 
 
@@ -307,24 +330,6 @@ class ConstructorFormController extends Controller
         return response()->json($form_info);
     }
 
-    public function removeFormsToServer(Request $request){
-        DB::table('forms')->where('id','=',$request->input('id_forms'))->update(['show' => 0]);
-        return response()->json();
-    }
-
-    public function editForm(Request $request){
-        $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
-            ->join('forms as f', 'f.id','=','sfe.id_forms')
-            ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
-            ->join('elements as e', 'e.id','=','se.id_elements')
-            ->orderBy('sfe.id','asc')
-            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms','se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
-            ->get();
-
-        $this->FOREACH_IMPLODE($set_elements);
-
-        return response()->json($set_elements);
-    }
 
 
 

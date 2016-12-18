@@ -201,11 +201,11 @@ $(document).ready(function() {
                 sortContainer.empty();
                 $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="'+set_elements[0].name_forms+'" required>')
                                .empty().val(set_elements[0].name_forms);
+                $('#update_date').empty().val(set_elements[0].update_date);
 
                 $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
                         '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'" style="margin-left:10px"> Редактировать </button>')
                     .remove();
-
                 set_elements.forEach(function (set_element, key, set_elements) {
                     set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
                     var checked = (set_element.required == 1) ? "checked=true" : "";
@@ -227,6 +227,8 @@ $(document).ready(function() {
     $('#container').on('click','#addNewForm', function() {
         var name_forms = $('#name_forms').val();
         var queue = $('#sortContainer').sortable("toArray");
+        var update_date = $('#update_date').val();
+
         var required = [];
         var i = 0;
         $('#sortContainer input:checkbox:checked').each(function(){
@@ -236,7 +238,7 @@ $(document).ready(function() {
         $.ajax({
             type: "POST",
             url: "addSetFormsElements",
-            data: { name_forms:name_forms, queue:queue, required:required },
+            data: { name_forms:name_forms, queue:queue, required:required, update_date:update_date },
             dataType:"JSON",
             beforeSend: function (xhr){
                 xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
@@ -300,6 +302,7 @@ $('#container').on('click','#btn-edit-form',function () {
     var name_forms = $('#name_forms').val();
     var old_name_forms = $('#old_name_forms').val();
     var queue = $('#sortContainer').sortable("toArray");
+    var update_date = $('#update_date').val();
     var required = [];
     var i = 0;
     $('#sortContainer input:checkbox:checked').each(function(){
@@ -309,7 +312,7 @@ $('#container').on('click','#btn-edit-form',function () {
     $.ajax({
         type:"POST",
         url:"/constructor/addEditedNewForm",
-        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form},
+        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form, update_date:update_date},
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
