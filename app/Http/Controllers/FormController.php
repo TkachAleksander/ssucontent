@@ -11,6 +11,7 @@ class FormController extends Controller
 {
     const SHOW_FORMS = 1;
     const ADMINISTRATOR = 'administrator';
+
     public function index(){
 
         if (!Auth::guest()){
@@ -59,5 +60,9 @@ class FormController extends Controller
         } else {
             return view('home');
         }
+    }
+
+    public function submitFillForm(Request $request){
+        dd($request->all());
     }
 }

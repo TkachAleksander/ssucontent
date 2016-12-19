@@ -279,7 +279,7 @@ class ConstructorFormController extends Controller
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
 
         $this->FOREACH_IMPLODE($form_info);

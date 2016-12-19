@@ -18,6 +18,7 @@ Route::group(['middleware' => 'auth'], function(){
 
     // Управление статьями
     Route::post('/getFormInfo', 'ConstructorFormController@getFormInfo');
+    Route::post('/submitFillForm', 'FormController@submitFillForm');
 
      
     // Управление сообщениями внутри системы
