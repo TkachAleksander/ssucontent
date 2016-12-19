@@ -62,7 +62,7 @@ class FormController extends Controller
             }
             return view('homeUser',['forms' => $forms, 'role' => $role[0]->name_roles]);
         } else {
-            return view('home');
+            return view('homeUser');
         }
     }
 
