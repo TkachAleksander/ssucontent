@@ -34,7 +34,7 @@
                                     <form action="submitFillForm" method="POST">
                                         {{ csrf_field() }}
 
-                                        <input type="hidden" class="input-id-form" name="id_form" value="">
+                                        <input type="hidden" class="input-id-form" name="id_forms" value="{{$form->id_forms}}">
 
                                         <div class="row">
                                             <div id="content-form{{$form->id_forms}}" class="col-sm-offset-3 col-sm-6">

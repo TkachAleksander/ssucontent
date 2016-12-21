@@ -516,7 +516,7 @@ $('.editElementFromForm').on('click',function() {
                         required = "";
                     }
 
-                    formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? " " : formsInfo[key].values_forms;
+                    formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? "" : formsInfo[key].values_forms;
 
                     switch (formsInfo[key].name_elements) {
 

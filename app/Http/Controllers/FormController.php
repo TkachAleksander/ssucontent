@@ -67,18 +67,19 @@ class FormController extends Controller
     }
 
     public function submitFillForm(Request $request){
-        $id_set_forms_elements = DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_form'))->pluck('id');
-
+        $id_set_forms_elements = DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_forms'))
+            ->where('version', '=', 1)->pluck('id');
+//        dd($id_set_forms_elements, $request->all(),$request->input('id_forms'));
         $row  = $i = 0;
         foreach ($request->all() as $key=>$value){
             if ($i++ >= 2) {
-                DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++], 'value' => $value]);
+                DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++], 'values_forms' => $value]);
             }
         }
 
-        DB::table('set_forms_users')->where('id_users','=',Auth::user()->id)->where('id_forms','=',$request->input('id_form'))
+        DB::table('set_forms_users')->where('id_users','=',Auth::user()->id)->where('id_forms','=',$request->input('id_forms'))
         ->update(['id_status_checks'=>2]);
 
-        redirect('/homeUser');
+        return redirect('/');
     }
 }

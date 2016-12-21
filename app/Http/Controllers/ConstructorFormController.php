@@ -293,6 +293,7 @@ class ConstructorFormController extends Controller
 // showForms
     public function FormInfo (Request $request){
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+            ->where('version', '=', 1)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->orderBy('sfe.id','asc')
