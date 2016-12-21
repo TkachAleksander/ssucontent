@@ -39,7 +39,7 @@
                                             <div class="col-sm-6">
 
                                             </div>
-                                            <div id="content-form{{$form->id_forms}}" class="col-sm-6">
+                                            <div id="content-form{{$form->id_forms}}" class="col-sm-6" style="border-left: 1px solid #eee;" >
 
                                             </div>
                                         </div>
