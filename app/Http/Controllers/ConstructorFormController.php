@@ -72,6 +72,22 @@ class ConstructorFormController extends Controller
         }
     }
 
+    public function editForm(Request $request){
+        $set_elements = DB::table('set_forms_elements as sfe')
+            ->where('sfe.id_forms','=',$request->input('id_form'))
+            ->where('version', '=', 1)
+            ->join('forms as f', 'f.id','=','sfe.id_forms')
+            ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
+            ->join('elements as e', 'e.id','=','se.id_elements')
+            ->orderBy('sfe.id','asc')
+            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
+            ->get();
+
+        $this->ForeachImplode($set_elements);
+
+        return response()->json($set_elements);
+    }
+
     public function addEditedNewForm(Request $request)
     {
         // Собираем информацию о элементах формы
@@ -81,25 +97,38 @@ class ConstructorFormController extends Controller
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->select('f.name_forms','f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
             ->get();
-        // Дополняем информацию под элементами
+        // Дополняем информацию, под элементами элемента
         $this->ForeachImplode($set_elements);
 
         // Изменение старого имени формы на новое
         $repeat_name_forms = DB::table('forms')->where('name_forms','=',$request->input('name_forms'))->get();
+        // Если нет такого имени в базе ИЛИ найденое имя такое же как и прошлое
         if (empty($repeat_name_forms) || $repeat_name_forms[0]->name_forms == $request->input('old_name_forms')) {
 
-            if ($set_elements[0]->name_forms != $request->input('name_forms') || $set_elements[0]->name_forms != $request->input('update_date')) {
+            // Если прошлое имя != новому ИЛИ прошлая дата обновления формы != новой дате обновления
+            if ($set_elements[0]->name_forms != $request->input('name_forms') || $set_elements[0]->update_date != $request->input('update_date')) {
                 DB::table('forms')->where('id', '=', $request->input('id_form'))
                     ->update([
                         'name_forms' => $request->input('name_forms'),
                         'update_date' => $request->input('update_date')]);
             }
 
+            // Все элементы формы делаем невидемыми, увеличиваем их версию +1
+            DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
+                ->increment('version', 1, ['show_set_forms_elements'=>false]);
+
+            // Удаляем 3ю версию формы
+            DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
+                ->where('version', '>=', 3)->delete();
+
             $bool = false;
-            DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))->delete();
+            // Если массив обязательных элементов(required) с номерами очереди элементов(queue) не пуст
             if (!empty($request->input('required'))) {
+                // Берем первый номер элемента из очереди
                 foreach ($request->input('queue') as $id_set_elements) {
+                    // Перебираем весь массив обязательных элементов
                     foreach ($request->input('required') as $required) {
+                        // Если есть такой - true; если нет - false
                         if ($id_set_elements == $required) {
                             $bool = true;
                             break 1;
@@ -107,9 +136,11 @@ class ConstructorFormController extends Controller
                             $bool = false;
                         }
                     }
+                    // Записываем элемент со значение $bool для required
                     DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
             } else {
+                // Если массив обязательных элементов(required) пуст все строки записываем с $bool = false
                 foreach ($request->input('queue') as $id_set_elements) {
                     DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
@@ -124,20 +155,6 @@ class ConstructorFormController extends Controller
     public function removeFormsToServer(Request $request){
         DB::table('forms')->where('id','=',$request->input('id_forms'))->update(['show' => 0]);
         return response()->json();
-    }
-
-    public function editForm(Request $request){
-        $set_elements = DB::table('set_forms_elements as sfe')->where('sfe.id_forms','=',$request->input('id_form'))
-            ->join('forms as f', 'f.id','=','sfe.id_forms')
-            ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
-            ->join('elements as e', 'e.id','=','se.id_elements')
-            ->orderBy('sfe.id','asc')
-            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
-            ->get();
-
-        $this->ForeachImplode($set_elements);
-
-        return response()->json($set_elements);
     }
 
 
