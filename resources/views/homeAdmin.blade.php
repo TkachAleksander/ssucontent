@@ -22,7 +22,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id_forms}}" class="forms-info collapsed" data-id="{{$form->id_forms}}">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id_forms}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}">
                                         {{ $form->name_forms }}
                                         <span class="pull-right">{{ $form->surname.' '.$form->name }}</span>
                                     </a>
@@ -36,7 +36,7 @@
                                         <input type="hidden" class="input-id-form" name="id_form" value="">
 
                                         <div class="row">
-                                            <div class="col-sm-6">
+                                            <div id="content-form-old{{$form->id_forms}}" class="col-sm-6">
 
                                             </div>
                                             <div id="content-form{{$form->id_forms}}" class="col-sm-6" style="border-left: 1px solid #eee;" >
@@ -47,7 +47,8 @@
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <hr>
-                                                <input type="submit" class="btn btn-sm btn-success pull-right" value="Пртнять">
+                                                <input type="button" class="btn btn-sm btn-danger" value="Отклонить">
+                                                <input type="button" class="btn btn-sm btn-success pull-right" value="Притнять">
                                             </div>
                                         </div>
 

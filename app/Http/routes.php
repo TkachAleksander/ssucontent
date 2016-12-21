@@ -16,9 +16,13 @@ Route::group(['middleware' => 'auth'], function(){
     Route::get('/removeUser/{id}', 'UserControlController@removeUser');
 
 
-    // Управление статьями
+    // Управление формамии homeUser
     Route::post('/getFormInfo', 'ConstructorFormController@getFormInfo');
     Route::post('/submitFillForm', 'FormController@submitFillForm');
+
+
+    // Управление формами homeAdmin
+    Route::post('/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
 
      
     // Управление сообщениями внутри системы
