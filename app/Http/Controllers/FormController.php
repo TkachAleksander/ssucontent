@@ -78,5 +78,7 @@ class FormController extends Controller
 
         DB::table('set_forms_users')->where('id_users','=',Auth::user()->id)->where('id_forms','=',$request->input('id_form'))
         ->update(['id_status_checks'=>2]);
+
+        redirect('/homeUser');
     }
 }

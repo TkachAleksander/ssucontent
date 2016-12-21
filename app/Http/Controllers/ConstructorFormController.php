@@ -345,7 +345,7 @@ class ConstructorFormController extends Controller
         $connects = DB::table('set_forms_users as sfu')->join('forms as f', 'f.id', '=', 'sfu.id_forms')
                                                        ->join('users as u', 'u.id', '=', 'sfu.id_users')
                                                        ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
-                                                       ->orderBy('f.name_forms', 'asc')
+                                                       ->orderBy(/*f.name_forms*/'u.surname', 'asc')
                                                        ->get();
         return view('constructor.formsConnectUsers', ['forms' => $forms, 'users' => $users, 'connects' => $connects]);
     }
