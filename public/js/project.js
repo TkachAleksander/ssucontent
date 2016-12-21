@@ -292,7 +292,7 @@ function cleanTableNewForm() {
     $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
-    $('#name_form').val("");
+    $('#name_form,#update_date').val("");
     $('#old_name_forms').remove();
 }
 
@@ -495,82 +495,85 @@ $('.editElementFromForm').on('click',function() {
         var contentForm = $('#content-form'+id_forms);
         contentForm.empty();
 
-        if ($(this).hasClass("collapsed")) {
-            $.ajax({
-                type: "POST",
-                url: "getFormInfo",
-                data: {id_forms: id_forms},
-                dataType: "JSON",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (formsInfo) {
+    if ($(this).hasClass("collapsed")) {
+        $.ajax({
+            type: "POST",
+            url: "getFormInfo",
+            data: {id_forms: id_forms},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (formsInfo) {
 
-                    var required;
-                    formsInfo.forEach(function (value, key, formsInfo) {
-                        if(formsInfo[key].required == true) {
-                            formsInfo[key].required = "*";
-                            required = "required";
-                        } else {
-                            formsInfo[key].required = "";
-                            required = "";
-                        }
+                var required;
+                formsInfo.forEach(function (value, key, formsInfo) {
+                    if(formsInfo[key].required == true) {
+                        formsInfo[key].required = "*";
+                        required = "required";
+                    } else {
+                        formsInfo[key].required = "";
+                        required = "";
+                    }
 
-                        switch (formsInfo[key].name_elements) {
+                    formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? " " : formsInfo[key].values_forms;
 
-                            case "input(text)":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + '><p></p>');
-                                break;
+                    switch (formsInfo[key].name_elements) {
 
-                            case "input(email)":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + '><p></p>');
-                                break;
+                        case "input(text)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
+                            break;
 
-                            case "textarea":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"' + required + '></textarea><p></p>');
-                                break;
+                        case "input(email)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
+                            break;
 
-                            case "radiobutton":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                                var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                sub_elements.forEach(function (value, key_sub, sub_elements) {
-                                    contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
-                                });
-                                contentForm.append('<p></p>');
-                                break;
+                        case "textarea":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"' + required + '>'+formsInfo[key].values_forms+'</textarea><p></p>');
+                            break;
 
-                            case "checkbox":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                                sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                var name_sub_elements = formsInfo[key].name_sub_elements;
-                                sub_elements.forEach(function (value, key_sub, sub_elements) {
-                                    contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
-                                });
-                                contentForm.append('<p></p>');
-                                break;
+                        case "radiobutton":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
 
-                            case "option":
-                                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                                sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-                                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' +formsInfo[key].name_set_elements+ '" style="margin-left: 10px;" ' + required + '>');
-                                var id = key;
-                                sub_elements.forEach(function (value, key, sub_elements) {
-                                    $('#select' + id).append('<option value="' +sub_elements[key]+ '">' + sub_elements[key] + '</option>');
-                                });
-                                contentForm.append('</select>');
-                                contentForm.append('<p></p>');
-                                break;
-                        }
+                        case "checkbox":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            var name_sub_elements = formsInfo[key].name_sub_elements;
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
 
-                    });
-                }
+                        case "option":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            contentForm.append('<select id="select' +key+ '" class="multiselect" name="' +formsInfo[key].name_set_elements+ '" style="margin-left: 10px;" ' + required + '>');
+                            var id = key;
+                            sub_elements.forEach(function (value, key, sub_elements) {
+                                $('#select' + id).append('<option value="' +sub_elements[key]+ '">' + sub_elements[key] + '</option>');
+                            });
+                            contentForm.append('</select>');
+                            contentForm.append('<p></p>');
+                            break;
+                    }
 
-            });
-        }
-    });
+                });
+            }
+
+        });
+    }
+});
+
 
     // Из строки в массив
     function getSubElementsInArray (str){
