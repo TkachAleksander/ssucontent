@@ -21,7 +21,7 @@ class ConstructorFormController extends Controller
             ->orderBy('set_elements.name_set_elements', 'asc')
             ->get();
 
-        $this->FOREACH_IMPLODE($set_elements);
+        $this->ForeachImplode($set_elements);
 
         $name_forms = DB::table('forms')->where('show','=',1)->get();
 
@@ -82,7 +82,7 @@ class ConstructorFormController extends Controller
             ->select('f.name_forms','f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
             ->get();
         // Дополняем информацию под элементами
-        $this->FOREACH_IMPLODE($set_elements);
+        $this->ForeachImplode($set_elements);
 
         // Изменение старого имени формы на новое
         $repeat_name_forms = DB::table('forms')->where('name_forms','=',$request->input('name_forms'))->get();
@@ -135,7 +135,7 @@ class ConstructorFormController extends Controller
             ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
 
-        $this->FOREACH_IMPLODE($set_elements);
+        $this->ForeachImplode($set_elements);
 
         return response()->json($set_elements);
     }
@@ -164,7 +164,7 @@ class ConstructorFormController extends Controller
             ->orderBy('set_elements.name_set_elements', 'asc')
             ->get();
 
-        $this->FOREACH_IMPLODE($set_elements);
+        $this->ForeachImplode($set_elements);
         $name_set_elements = $this->generateString();
         return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements,'name_set_elements' => $name_set_elements]);
     }
@@ -274,7 +274,7 @@ class ConstructorFormController extends Controller
 
 
 // showForms
-    public function FORM_INFO (Request $request){
+    public function FormInfo (Request $request){
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
@@ -282,12 +282,12 @@ class ConstructorFormController extends Controller
             ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
 
-        $this->FOREACH_IMPLODE($form_info);
+        $this->ForeachImplode($form_info);
 
         return $form_info;
     }
 
-    public function FOREACH_IMPLODE($arr){
+    public function ForeachImplode($arr){
         foreach ($arr as $key => $set_element) {
             
             $id_set_element = $set_element->id_set_elements;
@@ -327,7 +327,7 @@ class ConstructorFormController extends Controller
     }
 
     public function getFormInfo(Request $request){
-        $form_info = $this->FORM_INFO($request);
+        $form_info = $this->FormInfo($request);
         return response()->json($form_info);
     }
 
