@@ -29,7 +29,7 @@
                                              <td>
                                                  {{$name->name_forms}}
                                                   <span class="pull-right">
-                                                      <button type="button" class="btn btn-sm btn-success btn-padding-0 editForms" data-id-form="{{$name->id}}"> Редактировать </button>
+                                                      <button type="button" class="btn btn-sm btn-success btn-padding-0 editForms"  data-id-form="{{$name->id}}" data-status-checks="{{$name->id_status_checks}}"> Редактировать </button>
                                                       <button type="button" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$name->id}}"> Удалить </button>
                                                   </span>
                                              </td>

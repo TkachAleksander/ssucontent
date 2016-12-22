@@ -16,14 +16,16 @@ class ConstructorFormController extends Controller
 
 // addForm
     public function addForm(){
-        $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
-            ->select('set_elements.*','set_elements.id as id_set_elements', 'elements.*')
-            ->orderBy('set_elements.name_set_elements', 'asc')
+        $set_elements = DB::table('set_elements as se')->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->select('se.*','se.id as id_set_elements', 'e.*')
+            ->orderBy('se.name_set_elements', 'asc')
             ->get();
 
         $this->ForeachImplode($set_elements);
 
-        $name_forms = DB::table('forms')->where('show','=',1)->get();
+        $name_forms = DB::table('forms as f')->where('show','=',1)
+            ->join('set_forms_users as sfu', 'sfu.id_forms','=','f.id')
+            ->select('f.id','f.name_forms','sfu.id_status_checks')->get();
 
         return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
     }

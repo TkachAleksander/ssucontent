@@ -188,38 +188,44 @@ $(document).ready(function() {
     // Выбрать форму для редактирования
     $('.editForms').on('click', function () {
         var id_form = $(this).data("idForm");
-        $.ajax({
-            type:"POST",
-            url:"/constructor/editForm",
-            data:{id_form:id_form},
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (set_elements) {
-                var sortContainer = $('#sortContainer');
-                sortContainer.empty();
-                $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="'+set_elements[0].name_forms+'" required>')
-                               .empty().val(set_elements[0].name_forms);
-                $('#update_date').empty().val(set_elements[0].update_date);
+        var status_checks = $(this).data("statusChecks");
 
-                $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>'+
-                        '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="'+id_form+'" style="margin-left:10px"> Редактировать </button>')
-                    .remove();
-                set_elements.forEach(function (set_element, key, set_elements) {
-                    set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---": set_element.value_sub_elements;
-                    var checked = (set_element.required == 1) ? "checked=true" : "";
-                    sortContainer.append( '<tr id="' +set_element.id_set_elements + '">'+
-                        '<td>' +set_element.label_set_elements+ '</td>'+
-                        '<td>' +set_element.value_sub_elements+ '</td>'+
-                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+set_element.id_set_elements+'" '+checked+' ></td>'+
-                        '<td class="text-center"><button id="'+set_element.id_set_elements+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="'+set_element.id+'"> X </button></td>'+
-                        '</tr>'
-                    );
-                });
+        if (status_checks == '2'){
+            alert("Сначала примите или откланите форму !");
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "/constructor/editForm",
+                data: {id_form: id_form},
+                dataType: "JSON",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+                },
+                success: function (set_elements) {
+                    var sortContainer = $('#sortContainer');
+                    sortContainer.empty();
+                    $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="' + set_elements[0].name_forms + '" required>')
+                        .empty().val(set_elements[0].name_forms);
+                    $('#update_date').empty().val(set_elements[0].update_date);
 
-            }
-        })
+                    $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>' +
+                            '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="' + id_form + '" style="margin-left:10px"> Редактировать </button>')
+                        .remove();
+                    set_elements.forEach(function (set_element, key, set_elements) {
+                        set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---" : set_element.value_sub_elements;
+                        var checked = (set_element.required == 1) ? "checked=true" : "";
+                        sortContainer.append('<tr id="' + set_element.id_set_elements + '">' +
+                            '<td>' + set_element.label_set_elements + '</td>' +
+                            '<td>' + set_element.value_sub_elements + '</td>' +
+                            '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="' + set_element.id_set_elements + '" ' + checked + ' ></td>' +
+                            '<td class="text-center"><button id="' + set_element.id_set_elements + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + set_element.id + '"> X </button></td>' +
+                            '</tr>'
+                        );
+                    });
+
+                }
+            })
+        }
 
     });
 
