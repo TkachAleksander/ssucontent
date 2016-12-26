@@ -32,6 +32,7 @@ class ConstructorFormController extends Controller
 
     public function getSetElements(Request $request){
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('idSetElement'))->get();
+        
 
         foreach ($set_elements as $key => $set_element) {
             $id_set_element = $set_element->id;
@@ -84,7 +85,7 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id','asc')
             ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
-
+//        dd($set_elements);
         $this->ForeachImplode($set_elements);
 
         return response()->json($set_elements);
