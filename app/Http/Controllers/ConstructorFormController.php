@@ -365,35 +365,35 @@ class ConstructorFormController extends Controller
 // formsConnectUsers
     public  function formsConnectUsers(){
         $forms = DB::table('forms')->get();
-        $users = DB::table('users')->join('roles', 'roles.id', '=', 'users.id_roles')
-            ->where('name_roles', '!=', 'administrator')
-            ->select('users.*')
-            ->get();
-        $connects = DB::table('set_forms_users as sfu')->join('forms as f', 'f.id', '=', 'sfu.id_forms')
-                                                       ->join('users as u', 'u.id', '=', 'sfu.id_users')
-                                                       ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
-                                                       ->orderBy(/*f.name_forms*/'u.surname', 'asc')
+        $departments = DB::table('departments')->get();
+        $connects = DB::table('set_forms_users as sfu')->join('forms as f', 'f.id','=','sfu.id_forms')
+                                                       ->join('users as u', 'u.id','=','sfu.id_users')
+                                                       ->join('departments as d', 'd.id','=','u.id_departments')
+                                                       ->select('d.*', 'f.name_forms')
+                                                       ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                                                        ->get();
-        return view('constructor.formsConnectUsers', ['forms' => $forms, 'users' => $users, 'connects' => $connects]);
+        return view('constructor.formsConnectUsers', ['forms' => $forms, 'departments' => $departments, 'connects' => $connects]);
     }
 
     public function getTableConnectUsers(Request $request){
         if($request->input('id_forms') == '*'){
-            $users = DB::table('set_forms_users as sfu')
+            $departments = DB::table('set_forms_users as sfu')
+                ->join('users as u', 'u.id','=','sfu.id_users')
                 ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
-                ->join('users as u', 'u.id', '=', 'sfu.id_users')
-                ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
-                ->orderBy('u.surname', 'asc')
+                ->join('departments as d', 'd.id','=','u.id_departments')
+                ->select('d.*', 'f.name_forms')
+                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                 ->get();
         } else {
-            $users = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
+            $departments = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
+                ->join('users as u', 'u.id','=','sfu.id_users')
                 ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
-                ->join('users as u', 'u.id', '=', 'sfu.id_users')
-                ->select('u.surname', 'u.name', 'u.middle_name', 'f.name_forms')
-                ->orderBy('u.surname', 'asc')
+                ->join('departments as d', 'd.id','=','u.id_departments')
+                ->select('d.*', 'f.name_forms')
+                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                 ->get();
         }
-        return response()->json($users);
+        return response()->json($departments);
     }
 
     public function setTableConnectUsers(Request $request){

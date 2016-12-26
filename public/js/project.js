@@ -689,13 +689,13 @@ $('.forms-info-old').on('click', function() {
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function (users) {
+            success: function (departments) {
                 var table = $('#table-forms-connect-users tr:first');
                 $('.new_tr').empty();
-                users.forEach( function(user, key, users){
+                departments.forEach( function(department, key, departments){
                     table.after('<tr class="new_tr">'+
-                                    '<td>'+users[key].name_forms+'</td>'+
-                                    '<td>'+users[key].surname+' '+users[key].name+' '+users[key].middle_name+'</td>'+
+                                    '<td>'+department.name_forms+'</td>'+
+                                    '<td>'+department.name_departments+'</td>'+
                                 '</tr>');
                 });
             }
