@@ -24,11 +24,11 @@
                                 <h4 class="panel-title">
                                     <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id_forms}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}">
                                         {{ $form->name_forms }}
-                                        <span class="pull-right">{{ $form->surname.' '.$form->name }}</span>
+                                        <span class="pull-right">{{ $form->name_departments }}</span>
                                     </a>
                                 </h4>
                             </div>
-                            <div id="accordion{{$form->id_forms}}" class="panel-collapse collapse ">
+                            <div id="accordion{{$form->id_forms}}" class="panel-collapse collapse">
                                 <div class="panel-body">
                                     <form action="submitFillForm" method="POST">
                                         {{ csrf_field() }}
@@ -39,7 +39,7 @@
                                             <div id="content-form-old{{$form->id_forms}}" class="col-sm-6">
 
                                             </div>
-                                            <div id="content-form{{$form->id_forms}}" class="col-sm-6" style="border-left: 1px solid #eee;" >
+                                            <div id="content-form{{$form->id_forms}}" class="col-sm-6" style="border-left: 1px solid #eee;">
 
                                             </div>
                                         </div>

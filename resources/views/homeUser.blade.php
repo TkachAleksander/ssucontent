@@ -45,7 +45,11 @@
                                         <div class="row">
                                             <div class="col-sm-offset-3 col-sm-6">
                                                 <hr>
-                                                <input type="submit" class="btn btn-sm btn-primary pull-right" value="Отправить">
+                                                @if($form->id_status_checks !=2 )
+                                                    <input type="submit" class="btn btn-sm btn-primary pull-right" value="Отправить">
+                                                @else
+                                                    <p class="text-center">Пожалуйста подождите администратор проверяет форму!</p>
+                                                @endif
                                             </div>
                                         </div>
 
