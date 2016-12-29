@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
 
-//define("RADIOBUTTON", "radiobutton");
-//define("CHECKBOX", 'checkbox');
+
 class ConstructorFormController extends Controller
 {
     const RADIOBUTTON = "radiobutton";
@@ -24,8 +23,8 @@ class ConstructorFormController extends Controller
         $this->ForeachImplode($set_elements);
 
         $name_forms = DB::table('forms as f')->where('show','=',1)
-            ->join('set_forms_users as sfu', 'sfu.id_forms','=','f.id')
-            ->select('f.id','f.name_forms','sfu.id_status_checks')->get();
+            ->join('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
+            ->select('f.id','f.name_forms','sfd.id_status_checks')->get();
 
         return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
     }
@@ -366,9 +365,8 @@ class ConstructorFormController extends Controller
     public  function formsConnectUsers(){
         $forms = DB::table('forms')->get();
         $departments = DB::table('departments')->get();
-        $connects = DB::table('set_forms_users as sfu')->join('forms as f', 'f.id','=','sfu.id_forms')
-                                                       ->join('users as u', 'u.id','=','sfu.id_users')
-                                                       ->join('departments as d', 'd.id','=','u.id_departments')
+        $connects = DB::table('set_forms_departments as sfd')->join('forms as f', 'f.id','=','sfd.id_forms')
+                                                       ->join('departments as d', 'd.id','=','sfd.id_departments')
                                                        ->select('d.*', 'f.name_forms')
                                                        ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                                                        ->get();
@@ -376,19 +374,39 @@ class ConstructorFormController extends Controller
     }
 
     public function getTableConnectUsers(Request $request){
-        if($request->input('id_forms') == '*'){
-            $departments = DB::table('set_forms_users as sfu')
-                ->join('users as u', 'u.id','=','sfu.id_users')
-                ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
-                ->join('departments as d', 'd.id','=','u.id_departments')
+        $departments = [];
+        if($request->input('id_forms') == '*' && $request->input('id_departments') == '*'){
+            $departments = DB::table('set_forms_departments as sfd')
+                ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
+                ->join('departments as d', 'd.id','=','sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
                 ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                 ->get();
-        } else {
-            $departments = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
-                ->join('users as u', 'u.id','=','sfu.id_users')
-                ->join('forms as f', 'f.id', '=', 'sfu.id_forms')
-                ->join('departments as d', 'd.id','=','u.id_departments')
+        }
+        if($request->input('id_forms') == '*' && $request->input('id_departments') != '*') {
+            $departments = DB::table('set_forms_departments as sfd')
+                ->where('sfd.id_departments', '=', $request->input('id_departments'))
+                ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
+                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->select('d.*', 'f.name_forms')
+                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->get();
+        }
+        if($request->input('id_forms') != '*' && $request->input('id_departments') == '*') {
+            $departments = DB::table('set_forms_departments as sfd')
+                ->where('sfd.id_forms', '=', $request->input('id_forms'))
+                ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
+                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->select('d.*', 'f.name_forms')
+                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->get();
+        }
+        if($request->input('id_forms') != '*' && $request->input('id_departments') != '*') {
+            $departments = DB::table('set_forms_departments as sfd')
+                ->where('sfd.id_forms', '=', $request->input('id_forms'))
+                ->where('sfd.id_departments', '=', $request->input('id_departments'))
+                ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
+                ->join('departments as d', 'd.id','=','sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
                 ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
                 ->get();
@@ -397,12 +415,14 @@ class ConstructorFormController extends Controller
     }
 
     public function setTableConnectUsers(Request $request){
-        $value = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
-                                                    ->where('id_users', '=', $request->input('id_users'))
-                                                    ->get();
+        $value = DB::table('set_forms_departments as sfd')
+            ->where('sfd.id_forms', '=', $request->input('id_forms'))
+            ->where('sfd.id_departments', '=', $request->input('id_departments'))
+            ->get();
+
         if($value == null) {
-            DB::table('set_forms_users')->insert(['id_forms' => $request->input('id_forms'),
-                'id_users' => $request->input('id_users')]);
+            DB::table('set_forms_departments')->insert(['id_forms' => $request->input('id_forms'),
+                'id_departments' => $request->input('id_departments')]);
             return response()->json(['message'=>'Связь успешно добавлена.', 'bool'=>true]);
         } else {
             return response()->json(['message'=>'Такая связь уже существует!', 'bool'=>false]);
@@ -411,12 +431,12 @@ class ConstructorFormController extends Controller
     }
 
     public function setTableDisconnectUsers(Request $request){
-        $value = DB::table('set_forms_users as sfu')->where('id_forms', '=', $request->input('id_forms'))
-                                                    ->where('id_users', '=', $request->input('id_users'))
+        $value = DB::table('set_forms_departments as sfd')->where('id_forms', '=', $request->input('id_forms'))
+                                                    ->where('id_departments', '=', $request->input('id_departments'))
                                                     ->pluck('id');
 
         if($value != null) {
-            DB::table('set_forms_users')->where('id', '=', $value)->delete();
+            DB::table('set_forms_departments')->where('id', '=', $value)->delete();
             return response()->json(['message'=>'Связь успешно разорвана.', 'bool'=>true]);
         } else {
             return response()->json(['message'=>'Такой связи не существует!', 'bool'=>false]);

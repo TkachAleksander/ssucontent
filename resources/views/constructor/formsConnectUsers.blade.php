@@ -23,7 +23,8 @@
                                     </select>
                                 </div>
                                 <div class="col-sm-6">
-                                    <select id="id_users" class="multiselect" name="id_users">
+                                    <select id="id_departments" class="multiselect" name="id_departments">
+                                        <option value="*"> Все отделы </option>
                                         @foreach($departments as $department)
                                             <option value="{{ $department->id }}">{{$department->name_departments}}</option>
                                         @endforeach

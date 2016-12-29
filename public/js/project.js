@@ -678,18 +678,22 @@ $('.forms-info-old').on('click', function() {
 
 
     // Вкладка Форма/Пользователь отображение уже существующих связей
-    $("#id_forms").change(function(){
+    $("#id_forms, #id_departments").change(function(){
         var id_forms = $('#id_forms option:selected').val();
-        (id_forms == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled','true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
+        var id_departments = $('#id_departments option:selected').val();
+        
+        (id_forms == '*' || id_departments == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled','true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
+               
         $.ajax({
             type:"POST",
             url:"getTableConnectUsers",
-            data:{ id_forms:id_forms },
+            data:{ id_forms:id_forms, id_departments:id_departments },
             dataType:"JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
             success: function (departments) {
+                console.log(departments);
                 var table = $('#table-forms-connect-users tr:first');
                 $('.new_tr').empty();
                 departments.forEach( function(department, key, departments){
@@ -705,12 +709,12 @@ $('.forms-info-old').on('click', function() {
     // Кнопка добаления связей
     $('#btn-forms-connect-users').on('click', function(){
         var id_forms = $('#id_forms option:selected').val();
-        var id_users = $('#id_users option:selected').val();
+        var id_departments = $('#id_departments option:selected').val();
 
         $.ajax({
             type:"POST",
             url:"setTableConnectUsers",
-            data:{ id_forms:id_forms, id_users:id_users },
+            data:{ id_forms:id_forms, id_departments:id_departments },
             dataType:"JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
