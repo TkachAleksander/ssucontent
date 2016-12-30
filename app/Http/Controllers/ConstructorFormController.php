@@ -23,7 +23,7 @@ class ConstructorFormController extends Controller
         $this->ForeachImplode($set_elements);
 
         $name_forms = DB::table('forms as f')->where('show','=',1)
-            ->join('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
+            ->leftJoin('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
             ->select('f.id','f.name_forms','sfd.id_status_checks')->get();
 
         return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
@@ -31,7 +31,6 @@ class ConstructorFormController extends Controller
 
     public function getSetElements(Request $request){
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('idSetElement'))->get();
-        
 
         foreach ($set_elements as $key => $set_element) {
             $id_set_element = $set_element->id;
@@ -127,11 +126,11 @@ class ConstructorFormController extends Controller
             // Если массив обязательных элементов(required) с номерами очереди элементов(queue) не пуст
             if (!empty($request->input('required'))) {
                 // Берем первый номер элемента из очереди
-                foreach ($request->input('queue') as $id_set_elements) {
+                foreach ($request->input('queue') as $key => $queue) {
                     // Перебираем весь массив обязательных элементов
                     foreach ($request->input('required') as $required) {
                         // Если есть такой - true; если нет - false
-                        if ($id_set_elements == $required) {
+                        if ($queue == $required) {
                             $bool = true;
                             break 1;
                         } else {
@@ -139,11 +138,11 @@ class ConstructorFormController extends Controller
                         }
                     }
                     // Записываем элемент со значение $bool для required
-                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $request->input('id_set_elements')[$key], 'required' => $bool]);
                 }
             } else {
                 // Если массив обязательных элементов(required) пуст все строки записываем с $bool = false
-                foreach ($request->input('queue') as $id_set_elements) {
+                foreach ($request->input('id_set_elements') as $id_set_elements) {
                     DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
             }

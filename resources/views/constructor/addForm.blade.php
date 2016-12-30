@@ -17,7 +17,7 @@
                             <div class="panel-heading">
                                 <h4 class="panel-title">
                                     <a data-toggle="collapse" data-parent="#accordion" href="#accordionListForms" class="collapsed" >
-                                        Просмотреть список форм
+                                        Список существующих форм
                                     </a>
                                 </h4>
                             </div>
@@ -52,7 +52,7 @@
                                 <p><div class="text-center">Порядок элементов в форме</div></p>
                                 <table class="table table-bordered table-padding table-sort">
 
-                                    <tr>
+                                    <tr class="active">
                                         <th class="text-center"> Имя элемента </th>
                                         <th class="text-center"> Под элементы </th>
                                         <th class="text-center"> * </th>
@@ -83,6 +83,7 @@
                                         <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---"}}</td>
                                     </tr>
                                 @endforeach
+
                             </table>
                         </div>
                     </div>
