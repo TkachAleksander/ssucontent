@@ -33,7 +33,7 @@ class FormController extends Controller
                     ->join('status_checks as sc', 'sc.id','=','sfd.id_status_checks')
                     ->where('f.show','=', self::SHOW_FORMS)
                     ->where('sfd.id_status_checks','=',2)
-                    ->select('d.name_departments','sfd.id_forms','f.name_forms')
+                    ->select('d.name_departments'/*,'sfd.id'*/,'sfd.id_forms','f.name_forms')
                     ->get();
                 foreach ($forms as $key=>$form) {
                     $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
@@ -51,7 +51,8 @@ class FormController extends Controller
                     ->join('forms as f', 'f.id','=','sfd.id_forms')
                     ->join('status_checks as sc', 'sc.id','=','sfd.id_status_checks')
                     ->where('f.show','=', self::SHOW_FORMS)
-                    ->select('d.name_departments','sfd.id_forms','sc.name_status_checks','sc.id as id_status_checks','sc.border_color','f.name_forms')
+                    ->where('sfd.id_status_checks','!=',2)
+                    ->select('d.name_departments'/*,'sfd.id'*/,'sfd.id_forms','sc.name_status_checks','sc.id as id_status_checks','sc.border_color','f.name_forms')
                     ->orderBy('sfd.id','asc')
                     ->get();
 
@@ -75,7 +76,9 @@ class FormController extends Controller
         $row  = $i = 0;
         foreach ($request->all() as $key=>$value){
             if ($i++ >= 2) {
+                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row])->increment('version_values_forms',1);
                 DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++], 'values_forms' => $value]);
+                DB::table('values_forms')->where('version_values_forms','>=', 3)->delete();
             }
         }
 
