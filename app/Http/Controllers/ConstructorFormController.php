@@ -294,12 +294,13 @@ class ConstructorFormController extends Controller
 // showForms
     public function FormInfo (Request $request, $version){
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
-            ->where('version', '=', $version)
+            ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+            ->where('vf.version_values_forms', '=', $version)
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms')
             ->get();
 
         $this->ForeachImplode($form_info);
