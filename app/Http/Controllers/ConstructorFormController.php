@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 
 class ConstructorFormController extends Controller
@@ -83,7 +84,7 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id','asc')
             ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
-//        dd($set_elements);
+
         $this->ForeachImplode($set_elements);
 
         return response()->json($set_elements);
@@ -299,10 +300,10 @@ class ConstructorFormController extends Controller
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
             ->where('vf.version_values_forms', '=', $version)
+            ->where('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
             ->get();
-
         $this->ForeachImplode($form_info);
         
         return $form_info;
@@ -357,6 +358,22 @@ class ConstructorFormController extends Controller
         return response()->json($form_info);
     }
 
+    public function getFormInfoAll (Request $request){
+        $form_info = $this->FormInfoAll($request, 1);
+        return response()->json($form_info);
+    }
+    public function FormInfoAll (Request $request, $version){
+        $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+            ->where('sfe.version', '=', $version)
+            ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+            ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->orderBy('sfe.id','asc')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->get();
+        $this->ForeachImplode($form_info);
+
+        return $form_info;
+    }
 
 
 

@@ -508,20 +508,22 @@ $('.editElementFromForm').on('click',function() {
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
-        var contentForm = $('#content-form'+id_forms);
+        var id_departments = $(this).data("idDepartments");
+        var generateString = $(this).data("generatestring")
+        var contentForm = $('#content-form'+generateString);
         contentForm.empty();
 
     if ($(this).hasClass("collapsed")) {
         $.ajax({
             type: "POST",
             url: "getFormInfo",
-            data: {id_forms: id_forms},
+            data: {id_forms: id_forms, id_departments:id_departments},
             dataType: "JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
             success: function (formsInfo) {
-
+                $('.input-id-form').val(formsInfo[0].id_forms);
                 var required;
                 formsInfo.forEach(function (value, key, formsInfo) {
                     if(formsInfo[key].required == true) {
@@ -601,14 +603,16 @@ $('.editElementFromForm').on('click',function() {
 // Отображение старого содержимого формы homeAdmin
 $('.forms-info-old').on('click', function() {
     var id_forms = $(this).data("id");
-    var contentForm = $('#content-form-old' + id_forms);
+    var id_departments = $(this).data("idDepartments");
+    var generateString = $(this).data("generatestring")
+    var contentForm = $('#content-form-old'+generateString);
     contentForm.empty();
 
     if ($(this).hasClass("collapsed")) {
         $.ajax({
             type: "POST",
             url: "getFormInfoOld",
-            data: {id_forms: id_forms},
+            data: {id_forms: id_forms, id_departments:id_departments},
             dataType: "JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -685,6 +689,92 @@ $('.forms-info-old').on('click', function() {
         });
     }
 });
+
+
+
+$('.forms-info-all').on('click', function(){
+    var id_forms = $(this).data("id");
+    var contentForm = $('#content-form'+id_forms);
+    contentForm.empty();
+
+    if ($(this).hasClass("collapsed")) {
+        $.ajax({
+            type: "POST",
+            url: "getFormInfoAll",
+            data: {id_forms: id_forms},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (formsInfo) {
+                $('.input-id-form').val(formsInfo[0].id_forms);
+                var required;
+                formsInfo.forEach(function (value, key, formsInfo) {
+                    if(formsInfo[key].required == true) {
+                        formsInfo[key].required = "*";
+                        required = "required";
+                    } else {
+                        formsInfo[key].required = "";
+                        required = "";
+                    }
+
+                    switch (formsInfo[key].name_elements) {
+
+                        case "input(text)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value=""><p></p>');
+                            break;
+
+                        case "input(email)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value=""><p></p>');
+                            break;
+
+                        case "textarea":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"' + required + '></textarea><p></p>');
+                            break;
+
+                        case "radiobutton":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
+
+                        case "checkbox":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            var name_sub_elements = formsInfo[key].name_sub_elements;
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
+
+                        case "option":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            contentForm.append('<select id="select' +key+ '" class="multiselect" name="' +formsInfo[key].name_set_elements+ '" style="margin-left: 10px;" ' + required + '>');
+                            var id = key;
+                            sub_elements.forEach(function (value, key, sub_elements) {
+                                $('#select' + id).append('<option value="' +sub_elements[key]+ '">' + sub_elements[key] + '</option>');
+                            });
+                            contentForm.append('</select>');
+                            contentForm.append('<p></p>');
+                            break;
+                    }
+
+                });
+            }
+
+        });
+    }
+});
+
+
 
 
     // Вкладка Форма/Пользователь отображение уже существующих связей
@@ -765,6 +855,12 @@ $('.forms-info-old').on('click', function() {
 
 
 
+// Список форм на проверку 
+// Кнопка принять 
+
+$('#btn-accept-form').on('click', function () {
+
+});
 
 
 

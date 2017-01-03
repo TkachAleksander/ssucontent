@@ -19,7 +19,7 @@
                                     <?php $style = ($form->show == 0) ? "style=background-color:#fff1ab" : '' ;?>
                                     <div class="panel-heading" {{ $style }}>
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id}}" class="forms-info-all collapsed" data-id="{{$form->id}}" {{--data-id-departments="{{$form->id_departments}}" data-generatestring="{{$form->generateString}}"--}}>
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id}}" class="forms-info-all collapsed" data-id="{{$form->id}}">
                                                 {{ $form->name_forms }}
                                                 <span class="pull-right">
                                                      <?php $show = ($form->show == 0) ? "[скрыта]" : "[видна]" ;?>
