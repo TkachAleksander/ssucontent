@@ -48,6 +48,7 @@ Route::group(['middleware' => 'auth'], function(){
     //> Вкладка Просмотр списка форм
     Route::get('/constructor/showForms', 'ConstructorFormController@showForms');
     Route::post('/constructor/getFormInfo', 'ConstructorFormController@getFormInfo');
+    Route::post('/constructor/getFormInfoAll', 'ConstructorFormController@getFormInfoAll');
     Route::post('/constructor/removeForms', 'ConstructorFormController@removeFormsToServer');
     //> Вкладка Форма/Пользователь
     Route::get('/constructor/formsConnectUsers', 'ConstructorFormController@formsConnectUsers');

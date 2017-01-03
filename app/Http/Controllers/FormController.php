@@ -12,6 +12,18 @@ class FormController extends Controller
     const SHOW_FORMS = 1;
     const ADMINISTRATOR = 'administrator';
 
+    
+    public function generateString($length = 8){
+        $chars = 'abdefhiknrstyzABDEFGHKNQRSTYZ23456789';
+        $numChars = strlen($chars);
+        $string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $string .= substr($chars, rand(1, $numChars) - 1, 1);
+        }
+        return $string;
+    }
+    
+    
     public function index(){
 
         if (!Auth::guest()){
@@ -33,7 +45,7 @@ class FormController extends Controller
                     ->join('status_checks as sc', 'sc.id','=','sfd.id_status_checks')
                     ->where('f.show','=', self::SHOW_FORMS)
                     ->where('sfd.id_status_checks','=',2)
-                    ->select('d.name_departments','sfd.id_forms','f.name_forms')
+                    ->select('d.name_departments','sfd.id_departments','sfd.id_forms','f.name_forms')
                     ->get();
                 foreach ($forms as $key=>$form) {
                     $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
@@ -41,6 +53,7 @@ class FormController extends Controller
                         ->join('elements as e', 'e.id', '=', 'se.id_elements')
                         ->select('se.name_set_elements', 'se.label_set_elements', 'sfe.width', 'e.name_elements')
                         ->get();
+                    $forms[$key]->generateString = $this->generateString();
                 }
                 return view('homeAdmin',['forms' => $forms, 'role' => $role[0]->name_roles]);
             } else {
@@ -51,7 +64,8 @@ class FormController extends Controller
                     ->join('forms as f', 'f.id','=','sfd.id_forms')
                     ->join('status_checks as sc', 'sc.id','=','sfd.id_status_checks')
                     ->where('f.show','=', self::SHOW_FORMS)
-                    ->select('d.name_departments','sfd.id_forms','sc.name_status_checks','sc.id as id_status_checks','sc.border_color','f.name_forms')
+                    ->where('sfd.id_status_checks','!=',2)
+                    ->select('d.name_departments','sfd.id_departments','sfd.id_forms','sc.name_status_checks','sc.id as id_status_checks','sc.border_color','f.name_forms')
                     ->orderBy('sfd.id','asc')
                     ->get();
 
@@ -61,25 +75,29 @@ class FormController extends Controller
                         ->join('elements as e', 'e.id', '=', 'se.id_elements')
                         ->select('se.name_set_elements', 'se.label_set_elements', 'sfe.width', 'e.name_elements')
                         ->get();
+                    $forms[$key]->generateString = $this->generateString();
                 }
             }
-            return view('homeUser',['forms' => $forms, 'role' => $role[0]->name_roles]);
+            return view('homeUser',['forms' => $forms, 'role' => $role[0]->name_roles, 'id_departments' => Auth::user()->id_departments]);
         } else {
             return view('homeUser');
         }
     }
 
     public function submitFillForm(Request $request){
+        dd($request->all());
         $id_set_forms_elements = DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_forms'))
             ->where('version', '=', 1)->pluck('id');
         $row  = $i = 0;
         foreach ($request->all() as $key=>$value){
             if ($i++ >= 2) {
-                DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++], 'values_forms' => $value]);
+                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row])->where('id_departments','=',Auth::user()->id_departments)->increment('version_values_forms',1);
+                DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++],'id_departments' => Auth::user()->id_departments, 'values_forms' => $value]);
+                DB::table('values_forms')->where('version_values_forms','>=', 3)->where('id_departments','=',Auth::user()->id_departments)->delete();
             }
         }
 
-        DB::table('set_forms_departments')->where('id_departments','=',Auth::user()->id_departments)->where('id_forms','=',$request->input('id_forms'))
+        DB::table('set_forms_departments')->where('id_forms','=',$request->input('id_forms'))->where('id_departments','=',Auth::user()->id_departments)
         ->update(['id_status_checks'=>2]);
 
         return redirect('/');

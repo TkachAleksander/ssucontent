@@ -211,16 +211,20 @@ $(document).ready(function() {
                     $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>' +
                             '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="' + id_form + '" style="margin-left:10px"> Редактировать </button>')
                         .remove();
+
                     set_elements.forEach(function (set_element, key, set_elements) {
+
                         set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---" : set_element.value_sub_elements;
                         var checked = (set_element.required == 1) ? "checked=true" : "";
-                        sortContainer.append('<tr id="' + set_element.id_set_elements + '">' +
+                        sortContainer.append('<tr id="' + set_element.id + '" >' +
                             '<td>' + set_element.label_set_elements + '</td>' +
                             '<td>' + set_element.value_sub_elements + '</td>' +
-                            '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="' + set_element.id_set_elements + '" ' + checked + ' ></td>' +
-                            '<td class="text-center"><button id="' + set_element.id_set_elements + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + set_element.id + '"> X </button></td>' +
+                            '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="' + set_element.id + '" ' + checked + ' ></td>' +
+                            '<td class="text-center"><button id="' + set_element.id + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + set_element.id + '"> X </button></td>' +
+                            '<td class="id-set-elements" style="display: none;">'+set_element.id_set_elements+'</td>'+
                             '</tr>'
                         );
+
                     });
 
                 }
@@ -280,6 +284,7 @@ $(document).ready(function() {
                         '<td>' +data[0].value_sub_elements+ '</td>'+
                         '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
                         '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="0"> X </button></td>'+
+                        '<td class="id-set-elements" style="display: none;">'+data[0].id+'</td>'+
                         '</tr>');
                 }
             });
@@ -309,16 +314,21 @@ $('#container').on('click','#btn-edit-form',function () {
     var old_name_forms = $('#old_name_forms').val();
     var queue = $('#sortContainer').sortable("toArray");
     var update_date = $('#update_date').val();
+    
+    var id_set_elements = [];
     var required = [];
-    var i = 0;
-    $('#sortContainer input:checkbox:checked').each(function(){
-        required[i++] = $(this).val();
-    });
+    $.each($('#sortContainer tr td:last-child'),function(i){
+        id_set_elements[i] = $(this).html();
 
+    });
+    $.each($('#sortContainer input:checkbox:checked'),function(i){
+        required[i] = $(this).val();
+    });
+console.log('queue: '+queue+' required: '+required+' set: '+id_set_elements);
     $.ajax({
         type:"POST",
         url:"/constructor/addEditedNewForm",
-        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form, update_date:update_date},
+        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form, update_date:update_date, id_set_elements:id_set_elements},
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -498,20 +508,22 @@ $('.editElementFromForm').on('click',function() {
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
-        var contentForm = $('#content-form'+id_forms);
+        var id_departments = $(this).data("idDepartments");
+        var generateString = $(this).data("generatestring")
+        var contentForm = $('#content-form'+generateString);
         contentForm.empty();
 
     if ($(this).hasClass("collapsed")) {
         $.ajax({
             type: "POST",
             url: "getFormInfo",
-            data: {id_forms: id_forms},
+            data: {id_forms: id_forms, id_departments:id_departments},
             dataType: "JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
             success: function (formsInfo) {
-
+                /* $('.input-id-form').val(formsInfo[0].id_forms);*/console.log(formsInfo);
                 var required;
                 formsInfo.forEach(function (value, key, formsInfo) {
                     if(formsInfo[key].required == true) {
@@ -523,10 +535,11 @@ $('.editElementFromForm').on('click',function() {
                     }
 
                     formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? "" : formsInfo[key].values_forms;
-
+                    console.log(formsInfo[key].name_elements);
                     switch (formsInfo[key].name_elements) {
 
                         case "input(text)":
+
                             contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
                             contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
                             break;
@@ -591,14 +604,16 @@ $('.editElementFromForm').on('click',function() {
 // Отображение старого содержимого формы homeAdmin
 $('.forms-info-old').on('click', function() {
     var id_forms = $(this).data("id");
-    var contentForm = $('#content-form-old' + id_forms);
+    var id_departments = $(this).data("idDepartments");
+    var generateString = $(this).data("generatestring")
+    var contentForm = $('#content-form-old'+generateString);
     contentForm.empty();
 
     if ($(this).hasClass("collapsed")) {
         $.ajax({
             type: "POST",
             url: "getFormInfoOld",
-            data: {id_forms: id_forms},
+            data: {id_forms: id_forms, id_departments:id_departments},
             dataType: "JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -677,13 +692,99 @@ $('.forms-info-old').on('click', function() {
 });
 
 
+
+$('.forms-info-all').on('click', function(){
+    var id_forms = $(this).data("id");
+    var contentForm = $('#content-form'+id_forms);
+    contentForm.empty();
+
+    if ($(this).hasClass("collapsed")) {
+        $.ajax({
+            type: "POST",
+            url: "getFormInfoAll",
+            data: {id_forms: id_forms},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (formsInfo) {
+                $('.input-id-form').val(formsInfo[0].id_forms);
+                var required;
+                formsInfo.forEach(function (value, key, formsInfo) {
+                    if(formsInfo[key].required == true) {
+                        formsInfo[key].required = "*";
+                        required = "required";
+                    } else {
+                        formsInfo[key].required = "";
+                        required = "";
+                    }
+
+                    switch (formsInfo[key].name_elements) {
+
+                        case "input(text)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value=""><p></p>');
+                            break;
+
+                        case "input(email)":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value=""><p></p>');
+                            break;
+
+                        case "textarea":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].name_set_elements + '" style="resize: none;"' + required + '></textarea><p></p>');
+                            break;
+
+                        case "radiobutton":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="radio" name="' + formsInfo[key].name_set_elements + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
+
+                        case "checkbox":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            var name_sub_elements = formsInfo[key].name_sub_elements;
+                            sub_elements.forEach(function (value, key_sub, sub_elements) {
+                                contentForm.append('<input type="checkbox" name="' + name_sub_elements[key_sub] + '" value="' + sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
+                            });
+                            contentForm.append('<p></p>');
+                            break;
+
+                        case "option":
+                            contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
+                            sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                            contentForm.append('<select id="select' +key+ '" class="multiselect" name="' +formsInfo[key].name_set_elements+ '" style="margin-left: 10px;" ' + required + '>');
+                            var id = key;
+                            sub_elements.forEach(function (value, key, sub_elements) {
+                                $('#select' + id).append('<option value="' +sub_elements[key]+ '">' + sub_elements[key] + '</option>');
+                            });
+                            contentForm.append('</select>');
+                            contentForm.append('<p></p>');
+                            break;
+                    }
+
+                });
+            }
+
+        });
+    }
+});
+
+
+
+
     // Вкладка Форма/Пользователь отображение уже существующих связей
     $("#id_forms, #id_departments").change(function(){
         var id_forms = $('#id_forms option:selected').val();
         var id_departments = $('#id_departments option:selected').val();
         
         (id_forms == '*' || id_departments == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled','true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
-               
+
         $.ajax({
             type:"POST",
             url:"getTableConnectUsers",
@@ -755,6 +856,12 @@ $('.forms-info-old').on('click', function() {
 
 
 
+// Список форм на проверку 
+// Кнопка принять 
+
+$('#btn-accept-form').on('click', function () {
+
+});
 
 
 

@@ -14,23 +14,23 @@
                     <div class="panel-body">
                         <div class="col-sm-12">
 
-                            @foreach($forms as $f_name)
+                            @foreach($forms as $form)
                                 <div class="panel panel-default">
-                                    <?php $style = ($f_name->show == 0) ? "style=background-color:#fff1ab" : '' ;?>
+                                    <?php $style = ($form->show == 0) ? "style=background-color:#fff1ab" : '' ;?>
                                     <div class="panel-heading" {{ $style }}>
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$f_name->id}}" class="forms-info collapsed" data-id="{{$f_name->id}}">
-                                                {{ $f_name->name_forms }}
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id}}" class="forms-info-all collapsed" data-id="{{$form->id}}">
+                                                {{ $form->name_forms }}
                                                 <span class="pull-right">
-                                                     <?php $show = ($f_name->show == 0) ? "[скрыта]" : "[видна]" ;?>
+                                                     <?php $show = ($form->show == 0) ? "[скрыта]" : "[видна]" ;?>
                                                     {{ $show }}
                                                 </span>
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="accordion{{$f_name->id}}" class="panel-collapse collapse ">
+                                    <div id="accordion{{$form->id}}" class="panel-collapse collapse ">
                                         <div class="panel-body">
-                                            <div id="content-form{{$f_name->id}}" class="col-sm-6">
+                                            <div id="content-form{{$form->id}}" class="col-sm-6">
 
                                             </div>
                                         </div>

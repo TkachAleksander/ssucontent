@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 
 class ConstructorFormController extends Controller
@@ -23,15 +24,25 @@ class ConstructorFormController extends Controller
         $this->ForeachImplode($set_elements);
 
         $name_forms = DB::table('forms as f')->where('show','=',1)
-            ->join('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
-            ->select('f.id','f.name_forms','sfd.id_status_checks')->get();
+            ->leftJoin('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
+            ->select('f.id','f.name_forms','sfd.id_status_checks')->distinct()->get();
+
+        foreach ($name_forms as $name_form){
+            if($name_form->id_status_checks == 2){
+                $id = $name_form->id;
+                foreach ($name_forms as $key=>$form) {
+                    if($form->id == $id && $form->id_status_checks != 2){
+                        unset($name_forms[$key]);
+                    }
+                }
+            }
+        }
 
         return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
     }
 
     public function getSetElements(Request $request){
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('idSetElement'))->get();
-        
 
         foreach ($set_elements as $key => $set_element) {
             $id_set_element = $set_element->id;
@@ -84,7 +95,7 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id','asc')
             ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
             ->get();
-//        dd($set_elements);
+
         $this->ForeachImplode($set_elements);
 
         return response()->json($set_elements);
@@ -127,11 +138,11 @@ class ConstructorFormController extends Controller
             // Если массив обязательных элементов(required) с номерами очереди элементов(queue) не пуст
             if (!empty($request->input('required'))) {
                 // Берем первый номер элемента из очереди
-                foreach ($request->input('queue') as $id_set_elements) {
+                foreach ($request->input('queue') as $key => $queue) {
                     // Перебираем весь массив обязательных элементов
                     foreach ($request->input('required') as $required) {
                         // Если есть такой - true; если нет - false
-                        if ($id_set_elements == $required) {
+                        if ($queue == $required) {
                             $bool = true;
                             break 1;
                         } else {
@@ -139,11 +150,11 @@ class ConstructorFormController extends Controller
                         }
                     }
                     // Записываем элемент со значение $bool для required
-                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
+                    DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $request->input('id_set_elements')[$key], 'required' => $bool]);
                 }
             } else {
                 // Если массив обязательных элементов(required) пуст все строки записываем с $bool = false
-                foreach ($request->input('queue') as $id_set_elements) {
+                foreach ($request->input('id_set_elements') as $id_set_elements) {
                     DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
             }
@@ -295,14 +306,28 @@ class ConstructorFormController extends Controller
 // showForms
     public function FormInfo (Request $request, $version){
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
-            ->where('version', '=', $version)
+            ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+            ->where('vf.version_values_forms', '=', $version)
+            ->where('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
             ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
             ->get();
-
+//        dd($form_info);
+        if ($form_info == null){
+            $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                ->where('sfe.version', '=', $version)
+                ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+//                ->orWhere('v/f.version_values_forms', '=', $version)
+//                ->orWhere('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
+                ->orderBy('sfe.id','asc')
+                ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+                ->get();
+        }
         $this->ForeachImplode($form_info);
         
         return $form_info;
@@ -348,7 +373,9 @@ class ConstructorFormController extends Controller
     }
 
     public function getFormInfo(Request $request){
+//        dd($request->all());
         $form_info = $this->FormInfo($request, 1);
+//        dd($form_info);
         return response()->json($form_info);
     }
 
@@ -357,6 +384,22 @@ class ConstructorFormController extends Controller
         return response()->json($form_info);
     }
 
+    public function getFormInfoAll (Request $request){
+        $form_info = $this->FormInfoAll($request, 1);
+        return response()->json($form_info);
+    }
+    public function FormInfoAll (Request $request, $version){
+        $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+            ->where('sfe.version', '=', $version)
+            ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+            ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->orderBy('sfe.id','asc')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->get();
+        $this->ForeachImplode($form_info);
+
+        return $form_info;
+    }
 
 
 
