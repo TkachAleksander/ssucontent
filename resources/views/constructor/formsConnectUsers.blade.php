@@ -23,9 +23,10 @@
                                     </select>
                                 </div>
                                 <div class="col-sm-6">
-                                    <select id="id_users" class="multiselect" name="id_users">
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->id }}">{{$user->surname." ".$user->name." ".$user->middle_name}}</option>
+                                    <select id="id_departments" class="multiselect" name="id_departments">
+                                        <option value="*"> Все отделы </option>
+                                        @foreach($departments as $department)
+                                            <option value="{{ $department->id }}">{{$department->name_departments}}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -50,7 +51,7 @@
                                         @foreach ($connects as $connect)
                                             <tr class="new_tr">
                                                 <td>{{ $connect->name_forms }}</td>
-                                                <td>{{ $connect->surname." ".$connect->name." ".$connect->middle_name }}</td>
+                                                <td>{{ $connect->name_departments }}</td>
                                             </tr>
                                         @endforeach
                                     </table>
