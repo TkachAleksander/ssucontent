@@ -85,18 +85,19 @@ class FormController extends Controller
     }
 
     public function submitFillForm(Request $request){
+        dd($request->all());
         $id_set_forms_elements = DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_forms'))
             ->where('version', '=', 1)->pluck('id');
         $row  = $i = 0;
         foreach ($request->all() as $key=>$value){
             if ($i++ >= 2) {
-                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row])->increment('version_values_forms',1);
+                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row])->where('id_departments','=',Auth::user()->id_departments)->increment('version_values_forms',1);
                 DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++],'id_departments' => Auth::user()->id_departments, 'values_forms' => $value]);
-                DB::table('values_forms')->where('version_values_forms','>=', 3)->delete();
+                DB::table('values_forms')->where('version_values_forms','>=', 3)->where('id_departments','=',Auth::user()->id_departments)->delete();
             }
         }
 
-        DB::table('set_forms_departments')->where('id_departments','=',Auth::user()->id_departments)->where('id_forms','=',$request->input('id_forms'))
+        DB::table('set_forms_departments')->where('id_forms','=',$request->input('id_forms'))->where('id_departments','=',Auth::user()->id_departments)
         ->update(['id_status_checks'=>2]);
 
         return redirect('/');

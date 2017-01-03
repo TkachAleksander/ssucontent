@@ -25,7 +25,18 @@ class ConstructorFormController extends Controller
 
         $name_forms = DB::table('forms as f')->where('show','=',1)
             ->leftJoin('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
-            ->select('f.id','f.name_forms','sfd.id_status_checks')->get();
+            ->select('f.id','f.name_forms','sfd.id_status_checks')->distinct()->get();
+
+        foreach ($name_forms as $name_form){
+            if($name_form->id_status_checks == 2){
+                $id = $name_form->id;
+                foreach ($name_forms as $key=>$form) {
+                    if($form->id == $id && $form->id_status_checks != 2){
+                        unset($name_forms[$key]);
+                    }
+                }
+            }
+        }
 
         return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
     }
@@ -304,6 +315,19 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id','asc')
             ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
             ->get();
+//        dd($form_info);
+        if ($form_info == null){
+            $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                ->where('sfe.version', '=', $version)
+                ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+//                ->orWhere('v/f.version_values_forms', '=', $version)
+//                ->orWhere('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
+                ->orderBy('sfe.id','asc')
+                ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+                ->get();
+        }
         $this->ForeachImplode($form_info);
         
         return $form_info;
@@ -349,7 +373,9 @@ class ConstructorFormController extends Controller
     }
 
     public function getFormInfo(Request $request){
+//        dd($request->all());
         $form_info = $this->FormInfo($request, 1);
+//        dd($form_info);
         return response()->json($form_info);
     }
 

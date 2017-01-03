@@ -523,7 +523,7 @@ $('.editElementFromForm').on('click',function() {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
             success: function (formsInfo) {
-                $('.input-id-form').val(formsInfo[0].id_forms);
+                /* $('.input-id-form').val(formsInfo[0].id_forms);*/console.log(formsInfo);
                 var required;
                 formsInfo.forEach(function (value, key, formsInfo) {
                     if(formsInfo[key].required == true) {
@@ -535,10 +535,11 @@ $('.editElementFromForm').on('click',function() {
                     }
 
                     formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? "" : formsInfo[key].values_forms;
-
+                    console.log(formsInfo[key].name_elements);
                     switch (formsInfo[key].name_elements) {
 
                         case "input(text)":
+
                             contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
                             contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].name_set_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
                             break;
