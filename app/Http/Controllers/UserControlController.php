@@ -12,12 +12,13 @@ class UserControlController extends Controller
 {
 	public function index()
 	{
-        $users = DB::table('users')->join('roles', 'roles.id', '=', 'users.id_roles')
+        $users = DB::table('users')->join('roles', 'roles.id','=','users.id_roles')
                                    ->where('name_roles', '!=', 'administrator')->get();
-        $administrators = DB::table('users')->join('roles', 'roles.id', '=', 'users.id_roles')
+        $administrators = DB::table('users')->join('roles', 'roles.id','=','users.id_roles')
                                             ->where('name_roles', '=', 'administrator')->get();
+        $departments = DB::table('users as u')->join('departments as d', 'd.id','=','u.id_departments')->get();
         $roles = DB::table('roles')->get();
-		return view('userControl', ['users' => $users, 'roles' => $roles, 'administrators' => $administrators]);
+		return view('userControl', ['users' => $users, 'roles' => $roles, 'administrators' => $administrators, 'departments' => $departments]);
 	}
 
     public function registration(Request $request)
@@ -43,7 +44,8 @@ class UserControlController extends Controller
             'middle_name' => $request->input('middle_name'),
             'email' => $request->input('email'),
             'password' => bcrypt( $request->input('password') ),
-            'id_roles' =>$request->input('id_roles')
+            'id_roles' => $request->input('id_roles'),
+            'id_departments' => $request->input('id_departments')
         ]);
 
         return redirect('/registration');

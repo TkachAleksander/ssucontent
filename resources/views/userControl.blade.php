@@ -105,7 +105,19 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>                        
+                        </div>
+
+                        <div class="form-group{{ $errors->has('id_departments') ? ' has-error' : '' }}">
+                            <label for="name" class="col-md-4 control-label">Отдел</label>
+
+                            <div class="col-md-6">
+                                <select class="multiselect" name="id_departments">
+                                    @foreach($departments as $department)
+                                        <option value="{{ $department->id }}">{{ $department->name_departments }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="form-group">
                             <div class="col-md-6 col-md-offset-4">
