@@ -855,6 +855,36 @@ $('.forms-info-all').on('click', function(){
 
 
 
+$('.btn-remove-departments').on('click', function () {
+    var id_departments = $(this).data('idDepartments');
+
+    $.ajax({
+        type:"POST",
+        url:"removeDepartments",
+        data:{ id_departments:id_departments },
+        dataType:"JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function () {
+            location.reload();
+        }
+    });
+});
+
+$('.btn-edit-departments').on('click', function () {
+    var id_departments = $(this).data('idDepartments');
+    var name_departments = $(this).data('nameDepartments');
+
+    $('#btn-add-departments').removeClass('btn-primary').addClass('btn-success').attr('value','Редактировать');
+    $('#name_departments').attr('value',$(this).data('nameDepartments')).after('<input type="hidden" name="id_departments" value="'+id_departments+'">');
+    $('form').attr('action', '/constructor/editDepartments');
+});
+
+
+
+
+
 
 // Список форм на проверку 
 // Кнопка принять 

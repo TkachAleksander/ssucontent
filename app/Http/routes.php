@@ -50,10 +50,14 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/constructor/getFormInfo', 'ConstructorFormController@getFormInfo');
     Route::post('/constructor/getFormInfoAll', 'ConstructorFormController@getFormInfoAll');
     Route::post('/constructor/removeForms', 'ConstructorFormController@removeFormsToServer');
-    //> Вкладка Форма/Пользователь
+    //> Вкладка Связи
     Route::get('/constructor/formsConnectUsers', 'ConstructorFormController@formsConnectUsers');
     Route::post('/constructor/getTableConnectUsers', 'ConstructorFormController@getTableConnectUsers');
     Route::post('/constructor/setTableConnectUsers', 'ConstructorFormController@setTableConnectUsers');
     Route::post('/constructor/setTableDisconnectUsers', 'ConstructorFormController@setTableDisconnectUsers');
-
+    //> Вкладка Отделы
+    Route::get('/constructor/departments', 'ConstructorFormController@getAllDepartments');
+    Route::post('/constructor/setDepartments', 'ConstructorFormController@setDepartments');
+    Route::post('/constructor/removeDepartments', 'ConstructorFormController@removeDepartments');
+    Route::post('/constructor/editDepartments', 'ConstructorFormController@editDepartments');
 });

@@ -24,13 +24,13 @@
                                 <h4 class="panel-title">
                                     <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info collapsed" data-id="{{$form->id_forms}}" data-id-departments="{{$id_departments}}" data-generatestring="{{$form->generateString}}">
                                         {{ $form->name_forms }}
-                                        {{--<div style="width: 10px; height: 20px; background-color:{{$form->border_color}}; border-radius: 3px; display: inline-block;"></div>--}}
                                         <span class="pull-right" style="color: {{$form->border_color}}; font-size: 13px">{{ $form->name_status_checks }}</span>
                                     </a>
                                 </h4>
                             </div>
                             <div id="{{$form->generateString}}" class="panel-collapse collapse ">
                                 <div class="panel-body">
+
                                     <form action="submitFillForm" method="POST">
                                         {{ csrf_field() }}
 
@@ -52,8 +52,8 @@
                                                 @endif
                                             </div>
                                         </div>
-
                                     </form>
+
                                 </div>
                             </div>
                         </div>

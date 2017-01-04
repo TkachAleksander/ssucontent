@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Department;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
-use Illuminate\Support\Facades\Auth;
+//use Illuminate\Support\Facades\Auth;
 
 
 class ConstructorFormController extends Controller
@@ -15,39 +16,41 @@ class ConstructorFormController extends Controller
     const OPTION = "option";
 
 // addForm
-    public function addForm(){
+    public function addForm()
+    {
         $set_elements = DB::table('set_elements as se')->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->select('se.*','se.id as id_set_elements', 'e.*')
+            ->select('se.*', 'se.id as id_set_elements', 'e.*')
             ->orderBy('se.name_set_elements', 'asc')
             ->get();
 
         $this->ForeachImplode($set_elements);
 
-        $name_forms = DB::table('forms as f')->where('show','=',1)
-            ->leftJoin('set_forms_departments as sfd', 'sfd.id_forms','=','f.id')
-            ->select('f.id','f.name_forms','sfd.id_status_checks')->distinct()->get();
+        $name_forms = DB::table('forms as f')->where('show', '=', 1)
+            ->leftJoin('set_forms_departments as sfd', 'sfd.id_forms', '=', 'f.id')
+            ->select('f.id', 'f.name_forms', 'sfd.id_status_checks')->distinct()->get();
 
-        foreach ($name_forms as $name_form){
-            if($name_form->id_status_checks == 2){
+        foreach ($name_forms as $name_form) {
+            if ($name_form->id_status_checks == 2) {
                 $id = $name_form->id;
-                foreach ($name_forms as $key=>$form) {
-                    if($form->id == $id && $form->id_status_checks != 2){
+                foreach ($name_forms as $key => $form) {
+                    if ($form->id == $id && $form->id_status_checks != 2) {
                         unset($name_forms[$key]);
                     }
                 }
             }
         }
 
-        return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms ]);
+        return view('constructor.addForm', ['set_elements' => $set_elements, 'name_forms' => $name_forms]);
     }
 
-    public function getSetElements(Request $request){
+    public function getSetElements(Request $request)
+    {
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('idSetElement'))->get();
 
         foreach ($set_elements as $key => $set_element) {
             $id_set_element = $set_element->id;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show','=',1)
+                ->where('show', '=', 1)
                 ->pluck('value_sub_elements');
             $value_sub_elements = implode(" | ", $sub_elements);
             $set_elements[$key]->value_sub_elements = $value_sub_elements;
@@ -55,10 +58,11 @@ class ConstructorFormController extends Controller
         return response()->json($set_elements);
     }
 
-    public function addSetFormsElementsToServer(Request $request){
+    public function addSetFormsElementsToServer(Request $request)
+    {
 
-        if ( !empty($request->input('name_forms')) && !empty($request->input('queue')) && !empty($request->input('update_date')) ){
-            $id_forms = DB::table('forms')->insertGetId([ 'name_forms' => $request->input('name_forms'), 'update_date' => $request->input('update_date') ]);
+        if (!empty($request->input('name_forms')) && !empty($request->input('queue')) && !empty($request->input('update_date'))) {
+            $id_forms = DB::table('forms')->insertGetId(['name_forms' => $request->input('name_forms'), 'update_date' => $request->input('update_date')]);
 
             foreach ($request->input('queue') as $key => $value) {
                 if (!empty($request->input('required'))) {
@@ -79,21 +83,22 @@ class ConstructorFormController extends Controller
                     'required' => $required
                 ]);
             }
-            return response()->json(['message'=>'Форма успешно добавлена !', 'bool'=>true]);
+            return response()->json(['message' => 'Форма успешно добавлена !', 'bool' => true]);
         } else {
-            return response()->json(['message'=>'Форма заполнена неверно !', 'bool'=>false]);
+            return response()->json(['message' => 'Форма заполнена неверно !', 'bool' => false]);
         }
     }
 
-    public function editForm(Request $request){
+    public function editForm(Request $request)
+    {
         $set_elements = DB::table('set_forms_elements as sfe')
-            ->where('sfe.id_forms','=',$request->input('id_form'))
+            ->where('sfe.id_forms', '=', $request->input('id_form'))
             ->where('version', '=', 1)
-            ->join('forms as f', 'f.id','=','sfe.id_forms')
-            ->join('set_elements as se', 'se.id','=','sfe.id_set_elements')
-            ->join('elements as e', 'e.id','=','se.id_elements')
-            ->orderBy('sfe.id','asc')
-            ->select('sfe.id','sfe.id_set_elements', 'sfe.required','f.name_forms', 'f.update_date', 'se.id_elements','se.name_set_elements','se.label_set_elements','e.name_elements')
+            ->join('forms as f', 'f.id', '=', 'sfe.id_forms')
+            ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+            ->join('elements as e', 'e.id', '=', 'se.id_elements')
+            ->orderBy('sfe.id', 'asc')
+            ->select('sfe.id', 'sfe.id_set_elements', 'sfe.required', 'f.name_forms', 'f.update_date', 'se.id_elements', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
 
         $this->ForeachImplode($set_elements);
@@ -108,13 +113,13 @@ class ConstructorFormController extends Controller
             ->join('set_forms_elements as sfe', 'sfe.id_forms', '=', 'f.id')
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->select('f.name_forms','f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
+            ->select('f.name_forms', 'f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
             ->get();
         // Дополняем информацию, под элементами элемента
         $this->ForeachImplode($set_elements);
 
         // Изменение старого имени формы на новое
-        $repeat_name_forms = DB::table('forms')->where('name_forms','=',$request->input('name_forms'))->get();
+        $repeat_name_forms = DB::table('forms')->where('name_forms', '=', $request->input('name_forms'))->get();
         // Если нет такого имени в базе ИЛИ найденое имя такое же как и прошлое
         if (empty($repeat_name_forms) || $repeat_name_forms[0]->name_forms == $request->input('old_name_forms')) {
 
@@ -128,7 +133,7 @@ class ConstructorFormController extends Controller
 
             // Все элементы формы делаем невидемыми, увеличиваем их версию +1
             DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
-                ->increment('version', 1, ['show_set_forms_elements'=>false]);
+                ->increment('version', 1, ['show_set_forms_elements' => false]);
 
             // Удаляем 3ю версию формы
             DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
@@ -158,27 +163,23 @@ class ConstructorFormController extends Controller
                     DB::table('set_forms_elements')->insert(['id_forms' => $request->input('id_form'), 'id_set_elements' => $id_set_elements, 'required' => $bool]);
                 }
             }
-            return response()->json(['message'=>'Форма успешно отредактирована!','bool'=>true]);
+            return response()->json(['message' => 'Форма успешно отредактирована!', 'bool' => true]);
         } else {
             return response()->json(['message' => 'Форма с таким именем уже существует. Пожалуйста измените имя формы.', 'bool' => false]);
         }
 
     }
 
-    public function removeFormsToServer(Request $request){
-        DB::table('forms')->where('id','=',$request->input('id_forms'))->update(['show' => 0]);
+    public function removeFormsToServer(Request $request)
+    {
+        DB::table('forms')->where('id', '=', $request->input('id_forms'))->update(['show' => 0]);
         return response()->json();
     }
 
 
-
-
-
-
-
-
 // newElement
-    public function generateString($length = 8){
+    public function generateString($length = 8)
+    {
         $chars = 'abdefhiknrstyzABDEFGHKNQRSTYZ23456789';
         $numChars = strlen($chars);
         $string = '';
@@ -187,29 +188,32 @@ class ConstructorFormController extends Controller
         }
         return $string;
     }
-    public function newElement(){
+
+    public function newElement()
+    {
         $elements = DB::table('elements')->get();
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
-            ->select('set_elements.*','set_elements.id as id_set_elements', 'elements.*')
+            ->select('set_elements.*', 'set_elements.id as id_set_elements', 'elements.*')
             ->orderBy('set_elements.name_set_elements', 'asc')
             ->get();
 
         $this->ForeachImplode($set_elements);
         $name_set_elements = $this->generateString();
-        return view('constructor.newElement', ['elements' => $elements,'set_elements' => $set_elements,'name_set_elements' => $name_set_elements]);
+        return view('constructor.newElement', ['elements' => $elements, 'set_elements' => $set_elements, 'name_set_elements' => $name_set_elements]);
     }
-    
-    public function addNewElementToServer(Request $request){
+
+    public function addNewElementToServer(Request $request)
+    {
         $id = DB::table('set_elements')->insertGetId([
             'name_set_elements' => $request->input('name_set_elements'),
             'label_set_elements' => $request->input('label_set_elements'),
             'id_elements' => $request->input('id_elements')
         ]);
-        $name_element = DB::table('elements')->where('id','=',$request->input('id_elements'))->pluck('name_elements');
+        $name_element = DB::table('elements')->where('id', '=', $request->input('id_elements'))->pluck('name_elements');
 
-        if(!empty($request->input('value_sub_elements'))) {
+        if (!empty($request->input('value_sub_elements'))) {
 
-            if($name_element[0] == self::RADIOBUTTON || $name_element[0] == self::OPTION) {
+            if ($name_element[0] == self::RADIOBUTTON || $name_element[0] == self::OPTION) {
                 foreach ($request->input('value_sub_elements') as $key => $value) {
                     if (!empty($value)) {
                         $value = trim($value, " \t\n\r\0\x0B");
@@ -221,7 +225,7 @@ class ConstructorFormController extends Controller
                     }
                 }
             }
-            if($name_element[0] == self::CHECKBOX) {
+            if ($name_element[0] == self::CHECKBOX) {
                 foreach ($request->input('value_sub_elements') as $key => $value) {
                     if (!empty($value)) {
                         $value = trim($value, " \t\n\r\0\x0B");
@@ -237,40 +241,42 @@ class ConstructorFormController extends Controller
         return redirect('/constructor/newElement');
     }
 
-    public function editSetElementFromForm(Request $request){
+    public function editSetElementFromForm(Request $request)
+    {
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
         $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $request->input('id_set_elements'))
-            ->where('show','=',1)
-            ->select('id','value_sub_elements')->orderBy('id','desc')->get();
+            ->where('show', '=', 1)
+            ->select('id', 'value_sub_elements')->orderBy('id', 'desc')->get();
         return response()->json(['set_elements' => $set_elements, 'sub_elements' => $sub_elements]);
     }
 
-    public function addEditedNewSetElement(Request $request) {
+    public function addEditedNewSetElement(Request $request)
+    {
 
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
         // Перезаписываем Name Label если были изменения
-        if($request->input('old_name_set_elements') != $request->input('name_set_elements')) {
+        if ($request->input('old_name_set_elements') != $request->input('name_set_elements')) {
             DB::table('set_elements')->where('name_set_elements', $request->input('old_name_set_elements'))
-                ->where('id','=',$request->input('id_set_elements'))
+                ->where('id', '=', $request->input('id_set_elements'))
                 ->update(['name_set_elements' => $request->input('name_set_elements')]);
         }
-        if($request->input('old_label_set_elements') != $request->input('label_set_elements')) {
+        if ($request->input('old_label_set_elements') != $request->input('label_set_elements')) {
             DB::table('set_elements')->where('label_set_elements', $request->input('old_label_set_elements'))
-                ->where('id','=',$request->input('id_set_elements'))
+                ->where('id', '=', $request->input('id_set_elements'))
                 ->update(['label_set_elements' => $request->input('label_set_elements')]);
         }
 
 
-        if($set_elements != []){
+        if ($set_elements != []) {
             $value_new_sub_elements = $request->value_sub_elements; // значения под элементов
             $uninstalled_sub_elements = $_COOKIE['uninstalled_sub_elements']; // список полей на удаление
 
             // Замена старых значений или добавление новых под элементов
-            foreach ($value_new_sub_elements as $key_new_element => $value_new_sub_element){
-                if($value_new_sub_element != null) {
+            foreach ($value_new_sub_elements as $key_new_element => $value_new_sub_element) {
+                if ($value_new_sub_element != null) {
                     $old_value = DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)->where('id', '=', $key_new_element)->get();
                     if ($old_value != []) {
                         DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)
@@ -287,69 +293,70 @@ class ConstructorFormController extends Controller
             $uninstalled_sub_elements = explode(",", $uninstalled_sub_elements);
 
             // Скрываем под элементы по их id
-            foreach($uninstalled_sub_elements as $key => $id_sub_element ){
+            foreach ($uninstalled_sub_elements as $key => $id_sub_element) {
                 DB::table('sub_elements')->where('id', '=', $id_sub_element)->update(['show' => 0]);
             }
         }
-        setcookie ("uninstalled_sub_elements", "", time() - 3600);
+        setcookie("uninstalled_sub_elements", "", time() - 3600);
         return redirect('/constructor/newElement');
     }
 
-    public function removeSetElement(Request $request){
-        DB::table('set_elements')->where('id','=',$request->input('id_set_elements'))->delete();
+    public function removeSetElement(Request $request)
+    {
+        DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->delete();
         return response()->json();
     }
 
 
-
-
 // showForms
-    public function FormInfo (Request $request, $version){
+    public function FormInfo(Request $request, $version)
+    {
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+            ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
             ->where('vf.version_values_forms', '=', $version)
             ->where('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
-            ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+            ->orderBy('sfe.id', 'asc')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
             ->get();
 //        dd($form_info);
-        if ($form_info == null){
+        if ($form_info == null) {
             $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
                 ->where('sfe.version', '=', $version)
                 ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
                 ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements','=','sfe.id')
+                ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
 //                ->orWhere('v/f.version_values_forms', '=', $version)
 //                ->orWhere('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
-                ->orderBy('sfe.id','asc')
-                ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+                ->orderBy('sfe.id', 'asc')
+                ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
                 ->get();
         }
         $this->ForeachImplode($form_info);
-        
+
         return $form_info;
     }
 
-    public function ForeachImplode($arr){
+    public function ForeachImplode($arr)
+    {
         foreach ($arr as $key => $set_element) {
-            
+
             $id_set_element = $set_element->id_set_elements;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show','=',1)->select('name_sub_elements','value_sub_elements')->get();
+                ->where('show', '=', 1)->select('name_sub_elements', 'value_sub_elements')->get();
 
-            if(!empty($sub_elements)){
+            if (!empty($sub_elements)) {
                 $names = [];
                 $values = [];
-                if($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
+                if ($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                     }
                     $names = $sub_elements[0]->name_sub_elements;
                 }
-                if($set_element->name_elements == self::CHECKBOX) {
+                if ($set_element->name_elements == self::CHECKBOX) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                         $names[$key_sub] = $value->name_sub_elements;
@@ -367,34 +374,40 @@ class ConstructorFormController extends Controller
         return $arr;
     }
 
-    public function showForms(){
+    public function showForms()
+    {
         $forms = DB::table('forms')->get();
         return view('constructor.showForms', ['forms' => $forms]);
     }
 
-    public function getFormInfo(Request $request){
+    public function getFormInfo(Request $request)
+    {
 //        dd($request->all());
         $form_info = $this->FormInfo($request, 1);
 //        dd($form_info);
         return response()->json($form_info);
     }
 
-    public function getFormInfoOld (Request $request){
+    public function getFormInfoOld(Request $request)
+    {
         $form_info = $this->FormInfo($request, 2);
         return response()->json($form_info);
     }
 
-    public function getFormInfoAll (Request $request){
+    public function getFormInfoAll(Request $request)
+    {
         $form_info = $this->FormInfoAll($request, 1);
         return response()->json($form_info);
     }
-    public function FormInfoAll (Request $request, $version){
+
+    public function FormInfoAll(Request $request, $version)
+    {
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->orderBy('sfe.id','asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required','sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->orderBy('sfe.id', 'asc')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
         $this->ForeachImplode($form_info);
 
@@ -402,87 +415,141 @@ class ConstructorFormController extends Controller
     }
 
 
-
-
 // formsConnectUsers
-    public  function formsConnectUsers(){
+    public function formsConnectUsers()
+    {
         $forms = DB::table('forms')->get();
         $departments = DB::table('departments')->get();
-        $connects = DB::table('set_forms_departments as sfd')->join('forms as f', 'f.id','=','sfd.id_forms')
-                                                       ->join('departments as d', 'd.id','=','sfd.id_departments')
-                                                       ->select('d.*', 'f.name_forms')
-                                                       ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
-                                                       ->get();
+        $connects = DB::table('set_forms_departments as sfd')->join('forms as f', 'f.id', '=', 'sfd.id_forms')
+            ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
+            ->select('d.*', 'f.name_forms')
+            ->orderBy(/*f.name_forms*/
+                'd.name_departments', 'asc')
+            ->get();
         return view('constructor.formsConnectUsers', ['forms' => $forms, 'departments' => $departments, 'connects' => $connects]);
     }
 
-    public function getTableConnectUsers(Request $request){
+    public function getTableConnectUsers(Request $request)
+    {
         $departments = [];
-        if($request->input('id_forms') == '*' && $request->input('id_departments') == '*'){
+        if ($request->input('id_forms') == '*' && $request->input('id_departments') == '*') {
             $departments = DB::table('set_forms_departments as sfd')
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->orderBy(/*f.name_forms*/
+                    'd.name_departments', 'asc')
                 ->get();
         }
-        if($request->input('id_forms') == '*' && $request->input('id_departments') != '*') {
+        if ($request->input('id_forms') == '*' && $request->input('id_departments') != '*') {
             $departments = DB::table('set_forms_departments as sfd')
                 ->where('sfd.id_departments', '=', $request->input('id_departments'))
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->orderBy(/*f.name_forms*/
+                    'd.name_departments', 'asc')
                 ->get();
         }
-        if($request->input('id_forms') != '*' && $request->input('id_departments') == '*') {
+        if ($request->input('id_forms') != '*' && $request->input('id_departments') == '*') {
             $departments = DB::table('set_forms_departments as sfd')
                 ->where('sfd.id_forms', '=', $request->input('id_forms'))
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->orderBy(/*f.name_forms*/
+                    'd.name_departments', 'asc')
                 ->get();
         }
-        if($request->input('id_forms') != '*' && $request->input('id_departments') != '*') {
+        if ($request->input('id_forms') != '*' && $request->input('id_departments') != '*') {
             $departments = DB::table('set_forms_departments as sfd')
                 ->where('sfd.id_forms', '=', $request->input('id_forms'))
                 ->where('sfd.id_departments', '=', $request->input('id_departments'))
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                ->join('departments as d', 'd.id','=','sfd.id_departments')
+                ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/'d.name_departments', 'asc')
+                ->orderBy(/*f.name_forms*/
+                    'd.name_departments', 'asc')
                 ->get();
         }
         return response()->json($departments);
     }
 
-    public function setTableConnectUsers(Request $request){
+    public function setTableConnectUsers(Request $request)
+    {
         $value = DB::table('set_forms_departments as sfd')
             ->where('sfd.id_forms', '=', $request->input('id_forms'))
             ->where('sfd.id_departments', '=', $request->input('id_departments'))
             ->get();
 
-        if($value == null) {
+        if ($value == null) {
             DB::table('set_forms_departments')->insert(['id_forms' => $request->input('id_forms'),
                 'id_departments' => $request->input('id_departments')]);
-            return response()->json(['message'=>'Связь успешно добавлена.', 'bool'=>true]);
+            return response()->json(['message' => 'Связь успешно добавлена.', 'bool' => true]);
         } else {
-            return response()->json(['message'=>'Такая связь уже существует!', 'bool'=>false]);
+            return response()->json(['message' => 'Такая связь уже существует!', 'bool' => false]);
         }
 
     }
 
-    public function setTableDisconnectUsers(Request $request){
+    public function setTableDisconnectUsers(Request $request)
+    {
         $value = DB::table('set_forms_departments as sfd')->where('id_forms', '=', $request->input('id_forms'))
-                                                    ->where('id_departments', '=', $request->input('id_departments'))
-                                                    ->pluck('id');
+            ->where('id_departments', '=', $request->input('id_departments'))
+            ->pluck('id');
 
-        if($value != null) {
+        if ($value != null) {
             DB::table('set_forms_departments')->where('id', '=', $value)->delete();
-            return response()->json(['message'=>'Связь успешно разорвана.', 'bool'=>true]);
+            return response()->json(['message' => 'Связь успешно разорвана.', 'bool' => true]);
         } else {
-            return response()->json(['message'=>'Такой связи не существует!', 'bool'=>false]);
+            return response()->json(['message' => 'Такой связи не существует!', 'bool' => false]);
         }
     }
+
+
+
+
+//departments
+    public function getAllDepartments(){
+        $departments = DB::table('departments')->get();
+        return view('constructor/departments', ['departments' => $departments]);
+    }
+
+    public function setDepartments(Request $request){
+        $this->validate($request, [
+            'name_departments' => 'required|max:300|unique:departments',
+        ],
+            [
+                'required' => 'Поле обязательно для заполнения',
+                'max' => 'Поледолжно содержать максимум :max символов',
+                'unique' => 'Такой отдел уже существует',
+            ]);
+
+        Department::create([
+            'name_departments' => $request->input('name_departments')
+        ]);
+        return redirect('/constructor/departments');
+    }
+
+    public function removeDepartments(Request $request){
+        DB::table('departments')->where('id','=',$request->input('id_departments'))->delete();
+        return response()->json();
+    }
+
+    public function editDepartments(Request $request){
+        $this->validate($request, [
+            'name_departments' => 'required|max:300|unique:departments',
+        ],
+            [
+                'required' => 'Поле обязательно для заполнения',
+                'max' => 'Поледолжно содержать максимум :max символов',
+                'unique' => 'Такой отдел уже существует',
+            ]);
+
+        DB::table('departments')->where('id','=',$request->input('id_departments'))->update(['name_departments' => $request->input('name_departments')]);
+
+        return redirect('/constructor/departments');
+    }
+
 }
+
