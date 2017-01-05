@@ -344,15 +344,18 @@ class ConstructorFormController extends Controller
         foreach ($arr as $key => $set_element) {
 
             $id_set_element = $set_element->id_set_elements;
+
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)->select('name_sub_elements', 'value_sub_elements')->get();
+                ->where('show', '=', 1)->select('id','name_sub_elements', 'value_sub_elements')->get();
 
             if (!empty($sub_elements)) {
                 $names = [];
                 $values = [];
+                $id = [];
                 if ($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
+                        $id[$key_sub] = $value->id;
                     }
                     $names = $sub_elements[0]->name_sub_elements;
                 }
@@ -360,16 +363,19 @@ class ConstructorFormController extends Controller
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
                         $names[$key_sub] = $value->name_sub_elements;
+                        $id[$key_sub] = $value->id;
                     }
                 }
             } else {
                 $values = [];
                 $names = [];
+                $id = [];
             }
             $value_sub_elements = implode(" | ", $values);
 
             $arr[$key]->value_sub_elements = $value_sub_elements;
             $arr[$key]->name_sub_elements = $names;
+            $arr[$key]->id_sub_elements = $id;
         }
         return $arr;
     }
@@ -532,7 +538,16 @@ class ConstructorFormController extends Controller
     }
 
     public function removeDepartments(Request $request){
-        DB::table('departments')->where('id','=',$request->input('id_departments'))->delete();
+        $bool = DB::table('set_forms_departments')->where('id_departments','=',$request->input('id_departments'))->get();
+
+        if($bool == null){
+            DB::table('departments')->where('id','=',$request->input('id_departments'))->delete();
+            $message = "Отдел успешно удален !";
+            $bool = true;
+        } else {
+            $message = "Сначала отвяжите все формы от отдела !";
+            $bool = false;
+        }
         return response()->json();
     }
 

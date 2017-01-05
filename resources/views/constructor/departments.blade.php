@@ -33,7 +33,7 @@
                                 @foreach($departments as $department)
                                 <tr>
                                     <td>{{$department->name_departments}}</td>
-                                    <td style="max-width: 250px;">
+                                    <td style="width: 185px;">
                                         <input type="button" class="btn btn-sm btn-warning btn-padding-0 btn-edit-departments" data-id-departments="{{$department->id}}" data-name-departments="{{$department->name_departments}}" value="Редактировать">
                                         <input type="button" class="btn btn-sm btn-danger btn-padding-0 btn-remove-departments confirmDelete" data-id-departments="{{$department->id}}" value="Удалить">
                                     </td>
