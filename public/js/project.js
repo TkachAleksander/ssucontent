@@ -118,8 +118,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
+// addForm //
+// addForm //
+// addForm //
+// addForm //
+// addForm //
 
 
 // Подтверждение нажатия на кнопку
@@ -343,13 +346,11 @@ console.log('queue: '+queue+' required: '+required+' set: '+id_set_elements);
 });
 
 
-
-
-
-
-
-
-
+// newElement //
+// newElement //
+// newElement //
+// newElement //
+// newElement //
 
 
 // Добавление строки для подэлементов вкладка Добавить элемент
@@ -450,39 +451,33 @@ $('.editElementFromForm').on('click',function() {
     });
 });
 
-     function cleanTableNewSetElement(){
-         // Очистка Имени и Label
-         $('#name_set_elements').val('');
-         $('#label_set_elements').val('');
+    // Кнопка отмены редактируемого элемента
+    function cleanTableNewSetElement(){
+        // Очистка Имени и Label
+        $('#name_set_elements, #label_set_elements').val('');
+        // Очищаем hidden поля
+        $('#old_name_set_elements, #old_label_set_elements, #id_set_elements').remove();
+        // Очистка значения в multiselect
+        $('#select_labels option').removeAttr('selected');
+        $('#select_labels [value="1"]').prop("selected", true);
+        $('.multiselect-selected-text').html('input(text)').parent().attr('title','input(text)');
+        // Удаляем старые danger поля
+        $('.btn-danger-last').parents('.entry').remove();
+        // Включаем у success поля проверку на заполнение и неактивность
+        $('.sub_elements').attr({'disabled':true, 'required':true});
+        // Вставляем кнопку добавить, удаляем кнопки редактировать и отменить
+        $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>').remove();
+        $('#btn-edit, #btn-remove').remove();
+        // удаляем куки
+        $.cookie('uninstalled_sub_elements', new Array(), {expires: -1, path:'/'});
+    }
 
-         // Очищаем hidden поля
-         $('#old_name_set_elements').remove();
-         $('#old_label_set_elements').remove();
-         $('#id_set_elements').remove();
+    // Кнопка отправки отредактираванного элемента
+    function editNewSetElement() {
+        $('form').attr('action', '/addEditedNewSetElement');
+    }
 
-         // Очистка значения в multiselect
-         $('#select_labels option').removeAttr('selected');
-         $('#select_labels [value="1"]').prop("selected", true);
-         $('.multiselect-selected-text').html('input(text)').parent().attr('title','input(text)');
-
-         // Удаляем старые danger поля
-         $('.btn-danger-last').parents('.entry').remove();
-
-         // Включаем у success поля проверку на заполнение и неактивность
-         $('.sub_elements').attr({'disabled':true, 'required':true});
-
-         // Вставляем кнопку добавить, удаляем кнопки редактировать и отменить
-         $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>').remove();
-         $('#btn-edit, #btn-remove').remove();
-
-         // удаляем куки
-         $.cookie('uninstalled_sub_elements', new Array(), {expires: -1, path:'/'});
-     }
-
-     function editNewSetElement() {
-         $('form').attr('action', '/addEditedNewSetElement');
-     }
-
+    // Удалить элемент
     function removeSetElement() {
         var id_set_element = $('#id_set_elements').val();
         console.log(id_set_element);
@@ -501,8 +496,11 @@ $('.editElementFromForm').on('click',function() {
     }
 
 
-
-
+// showForms //
+// showForms //
+// showForms //
+// showForms //
+// showForms //
 
 
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
@@ -662,10 +660,11 @@ $('.editElementFromForm').on('click',function() {
     }
 
 
-
-
-
-
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
 
 
     // Вкладка Форма/Пользователь отображение уже существующих связей
@@ -742,7 +741,11 @@ $('.editElementFromForm').on('click',function() {
     });
 
 
-
+// departments //
+// departments //
+// departments //
+// departments //
+// departments //
 
 
 $('.btn-remove-departments').on('click', function () {

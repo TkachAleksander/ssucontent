@@ -219,7 +219,7 @@ class ConstructorFormController extends Controller
                         $value = trim($value, " \t\n\r\0\x0B");
                         DB::table('sub_elements')->insert([
                             'id_set_elements' => $id,
-                            'name_sub_elements' => $request->input('name_set_elements'),
+//                            'name_sub_elements' => $request->input('name_set_elements'),
                             'value_sub_elements' => $value
                         ]);
                     }
@@ -231,7 +231,7 @@ class ConstructorFormController extends Controller
                         $value = trim($value, " \t\n\r\0\x0B");
                         DB::table('sub_elements')->insert([
                             'id_set_elements' => $id,
-                            'name_sub_elements' => $this->generateString(),
+//                            'name_sub_elements' => $this->generateString(),
                             'value_sub_elements' => $value
                         ]);
                     }

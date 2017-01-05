@@ -89,24 +89,27 @@ class FormController extends Controller
         // Выбираем все id_set_forms_elements в заполняемой форме
         $id_set_forms_elements = DB::table('set_forms_elements')->where('id_forms','=',$request->input('id_forms'))
             ->where('version', '=', 1)->pluck('id');
-        $row  = $i = 0;
-        
+//        $row  = $i = 0;
+        $arrValues = 0;
+        $row_id_set_forms_elements = 0;
+
         foreach ($request->all() as $key=>$value){
             // Отсеиваем (1)_token и (2)id_forms
-            if ($i++ >= 2) {
+            if ($arrValues++ >= 2) {
                 // Если есть значения для этой формы +1 к версии
-                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row])->where('id_departments','=',Auth::user()->id_departments)->increment('version_values_forms',1);
+                DB::table('values_forms')->where('id_set_forms_elements','=',$id_set_forms_elements[$row_id_set_forms_elements])->where('id_departments','=',Auth::user()->id_departments)->increment('version_values_forms',1);
                 // Если элемент содержит массив
                 if (is_array($value)){
                     // Записываем по очереди его элементы(id_sub_elements) с одинаковым id_set_forms_elements
                     foreach ($value as $id_sub_elements){
 //                        dd($id_sub_elements);
-                        DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row],'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements]);
+                        DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row_id_set_forms_elements],'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements]);
                     }
                 } else {
                     // Если значение строка берем следующтй id_set_forms_elements
-                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row++], 'id_departments' => Auth::user()->id_departments, 'values_forms' => $value]);
+                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements[$row_id_set_forms_elements], 'id_departments' => Auth::user()->id_departments, 'values_forms' => $value]);
                 }
+                $row_id_set_forms_elements++;
                 // Удяляем 3ю версию данных
                 DB::table('values_forms')->where('version_values_forms', '>=', 3)->where('id_departments', '=', Auth::user()->id_departments)->delete();
             }
@@ -114,7 +117,7 @@ class FormController extends Controller
         // Ставим статус формы на праверяется администратором
         DB::table('set_forms_departments')->where('id_forms','=',$request->input('id_forms'))->where('id_departments','=',Auth::user()->id_departments)
         ->update(['id_status_checks'=>2]);
-
+//        dd($request->all(),$id_set_forms_elements);
         return redirect('/');
     }
 }
