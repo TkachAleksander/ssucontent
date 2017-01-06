@@ -20,7 +20,7 @@ class ConstructorFormController extends Controller
     {
         $set_elements = DB::table('set_elements as se')->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->select('se.*', 'se.id as id_set_elements', 'e.*')
-            ->orderBy('se.name_set_elements', 'asc')
+            ->orderBy('se.label_set_elements','asc')
             ->get();
 
         $this->ForeachImplode($set_elements);
@@ -98,7 +98,7 @@ class ConstructorFormController extends Controller
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->orderBy('sfe.id', 'asc')
-            ->select('sfe.id', 'sfe.id_set_elements', 'sfe.required', 'f.name_forms', 'f.update_date', 'se.id_elements', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->select('sfe.id', 'sfe.id_set_elements', 'sfe.required', 'f.name_forms', 'f.update_date', 'se.id_elements', 'se.label_set_elements', 'e.name_elements')
             ->get();
 
         $this->ForeachImplode($set_elements);
@@ -113,7 +113,7 @@ class ConstructorFormController extends Controller
             ->join('set_forms_elements as sfe', 'sfe.id_forms', '=', 'f.id')
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
-            ->select('f.name_forms', 'f.update_date', 'e.name_elements', 'se.name_set_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
+            ->select('f.name_forms', 'f.update_date', 'e.name_elements', 'se.label_set_elements', 'sfe.id_set_elements', 'sfe.required')
             ->get();
         // Дополняем информацию, под элементами элемента
         $this->ForeachImplode($set_elements);
@@ -194,18 +194,16 @@ class ConstructorFormController extends Controller
         $elements = DB::table('elements')->get();
         $set_elements = DB::table('set_elements')->join('elements', 'elements.id', '=', 'set_elements.id_elements')
             ->select('set_elements.*', 'set_elements.id as id_set_elements', 'elements.*')
-            ->orderBy('set_elements.name_set_elements', 'asc')
+            ->orderBy('set_elements.label_set_elements', 'asc')
             ->get();
 
         $this->ForeachImplode($set_elements);
-        $name_set_elements = $this->generateString();
-        return view('constructor.newElement', ['elements' => $elements, 'set_elements' => $set_elements, 'name_set_elements' => $name_set_elements]);
+        return view('constructor.newElement', ['elements' => $elements, 'set_elements' => $set_elements]);
     }
 
     public function addNewElementToServer(Request $request)
     {
         $id = DB::table('set_elements')->insertGetId([
-            'name_set_elements' => $request->input('name_set_elements'),
             'label_set_elements' => $request->input('label_set_elements'),
             'id_elements' => $request->input('id_elements')
         ]);
@@ -219,7 +217,6 @@ class ConstructorFormController extends Controller
                         $value = trim($value, " \t\n\r\0\x0B");
                         DB::table('sub_elements')->insert([
                             'id_set_elements' => $id,
-//                            'name_sub_elements' => $request->input('name_set_elements'),
                             'value_sub_elements' => $value
                         ]);
                     }
@@ -231,7 +228,6 @@ class ConstructorFormController extends Controller
                         $value = trim($value, " \t\n\r\0\x0B");
                         DB::table('sub_elements')->insert([
                             'id_set_elements' => $id,
-//                            'name_sub_elements' => $this->generateString(),
                             'value_sub_elements' => $value
                         ]);
                     }
@@ -257,12 +253,6 @@ class ConstructorFormController extends Controller
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
-        // Перезаписываем Name Label если были изменения
-        if ($request->input('old_name_set_elements') != $request->input('name_set_elements')) {
-            DB::table('set_elements')->where('name_set_elements', $request->input('old_name_set_elements'))
-                ->where('id', '=', $request->input('id_set_elements'))
-                ->update(['name_set_elements' => $request->input('name_set_elements')]);
-        }
         if ($request->input('old_label_set_elements') != $request->input('label_set_elements')) {
             DB::table('set_elements')->where('label_set_elements', $request->input('old_label_set_elements'))
                 ->where('id', '=', $request->input('id_set_elements'))
@@ -317,9 +307,9 @@ class ConstructorFormController extends Controller
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
             ->where('vf.version_values_forms', '=', $version)
-            ->where('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
+            ->where('vf.id_departments', '=', $request->input('id_departments'))
             ->orderBy('sfe.id', 'asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+            ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
             ->get();
 //        dd($form_info);
         if ($form_info == null) {
@@ -328,10 +318,8 @@ class ConstructorFormController extends Controller
                 ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
                 ->join('elements as e', 'e.id', '=', 'se.id_elements')
                 ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
-//                ->orWhere('v/f.version_values_forms', '=', $version)
-//                ->orWhere('vf.id_departments', '=', $request->input('id_departments')/*Auth::users()->id_departments*/)
                 ->orderBy('sfe.id', 'asc')
-                ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+                ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
                 ->get();
         }
         $this->ForeachImplode($form_info);
@@ -346,10 +334,9 @@ class ConstructorFormController extends Controller
             $id_set_element = $set_element->id_set_elements;
 
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)->select('id','name_sub_elements', 'value_sub_elements')->get();
+                ->where('show', '=', 1)->select('id','value_sub_elements')->get();
 
             if (!empty($sub_elements)) {
-                $names = [];
                 $values = [];
                 $id = [];
                 if ($set_element->name_elements == self::RADIOBUTTON || $set_element->name_elements == self::OPTION) {
@@ -357,24 +344,20 @@ class ConstructorFormController extends Controller
                         $values[$key_sub] = $value->value_sub_elements;
                         $id[$key_sub] = $value->id;
                     }
-                    $names = $sub_elements[0]->name_sub_elements;
                 }
                 if ($set_element->name_elements == self::CHECKBOX) {
                     foreach ($sub_elements as $key_sub => $value) {
                         $values[$key_sub] = $value->value_sub_elements;
-                        $names[$key_sub] = $value->name_sub_elements;
                         $id[$key_sub] = $value->id;
                     }
                 }
             } else {
                 $values = [];
-                $names = [];
                 $id = [];
             }
             $value_sub_elements = implode(" | ", $values);
 
             $arr[$key]->value_sub_elements = $value_sub_elements;
-            $arr[$key]->name_sub_elements = $names;
             $arr[$key]->id_sub_elements = $id;
         }
         return $arr;
@@ -413,7 +396,7 @@ class ConstructorFormController extends Controller
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
             ->join('elements as e', 'e.id', '=', 'se.id_elements')
             ->orderBy('sfe.id', 'asc')
-            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.name_set_elements', 'se.label_set_elements', 'e.name_elements')
+            ->select('sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements')
             ->get();
         $this->ForeachImplode($form_info);
 
@@ -548,7 +531,7 @@ class ConstructorFormController extends Controller
             $message = "Сначала отвяжите все формы от отдела !";
             $bool = false;
         }
-        return response()->json();
+        return response()->json(['message'=>$message,'bool'=>$bool]);
     }
 
     public function editDepartments(Request $request){
