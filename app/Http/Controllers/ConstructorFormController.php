@@ -254,14 +254,15 @@ class ConstructorFormController extends Controller
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 //        dd($request->all(),$set_elements);
-        if ($request->input('old_label_set_elements') != $request->input('label_set_elements')) {
+        if ($request->input('old_label_set_elements') != $request->input('label_set_elements') || $request->input('old_id_elements') != $request->input('id_elements')) {
             DB::table('set_elements')->where('id', $request->input('id_set_elements'))
-                ->update(['label_set_elements' => $request->input('label_set_elements')]);
+                ->update(['label_set_elements' => $request->input('label_set_elements'),
+                    'id_elements' => $request->input('id_elements')]);
         }
 
         if ($set_elements != null) {
             $value_new_sub_elements = $request->value_sub_elements; // значения подэлементов
-            $uninstalled_sub_elements = $_COOKIE['uninstalled_sub_elements']; // список полей на удаление
+//            $uninstalled_sub_elements = $_COOKIE['uninstalled_sub_elements']; // список полей на удаление
 
             if ($value_new_sub_elements != null) {
                 DB::table('sub_elements')->where('id_set_elements','=', $set_elements[0]->id)->increment('version_sub_elements', 1);
@@ -277,7 +278,7 @@ class ConstructorFormController extends Controller
 
             }
         }
-        setcookie("uninstalled_sub_elements", "", time() - 3600);
+//        setcookie("uninstalled_sub_elements", "", time() - 3600);
         return redirect('/constructor/newElement');
     }
 
