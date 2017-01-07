@@ -23,6 +23,8 @@ Route::group(['middleware' => 'auth'], function(){
 
     // Управление формами homeAdmin
     Route::post('/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
+    Route::post('/rejectForm', 'FormController@rejectForm');
+    Route::post('/acceptForm', 'FormController@acceptForm');
 
      
     // Управление сообщениями внутри системы

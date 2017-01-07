@@ -802,10 +802,40 @@ $('.btn-edit-departments').on('click', function () {
 // Список форм на проверку 
 // Кнопка принять 
 
-$('#btn-accept-form').on('click', function () {
-
+$('.btn-accept-form').on('click', function () {
+    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
+    $.ajax({
+        type:"POST",
+        url:"acceptForm",
+        data:{ id_set_forms_departments:id_set_forms_departments },
+        dataType:"JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function (data) {
+            alert(data.message);
+            if(data.bool) {
+                location.reload();
+            }
+        }
+    })
 });
 
-$('#btn-accept-form').on('click', function () {
-
+$('.btn-reject-form').on('click', function () {
+    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
+    $.ajax({
+        type:"POST",
+        url:"rejectForm",
+        data:{ id_set_forms_departments:id_set_forms_departments },
+        dataType:"JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function (data) {
+            alert(data.message);
+            if(data.bool) {
+                location.reload();
+            }
+        }
+    })
 });

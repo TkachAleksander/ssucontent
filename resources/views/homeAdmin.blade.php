@@ -46,8 +46,8 @@
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <hr>
-                                                <input type="button" class="btn btn-sm btn-danger" value="Отклонить">
-                                                <input type="button" class="btn btn-sm btn-success pull-right" value="Притнять">
+                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-set-forms-departments="{{$form->id_set_forms_departments}}" value="Отклонить">
+                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-set-forms-departments="{{$form->id_set_forms_departments}}" value="Притнять">
                                             </div>
                                         </div>
 
