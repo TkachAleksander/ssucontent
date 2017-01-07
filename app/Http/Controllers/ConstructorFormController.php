@@ -30,10 +30,10 @@ class ConstructorFormController extends Controller
             ->select('f.id', 'f.name_forms', 'sfd.id_status_checks')->distinct()->get();
 
         foreach ($name_forms as $name_form) {
-            if ($name_form->id_status_checks == 2) {
+            if ($name_form->id_status_checks != 1) {
                 $id = $name_form->id;
                 foreach ($name_forms as $key => $form) {
-                    if ($form->id == $id && $form->id_status_checks != 2) {
+                    if ($form->id == $id && $form->id_status_checks == 1) {
                         unset($name_forms[$key]);
                     }
                 }
