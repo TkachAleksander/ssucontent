@@ -242,7 +242,8 @@ class ConstructorFormController extends Controller
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 
         $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $request->input('id_set_elements'))
-            ->where('show', '=', 1)
+//            ->where('show', '=', 1)
+                ->where('version_sub_elements','=',1)
             ->select('id', 'value_sub_elements')->orderBy('id', 'desc')->get();
         return response()->json(['set_elements' => $set_elements, 'sub_elements' => $sub_elements]);
     }
@@ -252,40 +253,57 @@ class ConstructorFormController extends Controller
 
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
-
+//        dd($request->all(),$set_elements);
         if ($request->input('old_label_set_elements') != $request->input('label_set_elements')) {
-            DB::table('set_elements')->where('label_set_elements', $request->input('old_label_set_elements'))
-                ->where('id', '=', $request->input('id_set_elements'))
+            DB::table('set_elements')->where('id', $request->input('id_set_elements'))
                 ->update(['label_set_elements' => $request->input('label_set_elements')]);
         }
 
-
-        if ($set_elements != []) {
-            $value_new_sub_elements = $request->value_sub_elements; // значения под элементов
+        if ($set_elements != null) {
+            $value_new_sub_elements = $request->value_sub_elements; // значения подэлементов
             $uninstalled_sub_elements = $_COOKIE['uninstalled_sub_elements']; // список полей на удаление
 
-            // Замена старых значений или добавление новых под элементов
-            foreach ($value_new_sub_elements as $key_new_element => $value_new_sub_element) {
-                if ($value_new_sub_element != null) {
-                    $old_value = DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)->where('id', '=', $key_new_element)->get();
-                    if ($old_value != []) {
-                        DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)
-                            ->where('id', '=', $key_new_element)
-                            ->update(['value_sub_elements' => $value_new_sub_elements[$key_new_element]]);
-                    } else {
-                        DB::table('sub_elements')->insert(['id_set_elements' => $set_elements[0]->id,
-                            'value_sub_elements' => $value_new_sub_elements[$key_new_element]
-                        ]);
+            if ($value_new_sub_elements != null) {
+                DB::table('sub_elements')->where('id_set_elements','=', $set_elements[0]->id)->increment('version_sub_elements', 1);
+
+                foreach ($value_new_sub_elements as $key_new_element => $value_new_sub_element) {
+//                    dd($value_new_sub_elements,$set_elements[0]->id,$uninstalled_sub_elements);
+                    if (!empty($value_new_sub_element)) {
+
+                        DB::table('sub_elements')->insert(['id_set_elements' => $set_elements[0]->id, 'value_sub_elements' => $value_new_sub_element]);
                     }
                 }
-            }
-            // Из строки с id скрываемых под элементов делаем массив
-            $uninstalled_sub_elements = explode(",", $uninstalled_sub_elements);
+                DB::table('sub_elements')->where('version_sub_elements', '>=', 3)->delete();
 
-            // Скрываем под элементы по их id
-            foreach ($uninstalled_sub_elements as $key => $id_sub_element) {
-                DB::table('sub_elements')->where('id', '=', $id_sub_element)->update(['show' => 0]);
+
+
+//                    if ($value_new_sub_element != null) {
+//                        $old_value = DB::table('sub_elements')->where('id', '=', $key_new_element)->pluck('show');
+////                        dd($old_value == null);
+//                        if ($old_value != null) {
+//                            DB::table('sub_elements')->where('id', '=', $key_new_element)->where('show','!=',0)
+//                                ->update(['value_sub_elements' => $value_new_sub_elements[$key_new_element]]);
+//                        } else {
+//
+////??????????????????????????????????????????????????????????????????????????????
+////                            dd($set_elements[0],$value_new_sub_elements[$key_new_element]);
+//                            if (!DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)->where('value_sub_elements', '=', $value_new_sub_elements[$key_new_element])->update(['show' => "1"])) {
+//                                DB::table('sub_elements')->insert(['id_set_elements' => $set_elements[0]->id, 'value_sub_elements' => $value_new_sub_elements[$key_new_element]]);
+//                            }
+//                        }
+//                    }
+//                }
             }
+            // Замена старых значений или добавление новых под элементов
+//            if ($uninstalled_sub_elements != null) {
+//                // Из строки с id скрываемых под элементов делаем массив
+//                $uninstalled_sub_elements = explode(",", $uninstalled_sub_elements);
+//
+//                // Скрываем под элементы по их id
+//                foreach ($uninstalled_sub_elements as $key => $id_sub_element) {
+//                    DB::table('sub_elements')->where('id', '=', $id_sub_element)->update(['show' => 0]);
+//                }
+//            }
         }
         setcookie("uninstalled_sub_elements", "", time() - 3600);
         return redirect('/constructor/newElement');
@@ -333,8 +351,8 @@ class ConstructorFormController extends Controller
 
             $id_set_element = $set_element->id_set_elements;
 
-            $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)->select('id','value_sub_elements')->get();
+            $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)->where('version_sub_elements','=',1)
+                /*->where('show', '=', 1)*/->select('id','value_sub_elements')->get();
 
             if (!empty($sub_elements)) {
                 $values = [];
@@ -412,8 +430,7 @@ class ConstructorFormController extends Controller
         $connects = DB::table('set_forms_departments as sfd')->join('forms as f', 'f.id', '=', 'sfd.id_forms')
             ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
             ->select('d.*', 'f.name_forms')
-            ->orderBy(/*f.name_forms*/
-                'd.name_departments', 'asc')
+            ->orderBy('d.name_departments', 'asc')
             ->get();
         return view('constructor.formsConnectUsers', ['forms' => $forms, 'departments' => $departments, 'connects' => $connects]);
     }
@@ -426,8 +443,7 @@ class ConstructorFormController extends Controller
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
                 ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/
-                    'd.name_departments', 'asc')
+                ->orderBy('d.name_departments', 'asc')
                 ->get();
         }
         if ($request->input('id_forms') == '*' && $request->input('id_departments') != '*') {
@@ -436,8 +452,7 @@ class ConstructorFormController extends Controller
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
                 ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/
-                    'd.name_departments', 'asc')
+                ->orderBy('d.name_departments', 'asc')
                 ->get();
         }
         if ($request->input('id_forms') != '*' && $request->input('id_departments') == '*') {
@@ -446,8 +461,7 @@ class ConstructorFormController extends Controller
                 ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
                 ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
                 ->select('d.*', 'f.name_forms')
-                ->orderBy(/*f.name_forms*/
-                    'd.name_departments', 'asc')
+                ->orderBy('d.name_departments', 'asc')
                 ->get();
         }
         if ($request->input('id_forms') != '*' && $request->input('id_departments') != '*') {

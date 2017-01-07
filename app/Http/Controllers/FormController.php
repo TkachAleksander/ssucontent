@@ -51,7 +51,7 @@ class FormController extends Controller
                     $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
                         ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
                         ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                        ->select('se.name_set_elements', 'se.label_set_elements', 'sfe.width', 'e.name_elements')
+                        ->select( 'se.label_set_elements', 'sfe.width', 'e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }
@@ -73,7 +73,7 @@ class FormController extends Controller
                     $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
                         ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
                         ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                        ->select('se.name_set_elements', 'se.label_set_elements', 'sfe.width', 'e.name_elements')
+                        ->select( 'se.label_set_elements', 'sfe.width', 'e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }

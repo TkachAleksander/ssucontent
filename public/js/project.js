@@ -152,7 +152,20 @@ $(document).ready(function() {
     $('.multiselect').multiselect();
 
     // Страница newElement проверка активное/неактивное поле после выбора select
-    $("#select_labels").change(select_labels());
+    $("#select_labels").change(function () {
+        var sub_elements = $('.sub_elements');
+        var val = $('#select_labels :selected').val();
+
+        switch (val) {
+            case '4':
+            case '5':
+            case '6':
+                sub_elements.attr('disabled', false);
+                break;
+            default:
+                sub_elements.attr('disabled', true);
+        }
+    });
 
     // Перетаскивание элементов
     // Не дает элементам внутри tr съехать
@@ -441,7 +454,7 @@ $('.editElementFromForm').on('click',function() {
             // Вставляем кнопку редактировать / отменить
             $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right" onclick="removeSetElement('+id_set_elements+');" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
                                  '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
-                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement();" style="margin-left:10px"> Редактировать </button>');
+                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement('+id_set_elements+');" style="margin-left:10px"> Редактировать </button>');
             $('#btn-add').remove();
             // Проверяем на активность поля Список выбора
             select_labels();
@@ -475,7 +488,8 @@ $('.editElementFromForm').on('click',function() {
     }
 
     // Кнопка отправки отредактираванного элемента
-    function editNewSetElement() {
+    function editNewSetElement(id_set_elements) {
+        $('#label_set_elements').after('<input type="hidden" name="id_set_elements" value="'+ id_set_elements +'">');
         $('form').attr('action', '/addEditedNewSetElement');
     }
 
@@ -785,6 +799,10 @@ $('.btn-edit-departments').on('click', function () {
 
 // Список форм на проверку 
 // Кнопка принять 
+
+$('#btn-accept-form').on('click', function () {
+
+});
 
 $('#btn-accept-form').on('click', function () {
 
