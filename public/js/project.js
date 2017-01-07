@@ -736,12 +736,12 @@ $('.editElementFromForm').on('click',function() {
     // Кнопка удаления связей
     $('#btn-forms-disconnect-users').on('click', function(){
         var id_forms = $('#id_forms option:selected').val();
-        var id_users = $('#id_users option:selected').val();
+        var id_departments = $('#id_departments option:selected').val();
         // alert (id_forms+id_users);
         $.ajax({
             type:"POST",
             url:"setTableDisconnectUsers",
-            data:{ id_forms:id_forms, id_users:id_users },
+            data:{ id_forms:id_forms, id_departments:id_departments },
             dataType:"JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));

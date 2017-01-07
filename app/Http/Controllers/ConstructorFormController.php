@@ -50,7 +50,7 @@ class ConstructorFormController extends Controller
         foreach ($set_elements as $key => $set_element) {
             $id_set_element = $set_element->id;
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)
-                ->where('show', '=', 1)
+                ->where('version_sub_elements', '=', 1)
                 ->pluck('value_sub_elements');
             $value_sub_elements = implode(" | ", $sub_elements);
             $set_elements[$key]->value_sub_elements = $value_sub_elements;
@@ -133,7 +133,7 @@ class ConstructorFormController extends Controller
 
             // Все элементы формы делаем невидемыми, увеличиваем их версию +1
             DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
-                ->increment('version', 1, ['show_set_forms_elements' => false]);
+                ->increment('version', 1/*, ['show_set_forms_elements' => false]*/);
 
             // Удаляем 3ю версию формы
             DB::table('set_forms_elements')->where('id_forms', '=', $request->input('id_form'))
@@ -275,35 +275,7 @@ class ConstructorFormController extends Controller
                 }
                 DB::table('sub_elements')->where('version_sub_elements', '>=', 3)->delete();
 
-
-
-//                    if ($value_new_sub_element != null) {
-//                        $old_value = DB::table('sub_elements')->where('id', '=', $key_new_element)->pluck('show');
-////                        dd($old_value == null);
-//                        if ($old_value != null) {
-//                            DB::table('sub_elements')->where('id', '=', $key_new_element)->where('show','!=',0)
-//                                ->update(['value_sub_elements' => $value_new_sub_elements[$key_new_element]]);
-//                        } else {
-//
-////??????????????????????????????????????????????????????????????????????????????
-////                            dd($set_elements[0],$value_new_sub_elements[$key_new_element]);
-//                            if (!DB::table('sub_elements')->where('id_set_elements', '=', $set_elements[0]->id)->where('value_sub_elements', '=', $value_new_sub_elements[$key_new_element])->update(['show' => "1"])) {
-//                                DB::table('sub_elements')->insert(['id_set_elements' => $set_elements[0]->id, 'value_sub_elements' => $value_new_sub_elements[$key_new_element]]);
-//                            }
-//                        }
-//                    }
-//                }
             }
-            // Замена старых значений или добавление новых под элементов
-//            if ($uninstalled_sub_elements != null) {
-//                // Из строки с id скрываемых под элементов делаем массив
-//                $uninstalled_sub_elements = explode(",", $uninstalled_sub_elements);
-//
-//                // Скрываем под элементы по их id
-//                foreach ($uninstalled_sub_elements as $key => $id_sub_element) {
-//                    DB::table('sub_elements')->where('id', '=', $id_sub_element)->update(['show' => 0]);
-//                }
-//            }
         }
         setcookie("uninstalled_sub_elements", "", time() - 3600);
         return redirect('/constructor/newElement');
@@ -500,7 +472,7 @@ class ConstructorFormController extends Controller
         $value = DB::table('set_forms_departments as sfd')->where('id_forms', '=', $request->input('id_forms'))
             ->where('id_departments', '=', $request->input('id_departments'))
             ->pluck('id');
-
+//dd($request->all(),$value != null);
         if ($value != null) {
             DB::table('set_forms_departments')->where('id', '=', $value)->delete();
             return response()->json(['message' => 'Связь успешно разорвана.', 'bool' => true]);
