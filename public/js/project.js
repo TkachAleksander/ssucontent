@@ -640,6 +640,7 @@ $('.editElementFromForm').on('click',function() {
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
 
+                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
                     label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
                         var show_empty_checkbox = true;
                         if (formsInfo[key].checked_sub_elements != null) {
@@ -664,7 +665,9 @@ $('.editElementFromForm').on('click',function() {
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
 
+                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
                     label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+
                         var show_empty_checkbox = true;
                         if (formsInfo[key].checked_sub_elements != null) {
                             var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
@@ -685,29 +688,28 @@ $('.editElementFromForm').on('click',function() {
                 break;
 
             case "option":
-
-            case "option":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
 
-                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" style="margin-left: 10px;" ' + required + '>');
+                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
+                    contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" style="margin-left: 10px;" ' + required + '>');
 
-                label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-                    var show_empty_checkbox = true;
-                    if (formsInfo[key].checked_sub_elements != null) {
-                        var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                        checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                            if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
-                                show_empty_checkbox = false;
-                            }
-                            console.log(value_sub + checked_sub + show_empty_checkbox);
-                        });
-                    }
-                    if (show_empty_checkbox){
-                        $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '">' + label_sub_elements[key_value] + '</option>');
-                    }
-                });
+                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+                        var show_empty_checkbox = true;
+                        if (formsInfo[key].checked_sub_elements != null) {
+                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
+                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
+                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
+                                    $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
+                                    show_empty_checkbox = false;
+                                }
+                                console.log(value_sub + checked_sub + show_empty_checkbox);
+                            });
+                        }
+                        if (show_empty_checkbox){
+                            $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '">' + label_sub_elements[key_value] + '</option>');
+                        }
+                    });
                 break;
         }
     }
@@ -716,26 +718,6 @@ $('.editElementFromForm').on('click',function() {
     function getSubElementsInArray (str){
         var sub_elements = str.split(' | ');
         return sub_elements;
-    }
-
-    // Получить значение value_sub_elements по id_sub_elements
-    function getSubElements(id_sub_elements) {
-        var a = 0;
-         $.ajax({
-            type: "POST",
-            url: "getSubElements",
-            data: {id_sub_elements:id_sub_elements},
-            async: false,
-            dataType: "JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function f (value_sub_elements) {
-                a = value_sub_elements;
-            }
-        });
-
-        return a;
     }
 
 
