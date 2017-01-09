@@ -91,20 +91,28 @@ class FormController extends Controller
 //        dd($request->all());
 
         $arrValues = 0;
-        foreach ($request->all() as $id_set_forms_elements => $value) {
+        foreach ($request->all() as $id_set_forms_elements => $values) {
             // Отсеиваем (1)_token и (2)id_forms
             if ($arrValues++ >= 2) {
                 // Если есть значения для этой формы +1 к версии
                 DB::table('values_forms')->where('id_set_forms_elements', '=', $id_set_forms_elements)->where('id_departments', '=', Auth::user()->id_departments)->increment('version_values_forms', 1);
                 // Если элемент содержит массив
-                if (is_array($value)) {
-                    // Из массива делаем строку разделяя элементы "|"
-                    $id_sub_elements = implode(" | ", $value);
-                    // Записываем $id_sub_elements
-                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements]);
+                if (is_array($values)) {
+//                    dd($values);
+                    // Собираем label_sub_elements в массив
+                    foreach ($values as $key => $id_sub_elements) {
+                        $temp_label_sub_elements = DB::table('sub_elements')->where('id','=',$id_sub_elements)->pluck('value_sub_elements');
+                        $label_sub_elements[$key] = $temp_label_sub_elements[0];
+                    }
+//                    dd($label_sub_elements);
+                    $id_sub_elements = implode(' | ',$values);
+                    $label_sub_elements = implode(' | ',$label_sub_elements);
+
+                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements, 'checked_sub_elements' => $label_sub_elements]);
+//                    dd($values,$label_sub_elements);
                 } else {
                     // Если значение строка записываем как есть $value
-                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $value]);
+                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $values]);
                 }
                 // Удяляем 3ю версию данных
                 DB::table('values_forms')->where('version_values_forms', '>=', 3)->where('id_departments', '=', Auth::user()->id_departments)->delete();
@@ -127,7 +135,6 @@ class FormController extends Controller
             $message = "Форма не найдена !";
         }
         return response()->json(['message' => $message, 'bool' => $bool]);
-
     }
 
     public function acceptForm(Request $request)
@@ -140,6 +147,5 @@ class FormController extends Controller
             $message = "Форма не найдена !";
         }
         return response()->json(['message' => $message, 'bool' => $bool]);
-
     }
 }

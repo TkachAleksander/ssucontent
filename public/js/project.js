@@ -617,11 +617,10 @@ $('.editElementFromForm').on('click',function() {
         }
 
         formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? "" : formsInfo[key].values_forms;
-        console.log(formsInfo[key]);
+        // console.log(formsInfo[key]);
         switch (formsInfo[key].name_elements) {
 
             case "input(text)":
-
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
                 contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_set_forms_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
                 break;
@@ -637,35 +636,78 @@ $('.editElementFromForm').on('click',function() {
                 break;
 
             case "radiobutton":
+                // console.log(formsInfo[key].values_forms);
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                var sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
 
-                sub_elements.forEach(function (value, key_sub, sub_elements) {
-                    contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" value="' + formsInfo[key].id_sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
-                });
+                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+                        var show_empty_checkbox = true;
+                        if (formsInfo[key].checked_sub_elements != null) {
+                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
+                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
+                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
+                                    contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
+                                    show_empty_checkbox = false;
+                                }
+                                // console.log(value_sub + checked_sub + show_empty_checkbox);
+                            });
+                        }
+                        if (show_empty_checkbox){
+                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                        }
+                    });
+
                 contentForm.append('<p></p>');
                 break;
 
             case "checkbox":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
 
-                sub_elements.forEach(function (value, key_sub, sub_elements) {
-                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" value="' + formsInfo[key].id_sub_elements[key_sub] + '"' + required + '> ' + sub_elements[key_sub] + '</br>');
-                });
+                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+                        var show_empty_checkbox = true;
+                        if (formsInfo[key].checked_sub_elements != null) {
+                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
+                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
+                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
+                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
+                                    show_empty_checkbox = false;
+                                }
+                                // console.log(value_sub + checked_sub + show_empty_checkbox);
+                            });
+                        }
+                        if (show_empty_checkbox){
+                            contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                        }
+                    });
+
                 contentForm.append('<p></p>');
                 break;
 
             case "option":
+
+            case "option":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
+
                 contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" style="margin-left: 10px;" ' + required + '>');
 
-                sub_elements.forEach(function (value, key_sub, sub_elements) {
-                    $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_sub] + '">' + sub_elements[key_sub] + '</option>');
+                label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+                    var show_empty_checkbox = true;
+                    if (formsInfo[key].checked_sub_elements != null) {
+                        var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
+                        checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
+                            if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
+                                $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
+                                show_empty_checkbox = false;
+                            }
+                            console.log(value_sub + checked_sub + show_empty_checkbox);
+                        });
+                    }
+                    if (show_empty_checkbox){
+                        $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '">' + label_sub_elements[key_value] + '</option>');
+                    }
                 });
-                contentForm.append('</select>');
-                contentForm.append('<p></p>');
                 break;
         }
     }
@@ -674,6 +716,26 @@ $('.editElementFromForm').on('click',function() {
     function getSubElementsInArray (str){
         var sub_elements = str.split(' | ');
         return sub_elements;
+    }
+
+    // Получить значение value_sub_elements по id_sub_elements
+    function getSubElements(id_sub_elements) {
+        var a = 0;
+         $.ajax({
+            type: "POST",
+            url: "getSubElements",
+            data: {id_sub_elements:id_sub_elements},
+            async: false,
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function f (value_sub_elements) {
+                a = value_sub_elements;
+            }
+        });
+
+        return a;
     }
 
 
@@ -795,8 +857,11 @@ $('.btn-edit-departments').on('click', function () {
 });
 
 
-
-
+// homeAdmin //
+// homeAdmin //
+// homeAdmin //
+// homeAdmin //
+// homeAdmin //
 
 
 // Список форм на проверку 
@@ -821,6 +886,7 @@ $('.btn-accept-form').on('click', function () {
     })
 });
 
+// Кнопка отклонить
 $('.btn-reject-form').on('click', function () {
     var id_set_forms_departments = $(this).data('idSetFormsDepartments');
     $.ajax({

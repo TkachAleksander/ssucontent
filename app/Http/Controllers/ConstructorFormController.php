@@ -250,7 +250,6 @@ class ConstructorFormController extends Controller
 
     public function addEditedNewSetElement(Request $request)
     {
-
         // Если такого элемента нет - обновляем страницу
         $set_elements = DB::table('set_elements')->where('id', '=', $request->input('id_set_elements'))->get();
 //        dd($request->all(),$set_elements);
@@ -292,6 +291,7 @@ class ConstructorFormController extends Controller
 // showForms
     public function FormInfo(Request $request, $version)
     {
+        // Для полей которые имеют value
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
@@ -300,9 +300,10 @@ class ConstructorFormController extends Controller
             ->where('vf.version_values_forms', '=', $version)
             ->where('vf.id_departments', '=', $request->input('id_departments'))
             ->orderBy('sfe.id', 'asc')
-            ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+            ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
             ->get();
 //        dd($form_info);
+        // Поля без value
         if ($form_info == null) {
             $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
                 ->where('sfe.version', '=', $version)
@@ -310,7 +311,7 @@ class ConstructorFormController extends Controller
                 ->join('elements as e', 'e.id', '=', 'se.id_elements')
                 ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
                 ->orderBy('sfe.id', 'asc')
-                ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.values_forms', 'vf.id_departments')
+                ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
                 ->get();
         }
         $this->ForeachImplode($form_info);
@@ -353,6 +354,24 @@ class ConstructorFormController extends Controller
         }
         return $arr;
     }
+//???????????????????????????????????????????????????????????????????????????????????
+//    public function getSubElements(Request $request)
+//    {
+////dd($request->all());
+//        if (is_array($request->input('id_sub_elements'))) {
+//            $sub_elements = preg_split(' | ', $request->input('id_sub_elements'));
+////            dd($sub_elements);
+//            foreach ($sub_elements as $key => $sub_element) {
+//                $value_sub_elements[$key] = DB::table('sub_elements')->where('id', '=', $sub_element)->pluck('value_sub_elements');
+//            }
+//        } else {
+//            $sub_elements = $request->input('id_sub_elements');
+//            $value_sub_elements = DB::table('sub_elements')->where('id', '=', $sub_elements)->pluck('value_sub_elements');
+//        }
+//
+////        dd(preg_split(' | ', $request->input('id_sub_elements')));
+//        return response()->json($value_sub_elements);
+//    }
 
     public function showForms()
     {
@@ -362,8 +381,8 @@ class ConstructorFormController extends Controller
 
     public function getFormInfo(Request $request)
     {
-//        dd($request->all());
         $form_info = $this->FormInfo($request, 1);
+//        dd($request->all());
 //        dd($form_info);
         return response()->json($form_info);
     }
