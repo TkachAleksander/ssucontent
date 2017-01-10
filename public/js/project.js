@@ -710,6 +710,7 @@ $('.editElementFromForm').on('click',function() {
                             $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '">' + label_sub_elements[key_value] + '</option>');
                         }
                     });
+                contentForm.append('<p></p>');
                 break;
         }
     }
