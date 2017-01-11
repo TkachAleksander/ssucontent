@@ -3,7 +3,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-sm-10 col-sm-offset-1">
+        <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     @if (Auth::guest())
@@ -22,7 +22,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info collapsed" data-id="{{$form->id_forms}}" data-id-departments="{{$id_departments}}" data-generatestring="{{$form->generateString}}">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}" data-id-departments="{{$id_departments}}" data-generatestring="{{$form->generateString}}">
                                         {{ $form->name_forms }}
                                         <span class="pull-right" style="color: {{$form->border_color}}; font-size: 13px">{{ $form->name_status_checks }}</span>
                                     </a>
@@ -35,15 +35,18 @@
                                         {{ csrf_field() }}
 
                                         <input type="hidden" class="input-id-form" name="id_forms" value="{{$form->id_forms}}">
-
                                         <div class="row">
-                                            <div id="content-form{{$form->generateString}}" class="col-sm-offset-3 col-sm-6">
+                                            <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
+
+                                            </div>
+
+                                            <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
 
                                             </div>
                                         </div>
 
                                         <div class="row">
-                                            <div class="col-sm-offset-3 col-sm-6">
+                                            <div class="col-sm-12">
                                                 <hr>
                                                 @if($form->id_status_checks !=2 )
                                                     <input type="submit" class="btn btn-sm btn-primary pull-right" value="Отправить">

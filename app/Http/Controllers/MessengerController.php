@@ -7,7 +7,7 @@ use App\Http\Requests;
 use Auth;
 use DB;
 
-class MessangerController extends Controller
+class MessengerController extends Controller
 {
     public function index()
     {

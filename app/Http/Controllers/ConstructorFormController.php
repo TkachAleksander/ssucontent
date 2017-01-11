@@ -289,9 +289,10 @@ class ConstructorFormController extends Controller
 
 
 // showForms
-    public function FormInfo(Request $request, $version)
+    public function FormInfo(Request $request, $version, $form)
     {
-        // Для полей которые имеют value
+//        dd($request->all(), $version);
+        //  новая (1в формы 1в данных)
         $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
             ->where('sfe.version', '=', $version)
             ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
@@ -302,31 +303,111 @@ class ConstructorFormController extends Controller
             ->orderBy('sfe.id', 'asc')
             ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
             ->get();
+
+//        ($version == '2')? dd($form_info):"";
 //        dd($form_info);
+
         // Поля без value
         if ($form_info == null) {
-            $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
-                ->where('sfe.version', '=', $version)
-                ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
-                ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
-                ->orderBy('sfe.id', 'asc')
-                ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
-                ->get();
+
+            if ($version == '1') { // новая (1в формы 0в данных)
+                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                    ->where('sfe.version', '=', $version)
+                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+                    ->orderBy('sfe.id', 'asc')
+                    ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+                    ->get();
+            }
+//            dd($f);
+//            if ($version == '2') {
+//                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+//                    ->where('sfe.version', '=', 1)
+//                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+//                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+//                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+//                    ->where('vf.version_values_forms', '=', 2)
+//                    ->where('vf.id_departments', '=', $request->input('id_departments'))
+//                    ->orderBy('sfe.id', 'asc')
+//                    ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+//                    ->get();
+//            }
+        } else {
+            $f = DB::table('values_forms as vf')->where('vf.id_set_forms_elements','=',$form_info[0]->id_set_forms_elements)->pluck('version_values_forms');
+//            dd($f);
+
+            if (count($f) == 2 && $version == '1'){ // новая (1в форм 2в данных)
+                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                    ->where('sfe.version', '=', 1)
+                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+                    ->where('vf.version_values_forms', '=', 1)
+                    ->where('vf.id_departments', '=', $request->input('id_departments'))
+                    ->orderBy('sfe.id', 'asc')
+                    ->select('sfe.id as id_set_forms_elements','sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+                    ->get();
+//            dd($form_info);
+            }
+            if (count($f) == 2 && $version == '2') { // новая (2в форм 2в данных)
+                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                    ->where('sfe.version', '=', 1)
+                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+                    ->where('vf.version_values_forms', '=', 1)
+                    ->where('vf.id_departments', '=', $request->input('id_departments'))
+                    ->orderBy('sfe.id', 'asc')
+                    ->select('sfe.id as id_set_forms_elements', 'sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+                    ->get();
+            }
+
+
+
+            if (count($f) == 2 && $version == '2' && $form == 'old') { // (2в форм 2в данных)
+                $f = DB::table('values_forms as vf')->where('vf.id_set_forms_elements','=',$form_info[0]->id_set_forms_elements)->pluck('version_values_forms');
+                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                    ->where('sfe.version', '=', 2)
+                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+                    ->where('vf.version_values_forms', '=', 1)
+                    ->where('vf.id_departments', '=', $request->input('id_departments'))
+                    ->orderBy('sfe.id', 'asc')
+                    ->select('sfe.id as id_set_forms_elements', 'sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+                    ->get();
+            }
+
+            if (count($f) == 2 && $version == '2' && $form == 'old') { // (2в форм 2в данных)
+                $form_info = DB::table('set_forms_elements as sfe')->where('id_forms', '=', $request->input('id_forms'))
+                    ->where('sfe.version', '=', 2)
+                    ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
+                    ->join('elements as e', 'e.id', '=', 'se.id_elements')
+                    ->leftJoin('values_forms as vf', 'vf.id_set_forms_elements', '=', 'sfe.id')
+                    ->where('vf.version_values_forms', '=', 1)
+                    ->where('vf.id_departments', '=', $request->input('id_departments'))
+                    ->orderBy('sfe.id', 'asc')
+                    ->select('sfe.id as id_set_forms_elements', 'sfe.id_set_elements', 'sfe.width', 'sfe.required', 'sfe.id_forms', 'se.label_set_elements', 'e.name_elements', 'vf.id_departments', 'vf.values_forms', 'vf.checked_sub_elements')
+                    ->get();
+            }
+
         }
+//            dd("new: ",count($f),$version);
+//        ($version == '2')? dd("old: ",count($f),$version):"";
         $this->ForeachImplode($form_info);
 
         return $form_info;
     }
 
-    public function ForeachImplode($arr)
+     public function ForeachImplode($arr)
     {
         foreach ($arr as $key => $set_element) {
 
             $id_set_element = $set_element->id_set_elements;
 
             $sub_elements = DB::table('sub_elements')->where('id_set_elements', '=', $id_set_element)->where('version_sub_elements','=',1)
-                /*->where('show', '=', 1)*/->select('id','value_sub_elements')->get();
+                ->select('id','value_sub_elements')->get();
 
             if (!empty($sub_elements)) {
                 $values = [];
@@ -354,24 +435,6 @@ class ConstructorFormController extends Controller
         }
         return $arr;
     }
-//???????????????????????????????????????????????????????????????????????????????????
-//    public function getSubElements(Request $request)
-//    {
-////dd($request->all());
-//        if (is_array($request->input('id_sub_elements'))) {
-//            $sub_elements = preg_split(' | ', $request->input('id_sub_elements'));
-////            dd($sub_elements);
-//            foreach ($sub_elements as $key => $sub_element) {
-//                $value_sub_elements[$key] = DB::table('sub_elements')->where('id', '=', $sub_element)->pluck('value_sub_elements');
-//            }
-//        } else {
-//            $sub_elements = $request->input('id_sub_elements');
-//            $value_sub_elements = DB::table('sub_elements')->where('id', '=', $sub_elements)->pluck('value_sub_elements');
-//        }
-//
-////        dd(preg_split(' | ', $request->input('id_sub_elements')));
-//        return response()->json($value_sub_elements);
-//    }
 
     public function showForms()
     {
@@ -381,7 +444,7 @@ class ConstructorFormController extends Controller
 
     public function getFormInfo(Request $request)
     {
-        $form_info = $this->FormInfo($request, 1);
+        $form_info = $this->FormInfo($request, 1, 'new');
 //        dd($request->all());
 //        dd($form_info);
         return response()->json($form_info);
@@ -389,7 +452,7 @@ class ConstructorFormController extends Controller
 
     public function getFormInfoOld(Request $request)
     {
-        $form_info = $this->FormInfo($request, 2);
+        $form_info = $this->FormInfo($request, 2, 'old');
         return response()->json($form_info);
     }
 

@@ -8,7 +8,7 @@ Route::get('/showArticle/{id}', 'ArticleController@showArticle');
 
 
 // Проверяет авторизован ли пользователь
-Route::group(['middleware' => 'auth'], function(){  
+Route::group(['middleware' => 'auth'], function(){
 
     // Управление пользователями 
 	Route::get('/registration', 'UserControlController@index');
@@ -25,12 +25,17 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
     Route::post('/rejectForm', 'FormController@rejectForm');
     Route::post('/acceptForm', 'FormController@acceptForm');
+    
+    
+    // Получение value_sub_elements
+//    Route::post('/constructor/getSubElements', 'ConstructorFormController@getSubElements');
+    Route::post('/getSubElements', 'ConstructorFormController@getSubElements');
 
      
     // Управление сообщениями внутри системы
-    Route::get('/contactsMessages', 'MessangerController@index');
-    Route::get('/showMessages/{name}', 'MessangerController@showMessages');
-    Route::post('/sendMessages', 'MessangerController@sendMessages');
+    Route::get('/contactsMessages', 'MessengerController@index');
+    Route::get('/showMessages/{name}', 'MessengerController@showMessages');
+    Route::post('/sendMessages', 'MessengerController@sendMessages');
 
 
     // Конструктор форм

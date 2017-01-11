@@ -102,11 +102,11 @@ class FormController extends Controller
                     // Собираем label_sub_elements в массив
                     foreach ($values as $key => $id_sub_elements) {
                         $temp_label_sub_elements = DB::table('sub_elements')->where('id','=',$id_sub_elements)->pluck('value_sub_elements');
-                        $label_sub_elements[$key] = $temp_label_sub_elements[0];
+                        $l[$key] = $temp_label_sub_elements[0];
                     }
 //                    dd($label_sub_elements);
                     $id_sub_elements = implode(' | ',$values);
-                    $label_sub_elements = implode(' | ',$label_sub_elements);
+                    $label_sub_elements = implode(' | ',$l);
 
                     DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements, 'checked_sub_elements' => $label_sub_elements]);
 //                    dd($values,$label_sub_elements);
@@ -118,7 +118,7 @@ class FormController extends Controller
                 DB::table('values_forms')->where('version_values_forms', '>=', 3)->where('id_departments', '=', Auth::user()->id_departments)->delete();
             }
         }
-        // Ставим статус формы на праверяется администратором
+        // Ставим статус формы - праверяется администратором
         DB::table('set_forms_departments')->where('id_forms', '=', $request->input('id_forms'))->where('id_departments', '=', Auth::user()->id_departments)
             ->update(['id_status_checks' => 2]);
 //        dd($request->all(),$id_set_forms_elements);
