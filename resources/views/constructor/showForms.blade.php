@@ -16,21 +16,16 @@
 
                             @foreach($forms as $form)
                                 <div class="panel panel-default">
-                                    <?php $style = ($form->show == 0) ? "style=background-color:#fff1ab" : '' ;?>
-                                    <div class="panel-heading" {{ $style }}>
+                                    <div class="panel-heading">
                                         <h4 class="panel-title">
-                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id}}" class="forms-info-all collapsed" data-id="{{$form->id}}">
+                                            <a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id_forms}}" class="forms-info-all collapsed" data-id="{{$form->id_forms}}">
                                                 {{ $form->name_forms }}
-                                                <span class="pull-right">
-                                                     <?php $show = ($form->show == 0) ? "[скрыта]" : "[видна]" ;?>
-                                                    {{ $show }}
-                                                </span>
                                             </a>
                                         </h4>
                                     </div>
-                                    <div id="accordion{{$form->id}}" class="panel-collapse collapse ">
+                                    <div id="accordion{{$form->id_forms}}" class="panel-collapse collapse ">
                                         <div class="panel-body">
-                                            <div id="content-form{{$form->id}}" class="col-sm-6">
+                                            <div id="content-form{{$form->id_forms}}" class="col-sm-6">
 
                                             </div>
                                         </div>

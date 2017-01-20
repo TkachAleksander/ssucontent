@@ -18,7 +18,7 @@
                                     <select id="id_forms" class="multiselect" name="id_forms">
                                         <option value="*"> Все формы </option>
                                         @foreach($forms as $form)
-                                            <option value="{{ $form->id }}">{{ $form->name_forms }}</option>
+                                            <option value="{{ $form->id_forms }}">{{ $form->name_forms }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -26,7 +26,9 @@
                                     <select id="id_departments" class="multiselect" name="id_departments">
                                         <option value="*"> Все отделы </option>
                                         @foreach($departments as $department)
-                                            <option value="{{ $department->id }}">{{$department->name_departments}}</option>
+                                            @if($department->id_departments)
+                                                <option value="{{ $department->id_departments }}">{{$department->name_departments}}</option>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>

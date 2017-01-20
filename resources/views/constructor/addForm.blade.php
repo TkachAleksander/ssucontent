@@ -24,13 +24,13 @@
                             <div id="accordionListForms" class="panel-collapse collapse in" aria-expanded="true">
                                 <div class="panel-body showAllForms">
                                     <table class="table table-padding table-striped">
-                                    @foreach($name_forms as $name)
+                                    @foreach($forms as $form)
                                          <tr>
                                              <td>
-                                                 {{$name->name_forms}}
+                                                 {{$form->name_forms}}
                                                   <span class="pull-right">
-                                                      <button type="button" id="btn-reject-form" class="btn btn-sm btn-success btn-padding-0 editForms"  data-id-form="{{$name->id}}" data-status-checks="{{$name->id_status_checks}}"> Редактировать </button>
-                                                      <button type="button" id="btn-accept-form" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$name->id}}"> Удалить </button>
+                                                      <button type="button" class="btn btn-sm btn-success btn-padding-0 editForms"  data-id-form="{{$form->id_forms}}" data-status-checks="{{$form->id_status_checks}}"> Редактировать </button>
+                                                      <button type="button" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$form->id_forms}}"> Удалить </button>
                                                   </span>
                                              </td>
                                          </tr>
@@ -61,7 +61,7 @@
                                     <tbody id="sortContainer"></tbody>
 
                                 </table>
-                                <input id="update_date" type="text" name="date" class="tcal" value="" placeholder=" Дата обновления формы" required/>
+                                <input id="date_update_forms" type="text" name="date_update_forms" class="tcal" value="" placeholder=" Дата обновления формы" required/>
                                 <button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
 
                             </div>
@@ -75,12 +75,19 @@
                             <p><div class="text-center">Список возможных элементов</div></p>
                             <table class="table table-bordered table-constructorForm table-padding">
 
-                                @foreach($set_elements as $set_element)
+                                @foreach($fields as $field)
                                     <tr>
-                                        <td><button id="{{ $set_element->id_set_elements }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
-                                        <td>{{ $set_element->label_set_elements }}</td>
-                                        <td>{{ $set_element->name_elements }}</td>
-                                        <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---"}}</td>
+                                        <td><button id="{{ $field->id_fields }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
+                                        <td data-label-fields="{{ $field->label_fields }}">{{ $field->label_fields }}</td>
+                                        <td>{{ $field->name_elements }}</td>
+                                        {{--<td {{(empty($field->labels_sub_elements)) ? "class=text-center" : ""}}>--}}
+                                        <td class="text-center">
+                                            @if(!empty($field->labels_sub_elements))
+                                                {{$field->labels_sub_elements}}
+                                            @else
+                                                {{"---"}}
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
 

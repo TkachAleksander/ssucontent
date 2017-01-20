@@ -33,27 +33,28 @@ class FormController extends Controller
         if (!Auth::guest()) {
             $role = DB::table('users')
                 ->where('name', '=', Auth::user()->name)
-                ->join('roles', 'roles.id', '=', 'users.id_roles')
-                ->select('name_roles')
+                ->join('roles', 'roles.id_roles', '=', 'users.id_roles')
+                ->select('roles.name_roles')
                 ->get();
             $id_departments = DB::table('users')
                 ->where('name', '=', Auth::user()->name)
                 ->pluck('id_departments');
 
             if ($role[0]->name_roles == self::ADMINISTRATOR) {
-                $forms = DB::table('set_forms_departments as sfd')
-                    ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
-                    ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                    ->join('status_checks as sc', 'sc.id', '=', 'sfd.id_status_checks')
-                    ->where('f.show', '=', self::SHOW_FORMS)
-                    ->where('sfd.id_status_checks', '=', 2)
-                    ->select('d.name_departments', 'sfd.id as id_set_forms_departments', 'sfd.id_departments', 'sfd.id_forms', 'f.name_forms')
+                $forms = DB::table('forms_departments as fd')
+                    ->join('departments as d', 'd.id_departments', '=', 'fd.id_departments')
+                    ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
+                    ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
+//                    ->where('f.show', '=', self::SHOW_FORMS)
+                    ->where('fd.id_status_checks', '=', 2)
+                    ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'f.name_forms')
                     ->get();
+                
                 foreach ($forms as $key => $form) {
-                    $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
-                        ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
-                        ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                        ->select('se.label_set_elements', 'sfe.width', 'e.name_elements')
+                    $forms[$key]->info = DB::table('fields_forms as ff')->where('ff.id_forms', '=', $form->id_forms)
+                        ->join('fields as f', 'f.id_fields', '=', 'ff.id_fields_forms')
+                        ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+                        ->select('f.label_fields','e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }
@@ -61,21 +62,21 @@ class FormController extends Controller
             } else {
                 $role[0]->name_roles = null; // Не выводит имя пользователя в списке доступных форм (home)
 
-                $forms = DB::table('set_forms_departments as sfd')->where('sfd.id_departments', '=', $id_departments)
-                    ->join('departments as d', 'd.id', '=', 'sfd.id_departments')
-                    ->join('forms as f', 'f.id', '=', 'sfd.id_forms')
-                    ->join('status_checks as sc', 'sc.id', '=', 'sfd.id_status_checks')
-                    ->where('f.show', '=', self::SHOW_FORMS)
-                    ->where('sfd.id_status_checks', '!=', 2)
-                    ->select('d.name_departments', 'sfd.id_departments', 'sfd.id_forms', 'sc.name_status_checks', 'sc.id as id_status_checks', 'sc.border_color', 'f.name_forms')
-                    ->orderBy('sfd.id', 'asc')
+                $forms = DB::table('forms_departments as fd')->where('fd.id_departments', '=', $id_departments)
+                    ->join('departments as d', 'd.id_departments', '=', 'fd.id_departments')
+                    ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
+                    ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
+//                    ->where('f.show', '=', self::SHOW_FORMS)
+                    ->where('fd.id_status_checks', '!=', 2)
+                    ->select('d.name_departments', 'fd.id_departments', 'fd.id_forms', 'sc.name_status_checks', 'sc.id_status_checks', 'sc.status_color', 'f.name_forms')
+                    ->orderBy('fd.id_departments', 'asc')
                     ->get();
 
                 foreach ($forms as $key => $form) {
-                    $forms[$key]->info = DB::table('set_forms_elements as sfe')->where('sfe.id_forms', '=', $form->id_forms)
-                        ->join('set_elements as se', 'se.id', '=', 'sfe.id_set_elements')
-                        ->join('elements as e', 'e.id', '=', 'se.id_elements')
-                        ->select('se.label_set_elements', 'sfe.width', 'e.name_elements')
+                    $forms[$key]->info = DB::table('fields_forms as ff')->where('ff.id_forms', '=', $form->id_forms)
+                        ->join('fields as f', 'f.id_fields', '=', 'ff.id_fields_forms')
+                        ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+                        ->select('f.label_fields','e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }
@@ -148,4 +149,47 @@ class FormController extends Controller
         }
         return response()->json(['message' => $message, 'bool' => $bool]);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const SHOW = 1;
+
+    public function test(){
+        // вывод пустой новой таблицы c данными и подэлементами
+        $current_form = DB::table('fields_forms as ff')
+            ->where('ff.id_forms','=',2)
+            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_fields','=','f.id_fields')
+            ->join('forms_fields_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
+
+            ->join('elements as e', 'e.id_elements','=','f.id_elements')
+            ->get();
+        $old_form = DB::table('fields_forms as ff')
+            ->where('ff.id_forms','=',2)
+            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
+            ->leftJoin('sub_elements_old as seo', 'seo.id_fields','=','f.id_fields')
+            ->join('forms_fields_old as ffo', 'ffo.id_fields_forms','=','ff.id_fields_forms')
+            ->where('ffo.id_forms_departments','=',3)
+            ->join('elements as e', 'e.id_elements','=','f.id_elements')
+            ->get();
+            dd($current_form, $old_form);
+    }
+
+
+
+
+
+
+
+
 }

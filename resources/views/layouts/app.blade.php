@@ -54,7 +54,7 @@
                     @else
                         <li class="dropdown">
                             <a href="#" class="user dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                               {{ Auth::user()->surname.' '.Auth::user()->name.' '.Auth::user()->middle_name }} 
+                               {{ Auth::user()->surname.' '.Auth::user()->name.' '.Auth::user()->middle_name }}
                                <span class="caret"></span>
                             </a>
 

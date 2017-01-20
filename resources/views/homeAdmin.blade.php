@@ -16,6 +16,7 @@
 
 
                         @if (isset($forms))
+                            {{--{{dd($forms)}}--}}
                         <div class="panel-group" id="accordion">
                         @foreach($forms as $form)
                         <div class="panel panel-default">
@@ -46,8 +47,8 @@
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <hr>
-                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-set-forms-departments="{{$form->id_set_forms_departments}}" value="Отклонить">
-                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-set-forms-departments="{{$form->id_set_forms_departments}}" value="Притнять">
+                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-set-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
+                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-set-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
                                             </div>
                                         </div>
 
@@ -59,8 +60,8 @@
                         @endforeach
 
                         </div>
-                        @endif  
-                        
+                        @endif
+
 
                     </div>
                 </div>

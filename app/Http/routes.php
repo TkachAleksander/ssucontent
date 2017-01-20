@@ -4,6 +4,7 @@ Route::auth();
 
 // Вывод статей
 Route::get('/', 'FormController@index');
+//Route::get('/', 'FormController@test');
 Route::get('/showArticle/{id}', 'ArticleController@showArticle');
 
 

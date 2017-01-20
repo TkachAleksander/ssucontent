@@ -134,3 +134,9 @@ body {
 .emptySpace {
 	background-color: #6cc778;
 }
+
+.help-block{
+	display: block;
+	margin: 0px;
+	color: #ff0000;
+}
