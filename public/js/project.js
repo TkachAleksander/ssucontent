@@ -326,7 +326,7 @@ function cleanTableNewForm() {
     $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
-    $('#name_form,#update_date').val("");
+    $('#name_forms,#update_date').val("");
     $('#old_name_forms').remove();
 }
 // console.log(name_forms+old_name_forms+queue+required+id_form+update_date+id_set_elements);
@@ -418,8 +418,56 @@ $('.editElementFromForm').on('click',function() {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
         success: function (data) {
+// console.log(data);
+            var label_fields = $('#label_fields');
 
-            // var name_fields = $('#name_fields');
+            // Удаляем hidden поля
+            $('.old-value-hidden').remove();
+            // Вставка Label
+            label_fields.val(data.fields[0].label_fields);
+
+            // Вставка hidden поля с id_fields
+            label_fields.after('<input class="old-value-hidden" type="hidden" name="id_fields" value="'+data.fields[0].id_fields+'" required>');
+
+            // Вставка значения в multiselect
+            $('#select_labels option').removeAttr('selected');
+            $('#select_labels [value="'+data.fields[0].id_elements+'"]').prop("selected", true);
+            var name = $('#select_labels :selected').text();
+            $('.multiselect-selected-text').html(name).parent().attr('title',name);
+
+            // Удаляем старые danger поля
+            $('.btn-danger-last').parents('.entry').remove();
+            $('#btn-edit','#btn-cancel').remove();
+
+            // Заполняем поля под элементами
+            if(data.fields[0].labels_sub_elements){
+                var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
+
+                var controlsForm = $('.controls-form');
+                for(var i=labels_sub_elements.length; i>=0; i--) {
+                    if(labels_sub_elements[i] != null) {
+                        controlsForm.prepend(
+                            '<div class="entry input-group col-xs-12">' +
+                            '<input class="form-control sub_elements" name="label_sub_elements[' + labels_sub_elements[i] + ']" type="text" value="' + labels_sub_elements[i] + '">' +
+                            '<span class="input-group-btn">' +
+                            '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
+                            '</span>' +
+                            '</div>');
+                    }
+                }
+            }
+            // Отключаем у success поля проверку на заполнение и неактивность
+            $('.sub_elements').attr({'disabled':false, 'required':false});
+
+            // Вставляем кнопку редактировать / отменить
+            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement('+id_fields+');" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
+                '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
+                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement('+id_fields+');" style="margin-left:10px"> Редактировать </button>');
+            $('#btn-add').remove();
+            // Проверяем на активность поля Список выбора
+            select_labels();
+
+/*            // var name_fields = $('#name_fields');
             var label_fields = $('#label_fields');
 
             // Очищаем hidden поля
@@ -451,14 +499,16 @@ $('.editElementFromForm').on('click',function() {
                 var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
 
                 var controlsForm = $('.controls-form');
-                for(var i=0; i<labels_sub_elements.length; i++) {
-                    controlsForm.prepend(
-                        '<div class="entry input-group col-xs-12">'+
-                        '<input class="form-control sub_elements" name="label_sub_elements['+labels_sub_elements[i]+']" type="text" value="'+labels_sub_elements[i]+'">'+
-                        '<span class="input-group-btn">'+
-                        '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="'+labels_sub_elements[i]+'"><span class="glyphicon glyphicon-minus"></span></button>'+
-                        '</span>'+
-                        '</div>');
+                for(var i=labels_sub_elements.length; i>=0; i--) {
+                    if(labels_sub_elements[i] != null) {
+                        controlsForm.prepend(
+                            '<div class="entry input-group col-xs-12">' +
+                            '<input class="form-control sub_elements" name="label_sub_elements[' + labels_sub_elements[i] + ']" type="text" value="' + labels_sub_elements[i] + '">' +
+                            '<span class="input-group-btn">' +
+                            '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
+                            '</span>' +
+                            '</div>');
+                    }
                 }
             }
             // Отключаем у success поля проверку на заполнение и неактивность
@@ -472,7 +522,7 @@ $('.editElementFromForm').on('click',function() {
             // Проверяем на активность поля Список выбора
             select_labels();
             // создаем куки для элементов которые будут скрыты в бд после редактирования
-            $.cookie('uninstalled_sub_elements', new Array(), {expires: 1, path:'/'});
+            $.cookie('uninstalled_sub_elements', new Array(), {expires: 1, path:'/'});*/
 
         }
 
@@ -578,13 +628,13 @@ $('.editElementFromForm').on('click',function() {
                 },
                 success: function (formsInfo) {
 
-                    if (formsInfo.length == 0){
+                    if (JSON.stringify(formsInfo) == "{}"){
                         contentForm.append('<p class="text-center">Форма подана первый раз</p>');
+                    } else {
+                        formsInfo.forEach(function (value, key, formsInfo) {
+                            switchElements(contentForm, formsInfo, key);
+                        });
                     }
-
-                    formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
-                    });
                 }
             });
         }
@@ -628,25 +678,25 @@ $('.editElementFromForm').on('click',function() {
             formsInfo[key].required = "";
             required = "";
         }
-console.log(required);
-        // formsInfo[key].values_forms = (formsInfo[key].values_forms == null || ) ? "" : formsInfo[key].values_forms;
-        // console.log(formsInfo[key]);
-        formsInfo[key].values_forms = "";
+// console.log(required);
+        formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
+// console.log(formsInfo[key].values_fields_current);
+        // formsInfo[key].values_forms = "";
         switch (formsInfo[key].name_elements) {
 
             case "input(text)":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
+                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"><p></p>');
                 break;
 
             case "input(email)":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
+                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"><p></p>');
                 break;
 
             case "textarea":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required + '>'+formsInfo[key].values_forms+'</textarea><p></p>');
+                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required + '>'+formsInfo[key].values_fields_current+'</textarea><p></p>');
                 break;
 
             case "radiobutton":
@@ -655,24 +705,23 @@ console.log(required);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
-                                    show_empty_checkbox = false;
-                                }
-                                // console.log(value_sub + checked_sub + show_empty_checkbox);
-                            });
+                    var show_empty_checkbox = true;
+                    if (formsInfo[key].enum_sub_elements_current != 0) {
+console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current);
+                        if (value_sub == formsInfo[key].enum_sub_elements_current) {
+
+                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
+                            show_empty_checkbox = false;
+
                         }
-                        if (show_empty_checkbox){
-                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
-                        }
-                    });
+                    }
+                    if (show_empty_checkbox){
+                        contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                    }
+                });
 
                 contentForm.append('<p></p>');
                 break;
@@ -682,24 +731,39 @@ console.log(required);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
+// console.log(label_sub_elements);
 
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
+                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
+
+                    var show_empty_checkbox = true;
+                    if (formsInfo[key].enum_sub_elements_current != 0) {
+                        if ($.isArray(formsInfo[key].enum_sub_elements_current)) {
+                            var arr = formsInfo[key].enum_sub_elements_current;
+
+                            arr.forEach(function(enum_sub_element, key_enum_sub_element, arr){
+// console.log(id_sub_element[key_value],enum_sub_element);
+                                if (id_sub_element[key_value] == enum_sub_element) {
+
+                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
                                     show_empty_checkbox = false;
+
                                 }
-                                // console.log(value_sub + checked_sub + show_empty_checkbox);
                             });
+
+                        } else {
+                            if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
+
+                                contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
+                                show_empty_checkbox = false;
+
+                            }
                         }
-                        if (show_empty_checkbox){
-                            contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
-                        }
-                    });
+                    }
+                    if (show_empty_checkbox){
+                        contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                    }
+                });
 
                 contentForm.append('<p></p>');
                 break;
@@ -709,25 +773,24 @@ console.log(required);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
-                    contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + '>');
+                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + '>');
 
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    $('#select' + key).append('<option value="' + id_sub_element[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
-                                    show_empty_checkbox = false;
-                                }
-                                console.log(value_sub + checked_sub + show_empty_checkbox);
-                            });
+                id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
+
+                    var show_empty_checkbox = true;
+                    if (formsInfo[key].enum_sub_elements_current != 0) {
+                        if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
+
+                            $('#select' + key).append('<option value="' + id_sub_element[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
+                            show_empty_checkbox = false;
                         }
-                        if (show_empty_checkbox){
-                            $('#select' + key).append('<option value="' + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');
-                        }
-                    });
+                    }
+                    if (show_empty_checkbox){
+                        $('#select' + key).append('<option value="' + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');
+                    }
+                });
+
                 contentForm.append('<p></p>');
                 break;
         }

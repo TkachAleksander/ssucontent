@@ -36,16 +36,12 @@ class FormController extends Controller
                 ->join('roles', 'roles.id_roles', '=', 'users.id_roles')
                 ->select('roles.name_roles')
                 ->get();
-            $id_departments = DB::table('users')
-                ->where('name', '=', Auth::user()->name)
-                ->pluck('id_departments');
 
             if ($role[0]->name_roles == self::ADMINISTRATOR) {
                 $forms = DB::table('forms_departments as fd')
                     ->join('departments as d', 'd.id_departments', '=', 'fd.id_departments')
                     ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
                     ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
-//                    ->where('f.show', '=', self::SHOW_FORMS)
                     ->where('fd.id_status_checks', '=', 2)
                     ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'f.name_forms')
                     ->get();
@@ -62,13 +58,12 @@ class FormController extends Controller
             } else {
                 $role[0]->name_roles = null; // Не выводит имя пользователя в списке доступных форм (home)
 
-                $forms = DB::table('forms_departments as fd')->where('fd.id_departments', '=', $id_departments)
+                $forms = DB::table('forms_departments as fd')->where('fd.id_departments', '=', Auth::user()->id_departments)
                     ->join('departments as d', 'd.id_departments', '=', 'fd.id_departments')
                     ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
                     ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
-//                    ->where('f.show', '=', self::SHOW_FORMS)
                     ->where('fd.id_status_checks', '!=', 2)
-                    ->select('d.name_departments', 'fd.id_departments', 'fd.id_forms', 'sc.name_status_checks', 'sc.id_status_checks', 'sc.status_color', 'f.name_forms')
+                    ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'sc.name_status_checks', 'sc.id_status_checks', 'sc.status_color', 'f.name_forms')
                     ->orderBy('fd.id_departments', 'asc')
                     ->get();
 
@@ -92,36 +87,77 @@ class FormController extends Controller
 //        dd($request->all());
 
         $arrValues = 0;
-        foreach ($request->all() as $id_set_forms_elements => $values) {
-            // Отсеиваем (1)_token и (2)id_forms
-            if ($arrValues++ >= 2) {
-                // Если есть значения для этой формы +1 к версии
-                DB::table('values_forms')->where('id_set_forms_elements', '=', $id_set_forms_elements)->where('id_departments', '=', Auth::user()->id_departments)->increment('version_values_forms', 1);
-                // Если элемент содержит массив
-                if (is_array($values)) {
-//                    dd($values);
-                    // Собираем label_sub_elements в массив
-                    foreach ($values as $key => $id_sub_elements) {
-                        $temp_label_sub_elements = DB::table('sub_elements')->where('id','=',$id_sub_elements)->pluck('value_sub_elements');
-                        $l[$key] = $temp_label_sub_elements[0];
-                    }
-//                    dd($label_sub_elements);
-                    $id_sub_elements = implode(' | ',$values);
-                    $label_sub_elements = implode(' | ',$l);
 
-                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $id_sub_elements, 'checked_sub_elements' => $label_sub_elements]);
-//                    dd($values,$label_sub_elements);
-                } else {
-                    // Если значение строка записываем как есть $value
-                    DB::table('values_forms')->insert(['id_set_forms_elements' => $id_set_forms_elements, 'id_departments' => Auth::user()->id_departments, 'values_forms' => $values]);
+        // Получаем $id_fields_forms с ключей, $values с значений
+        foreach ($request->all() as $id_fields_forms => $values) {
+
+            // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
+            if ($arrValues++ >= 3) {
+
+                // удаляем значения с values_fields_old
+                DB::table('values_fields_old')
+                    ->where('id_fields_forms','=',$id_fields_forms)
+                    ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                    ->delete();
+
+                // Выбираем значения с таблицы values_fields_current
+                $values_fields_current = DB::table('values_fields_current')
+                    ->where('id_fields_forms','=',$id_fields_forms)
+                    ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                    ->get();
+//dd($values_fields_current);
+
+                // Если есть значения переносим их в таблицу values_fields_old
+                if (!empty($values_fields_current)) {
+                    DB::table('values_fields_old')
+                        ->insert([
+                            'id_fields_forms' => $values_fields_current[0]->id_fields_forms,
+                            'id_forms_departments' => $values_fields_current[0]->id_forms_departments,
+                            'values_fields_old' => $values_fields_current[0]->values_fields_current,
+                            'enum_sub_elements_old' => $values_fields_current[0]->enum_sub_elements_current
+                        ]);
+
+                    // удаляем значения с current
+                    DB::table('values_fields_current')
+                        ->where('id_fields_forms', '=', $id_fields_forms)
+                        ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                        ->delete();
                 }
-                // Удяляем 3ю версию данных
-                DB::table('values_forms')->where('version_values_forms', '>=', 3)->where('id_departments', '=', Auth::user()->id_departments)->delete();
+
+                // Если новые значения пришли строкой
+                if (!is_array($values)) {
+
+                    // запись значений в values_fields_current
+                    DB::table('values_fields_current')
+                        ->insert([
+                            'id_fields_forms' => $id_fields_forms,
+                            'id_forms_departments' => $request->input('id_forms_departments'),
+                            'values_fields_current' => (!empty($values)) ? $values : 0 ,
+                            'enum_sub_elements_current' => 0
+                        ]);
+
+                // Если новые значения пришли массивом
+                } else {
+                    foreach ($values as $value) {
+                        // запись перебором, id_sub_elements в enum_sub_elements_current
+                        DB::table('values_fields_current')
+                            ->insert([
+                                'id_fields_forms' => $id_fields_forms,
+                                'id_forms_departments' => $request->input('id_forms_departments'),
+                                'values_fields_current' => 0 ,
+                                'enum_sub_elements_current' => $value
+                            ]);
+
+                    }
+                }
             }
         }
+
         // Ставим статус формы - праверяется администратором
-        DB::table('set_forms_departments')->where('id_forms', '=', $request->input('id_forms'))->where('id_departments', '=', Auth::user()->id_departments)
-            ->update(['id_status_checks' => 2]);
+/*        DB::table('forms_departments')
+            ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+            ->update(['id_status_checks' => 2]);*/
+
 //        dd($request->all(),$id_set_forms_elements);
         return redirect('/');
     }

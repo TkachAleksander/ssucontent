@@ -35,6 +35,7 @@
                                         {{ csrf_field() }}
 
                                         <input type="hidden" class="input-id-form" name="id_forms" value="{{$form->id_forms}}">
+                                        <input type="hidden" class="input-id-forms-departments" name="id_forms_departments" value="{{$form->id_forms_departments}}">
                                         <div class="row">
                                             <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
 

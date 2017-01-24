@@ -11,6 +11,11 @@
                     <script defer> $('ul[role=tablist]').removeClass('active'); $('#tab2').addClass('active') </script>
 
                     <div class="panel-body">
+                        @if ($errors->has('list_forms_departments'))
+                            <span class="help-block">
+                                <strong>{{ $errors->first('list_forms_departments') }}</strong>
+                            </span>
+                        @endif
 
                         <form action="/constructor/addNewElement" method="POST">
                             <div class="row">
