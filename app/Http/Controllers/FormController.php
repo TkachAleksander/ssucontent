@@ -82,6 +82,9 @@ class FormController extends Controller
         }
     }
 
+
+
+    // UserHome кнопка отправить форму на проверку
     public function submitFillForm(Request $request)
     {
 //        dd($request->all());
@@ -105,6 +108,8 @@ class FormController extends Controller
                     ->where('id_fields_forms','=',$id_fields_forms)
                     ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                     ->get();
+
+
 //dd($values_fields_current);
 
                 // Если есть значения переносим их в таблицу values_fields_old
@@ -116,6 +121,30 @@ class FormController extends Controller
                             'values_fields_old' => $values_fields_current[0]->values_fields_current,
                             'enum_sub_elements_old' => $values_fields_current[0]->enum_sub_elements_current
                         ]);
+
+                    // Если enum_sub_elements_current не равен нулю
+                    if ($values_fields_current[0]->enum_sub_elements_current != 0){
+
+                        // Узнаем значения sub_elements_current
+                        $sub_elements_current = DB::table('sub_elements_current')
+                            ->where('id_sub_elements_current','=', $values_fields_current[0]->enum_sub_elements_current)
+                            ->get();
+
+                        // Удаляем старые значения из таблицы sub_elements_old
+                        DB::table('sub_elements_old')
+                            ->where('id_fields_forms', '=', $id_fields_forms)
+                            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                            ->delete();
+
+                        // Переносим их в таблицу sub_elements_old
+                        DB::table('sub_elements_old')
+                            ->insert([
+                                'id_sub_elements_field' => $sub_elements_current[0]->id_sub_elements_field,
+                                'id_fields_forms' => $values_fields_current[0]->id_fields_forms,
+                                'id_forms_departments' => $values_fields_current[0]->id_forms_departments,
+                                'label_sub_elements_old' => $sub_elements_current[0]->label_sub_elements_current
+                            ]);
+                    }
 
                     // удаляем значения с current
                     DB::table('values_fields_current')
@@ -162,6 +191,10 @@ class FormController extends Controller
         return redirect('/');
     }
 
+
+
+    // adminHome Принять/Отклонить форму
+
     public function rejectForm(Request $request)
     {
         if (DB::table('set_forms_departments')->where('id', '=', $request->input('id_set_forms_departments'))->update(['id_status_checks' => self::REJECT_FORM])) {
@@ -185,47 +218,6 @@ class FormController extends Controller
         }
         return response()->json(['message' => $message, 'bool' => $bool]);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const SHOW = 1;
-
-    public function test(){
-        // вывод пустой новой таблицы c данными и подэлементами
-        $current_form = DB::table('fields_forms as ff')
-            ->where('ff.id_forms','=',2)
-            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
-            ->leftJoin('sub_elements_current as sec', 'sec.id_fields','=','f.id_fields')
-            ->join('forms_fields_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
-
-            ->join('elements as e', 'e.id_elements','=','f.id_elements')
-            ->get();
-        $old_form = DB::table('fields_forms as ff')
-            ->where('ff.id_forms','=',2)
-            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
-            ->leftJoin('sub_elements_old as seo', 'seo.id_fields','=','f.id_fields')
-            ->join('forms_fields_old as ffo', 'ffo.id_fields_forms','=','ff.id_fields_forms')
-            ->where('ffo.id_forms_departments','=',3)
-            ->join('elements as e', 'e.id_elements','=','f.id_elements')
-            ->get();
-            dd($current_form, $old_form);
-    }
-
-
-
-
-
-
 
 
 }

@@ -249,20 +249,34 @@ class ConstructorFormController extends Controller
             ->where('id_forms','=',$id_form)
             ->pluck('id_fields_forms');
 
-        // Проверяем если в таблицах old и current отсутствует id_fields_forms
+
         // удаляем его из таблтцы fields_forms
         foreach ($id_fields_forms as $id_field_form){
+
+            // Ищем id_fields_forms в таблице fields_forms_current
             $isset_field_current = DB::table('fields_forms_current')
                 ->where('id_fields_forms','=', $id_field_form)
                 ->get();
+
+            // Ищем id_fields_forms в таблице fields_forms_old
             $isset_field_old = DB::table('fields_forms_old')
                 ->where('id_fields_forms','=', $id_field_form)
                 ->get();
+
+            // Если отсутствует в обоих таблицах удаляем id_fields_forms из таблицы fields_forms
             if(!$isset_field_current && !$isset_field_old){
                 DB::table('fields_forms')
                     ->where('id_fields_forms','=',$id_field_form)
                     ->delete();
             }
+
+            // Если отсутствует fields_forms_current удаляем id_fields_forms из таблицы id_values_fields_current
+            if(!$isset_field_current){
+                DB::table('values_fields_current')
+                    ->where('id_fields_forms','=',$id_field_form)
+                    ->delete();
+            }
+
         }
 
         return response()->json(['message' => 'Форма успешно отредактирована!', 'bool' => true]);
@@ -540,6 +554,7 @@ class ConstructorFormController extends Controller
             ->leftJoin('elements as e', 'e.id_elements', '=', 'f.id_elements')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
             ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->orderBy('ffc.id_fields_forms_current')
             ->groupBy('f.id_fields')
             ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field', 'ffc.required_fields_current as required', DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'), DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
             ->get();
