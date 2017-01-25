@@ -183,9 +183,9 @@ class FormController extends Controller
         }
 
         // Ставим статус формы - праверяется администратором
-/*        DB::table('forms_departments')
+        DB::table('forms_departments')
             ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-            ->update(['id_status_checks' => 2]);*/
+            ->update(['id_status_checks' => 2]);
 
 //        dd($request->all(),$id_set_forms_elements);
         return redirect('/');
@@ -197,7 +197,7 @@ class FormController extends Controller
 
     public function rejectForm(Request $request)
     {
-        if (DB::table('set_forms_departments')->where('id', '=', $request->input('id_set_forms_departments'))->update(['id_status_checks' => self::REJECT_FORM])) {
+        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::REJECT_FORM])) {
             $bool = true;
             $message = "Форма успешно отклонена !";
         } else {
@@ -209,13 +209,43 @@ class FormController extends Controller
 
     public function acceptForm(Request $request)
     {
-        if (DB::table('set_forms_departments')->where('id', '=', $request->input('id_set_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
+
+        // Изменяем статус формы для данного отдела на принята
+        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
             $bool = true;
             $message = "Форма успешно принята !";
         } else {
             $bool = false;
             $message = "Форма не найдена !";
         }
+
+        // Узнаем label_fields
+        $fields_info = DB::table('values_fields_current as vfc')
+            ->where('vfc.id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->join('fields_forms as ff', 'ff.id_fields_forms','=','vfc.id_fields_forms')
+            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
+            ->orderBy('ff.id_fields_forms','asc')
+            ->select('f.label_fields', 'ff.id_fields_forms')
+            ->get();
+
+        foreach ($fields_info as  $field_info) {
+
+            $required = DB::table('fields_forms_current')
+                ->where('id_fields_forms','=', $field_info->id_fields_forms)
+                ->value('required_fields_current');
+//dd($required);
+            DB::table('fields_forms_old')
+                ->insert([
+                    'id_fields_forms' => $field_info->id_fields_forms,
+                    'id_forms_departments' => $request->input('id_forms_departments'),
+                    'required_fields_old' => $required,
+                    'label_fields_old' => $field_info->label_fields
+                ]);
+        }
+//        dd($label_fields);
+
+
+
         return response()->json(['message' => $message, 'bool' => $bool]);
     }
 

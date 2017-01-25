@@ -238,8 +238,7 @@ class ConstructorFormController extends Controller
             DB::table('fields_forms_current')
                 ->insert([
                     'id_fields_forms' => $id_fields_forms,
-                    'required_fields_current' => $required,
-                    'queue_form_fields_current' => 100
+                    'required_fields_current' => $required
                 ]);
 
         }
@@ -573,18 +572,12 @@ class ConstructorFormController extends Controller
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
             ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
             ->leftJoin('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
-            ->orderBY('ffc.id_fields_forms_current')
+            ->orderBY('ffc.id_fields_forms_current','asc')
             ->groupBy('f.id_fields')
-            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field',
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field','ffc.required_fields_current as required',
                 DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
                 DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
             ->get();
-
-        // Узнаем id_forms_departments
-        $id_forms_departments = DB::table('forms_departments')
-            ->where('id_forms','=',$request->input('id_forms'))
-            ->where('id_departments','=', Auth::user()->id_departments)
-            ->value('id_forms_departments');
 
 //dd($form_infos, $id_forms_departments);
 
@@ -594,10 +587,10 @@ class ConstructorFormController extends Controller
             // Выбираем значения (values_fields_current,enum_sub_elements_current) из таблицы values_fields_current
             $values = DB::table('values_fields_current')
                 ->where('id_fields_forms', '=', $form_info->id_fields_forms)
-                ->where('id_forms_departments', '=', $id_forms_departments)
-                ->select('values_fields_current', 'enum_sub_elements_current')
+                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->select('values_fields_current', 'enum_sub_elements_current','id_forms_departments')
                 ->get();
-//dd($form_infos, $values);
+//dd($form_infos, $values,$request->input('id_forms_departments'));
 
             // Если значения есть
             if(!empty($values)) {
@@ -613,7 +606,7 @@ class ConstructorFormController extends Controller
                 // Выбираем значения (values_fields_old,enum_sub_elements_old) из таблицы values_fields_old
                 $values = DB::table('values_fields_old')
                     ->where('id_fields_forms', '=', $form_info->id_fields_forms)
-                    ->where('id_forms_departments', '=', $id_forms_departments)
+                    ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
                     ->select('values_fields_old', 'enum_sub_elements_old')
                     ->get();
 
@@ -629,12 +622,74 @@ class ConstructorFormController extends Controller
                 }
             }
         }
+
 //dd($form_infos);
         return response()->json($form_infos);
     }
 
-//    public function getFormInfoOld(Request $request)
-//    {
+    public function getFormInfoOld(Request $request)
+    {
+        // Проверяем есть ли поля в sub_elements_old
+        $form_infos = DB::table('fields as f')
+            ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
+            ->where('ff.id_forms','=',$request->input('id_forms'))
+            ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+            ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
+            ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+//            ->join('fields_forms_old as ffo', 'ffo.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBY('ff.id_fields_forms', 'asc')
+            ->groupBy('f.id_fields')
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field', /*'ffo.required_fields_old as required',*/
+                DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
+            ->get();
+
+//dd($request->input('id_forms'),$form_infos);
+
+        // Для каждого поля и массива $form_infos ищем значения
+        foreach ($form_infos as $key => $form_info) {
+
+            // Выбираем значения (values_fields_current,enum_sub_elements_current) из таблицы values_fields_current
+            $values = DB::table('values_fields_old')
+                ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->select('values_fields_old', 'enum_sub_elements_old', 'id_forms_departments')
+                ->get();
+//dd($form_infos, $values,$request->input('id_forms_departments'));
+
+            // Если значения есть
+            if (!empty($values)) {
+                // Добавляем в массив $form_infos values_fields_current
+                $form_infos[$key]->values_fields_current = $values[0]->values_fields_old;
+
+                // enum_sub_elements_current добавляем массивом
+                foreach ($values as $key_value => $value) {
+                    $form_infos[$key]->enum_sub_elements_current[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                }
+                // Если значений нет
+            } else {
+                // Выбираем значения (values_fields_old,enum_sub_elements_old) из таблицы values_fields_old
+                $values = DB::table('values_fields_old')
+                    ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                    ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                    ->select('values_fields_old', 'enum_sub_elements_old')
+                    ->get();
+
+                // Если значения есть
+                if (!empty($values)) {
+                    // Добавляем в массив $form_infos values_fields_current
+                    $form_infos[$key]->values_fields_current = $values[0]->values_fields_old;
+
+                    // enum_sub_elements_current добавляем массивом
+                    foreach ($values as $key_value => $value) {
+                        $form_infos[$key]->enum_sub_elements_current[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                    }
+                }
+            }
+        }
+
+        return response()->json($form_infos);
+    }
 //        $form_infos = DB::table('fields as f')
 //            ->leftJoin('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
 //            ->where('ff.id_forms','=',$request->input('id_forms'))

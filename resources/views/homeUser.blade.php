@@ -22,7 +22,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}" data-id-departments="{{$id_departments}}" data-generatestring="{{$form->generateString}}">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}" data-id-forms-departments="{{$form->id_forms_departments}}" data-generatestring="{{$form->generateString}}">
                                         {{ $form->name_forms }}
                                         <span class="pull-right" style="color: {{$form->status_color}}; font-size: 13px">{{ $form->name_status_checks }}</span>
                                     </a>

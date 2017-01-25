@@ -22,7 +22,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                                 <h4 class="panel-title">
-                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}" data-id-departments="{{$form->id_departments}}" data-generatestring="{{$form->generateString}}">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#{{$form->generateString}}" class="forms-info forms-info-old collapsed" data-id="{{$form->id_forms}}" data-id-forms-departments="{{$form->id_forms_departments}}" data-generatestring="{{$form->generateString}}">
                                         {{ $form->name_forms }}
                                         <span class="pull-right">{{ $form->name_departments }}</span>
                                     </a>
@@ -30,30 +30,27 @@
                             </div>
                             <div id="{{$form->generateString}}" class="panel-collapse collapse">
                                 <div class="panel-body">
-                                    <form action="submitFillForm" method="POST">
-                                        {{ csrf_field() }}
-
                                         <input type="hidden" class="input-id-form" name="id_form" value="">
 
                                         <div class="row">
                                             <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
 
                                             </div>
-                                            <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
+                                            <form action="submitFillForm" method="POST">
+                                                {{ csrf_field() }}
+                                                <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
 
-                                            </div>
+                                                </div>
+                                            </form>
                                         </div>
 
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <hr>
-                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-set-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
-                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-set-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
+                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
+                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
                                             </div>
                                         </div>
-
-
-                                    </form>
                                 </div>
                             </div>
                         </div>
