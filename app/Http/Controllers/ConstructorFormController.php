@@ -556,7 +556,9 @@ class ConstructorFormController extends Controller
             ->where('ff.id_forms','=',$request->input('id_forms'))
             ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
-            ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->leftJoin('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBY('ffc.id_fields_forms_current')
             ->groupBy('f.id_fields')
             ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field',
                 DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
