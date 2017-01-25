@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App;
 
 use App\Department;
-use App\Models\Field;
-use App\Models\Fields_form;
-use App\Models\Fields_forms_current;
+use App\Field;
+use App\Fields_form;
+use App\Fields_forms_current;
 
 use Illuminate\Http\Request;
 use App\Http\Requests;
@@ -141,10 +141,10 @@ class ConstructorFormController extends Controller
             ->join('elements as e', 'e.id_elements','=','f.id_elements')
             ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields','=','f.id_fields')
-            ->orderBy('ff.id_fields_forms')
+            ->orderBy('ffc.id_fields_forms_current')
             ->select('ff.id_fields_forms', 'f.id_fields', 'ffc.required_fields_current', 'forms.name_forms', 'forms.date_update_forms', 'f.id_fields', 'f.label_fields', 'e.name_elements', 'sef.id_sub_elements_field')
             ->get();
-
+//dd($request->all(),$fields);
         foreach ($fields as $key => $field) {
             if ($field->id_sub_elements_field != null) {
                 $label_sub_elements = DB::table('sub_elements_current as sec')
@@ -156,6 +156,7 @@ class ConstructorFormController extends Controller
                 $fields[$key]->labels_sub_elements = "---";
             }
         }
+
         return response()->json($fields);
     }
 
@@ -170,7 +171,10 @@ class ConstructorFormController extends Controller
     // Кнопка редактирования уже сужествуещей формы
     public function addEditedNewForm(Request $request)
     {
-//        dd($request->all());
+//dd($request->all());
+        $id_form = $request->input('id_form');
+
+
         // Получаем все старые формы
         $all_old_forms = DB::table('forms')->get();
 
@@ -185,35 +189,82 @@ class ConstructorFormController extends Controller
         // Апдейтим имя и дату формы
         DB::table('forms')->where('id_forms','=',$request->input('id_form'))->update(['name_forms' => $request->input('name_forms'), 'date_update_forms' => $request->input('date_update_forms')]);
 
-        foreach($request->input('id_fields') as $key=>$id_field){
+        // Узнаем id_fields_forms которые нужно удалить из таблицы fields_forms_current
+        $id_fields_forms = DB::table('fields_forms')
+            ->where('id_forms','=', $id_form)
+            ->pluck('id_fields_forms');
 
-            // Если есть новые fields добавляем в таблицу fields_forms
-            Fields_form::firstOrCreate( array('id_forms' => $request->input('id_form'), 'id_fields' => $id_field));
 
-            // Узнаем id_fields_forms которые нужно удалить из таблицы fields_forms_current
-            $id_fields_forms = DB::table('fields_forms')
-                ->where('id_forms','=',$request->input('id_form'))
-                ->where('id_fields','=',$id_field)
-                ->value('id_fields_forms');
+        // Удаляем старые поля из current
+        foreach ($id_fields_forms as $id_field_form){
+            DB::table('fields_forms_current')
+                ->where('id_fields_forms','=', $id_field_form)
+                ->delete();
+        }
 
-            // Узнаем required
-            $require = false;
-            if (!empty($request->input('required'))) {
-                foreach ($request->input('required') as $required) {
-                    if ($required == $id_field) {
-                        $require = true;
+
+        foreach ($request->input('id_fields') as $id_field){
+            // Добавляем fields_forms поля к редактируемой фрме если таких раньше не было
+            $isset = DB::table('fields_forms')
+                ->where('id_forms','=', $id_form)
+                ->where('id_fields','=', $id_field)
+                ->get();
+
+            if(!$isset){
+                DB::table('fields_forms')
+                    ->insert([
+                        'id_forms' => $id_form,
+                        'id_fields' => $id_field
+                    ]);
+            }
+
+            // Узнаем required поля
+            $required = 0;
+            if(!empty($request->input('required'))) {
+                foreach ($request->input('required') as $r) {
+                    if ($r == $id_field) {
+                        $required = 1;
                     }
                 }
             }
 
-            // Удаляем старое поле из fields_forms_current, записываем новое
-            Fields_forms_current::where('id_fields_forms','=',$id_fields_forms)->delete();
-            Fields_forms_current::create([
-                'id_fields_forms' => $id_fields_forms,
-                'required_fields_current' => $require,
-                'queue_form_fields_current' => $request->input('queue')[$key]
-            ]);
+            // Берем id_fields_forms нового поля для current
+            $id_fields_forms = DB::table('fields_forms')
+                ->where('id_forms','=', $id_form)
+                ->where('id_fields','=', $id_field)
+                ->value('id_fields_forms');
+
+            // Добавляем новое поле
+            DB::table('fields_forms_current')
+                ->insert([
+                    'id_fields_forms' => $id_fields_forms,
+                    'required_fields_current' => $required,
+                    'queue_form_fields_current' => 100
+                ]);
+
         }
+
+        // Берем все id_fields_forms для редактируемой таблицы
+        $id_fields_forms = DB::table('fields_forms')
+            ->where('id_forms','=',$id_form)
+            ->pluck('id_fields_forms');
+
+        // Проверяем если в таблицах old и current отсутствует id_fields_forms
+        // удаляем его из таблтцы fields_forms
+        foreach ($id_fields_forms as $id_field_form){
+            $isset_field_current = DB::table('fields_forms_current')
+                ->where('id_fields_forms','=', $id_field_form)
+                ->get();
+            $isset_field_old = DB::table('fields_forms_old')
+                ->where('id_fields_forms','=', $id_field_form)
+                ->get();
+            if(!$isset_field_current && !$isset_field_old){
+                DB::table('fields_forms')
+                    ->where('id_fields_forms','=',$id_field_form)
+                    ->delete();
+            }
+        }
+
         return response()->json(['message' => 'Форма успешно отредактирована!', 'bool' => true]);
     }
 

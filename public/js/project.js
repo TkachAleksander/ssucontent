@@ -225,7 +225,7 @@ $(document).ready(function() {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (fields) {
-//console.log(fields);
+console.log(fields);
                     var sortContainer = $('#sortContainer');
                     sortContainer.empty();
                     $('#old_name_forms').remove();
