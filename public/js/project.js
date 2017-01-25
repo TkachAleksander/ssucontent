@@ -329,14 +329,13 @@ function cleanTableNewForm() {
     $('#name_forms,#update_date').val("");
     $('#old_name_forms').remove();
 }
-// console.log(name_forms+old_name_forms+queue+required+id_form+update_date+id_set_elements);
+
 // Кнопка отправки отредактированной формы
 $('#container').on('click','#btn-edit-form',function () {
 
     var id_form = $('#btn-edit-form').data('idThisForm');
     var name_forms = $('#name_forms').val();
     var old_name_forms = $('#old_name_forms').val();
-    var queue = $('#sortContainer').sortable("toArray");
     var date_update_forms = $('#date_update_forms').val();
     
     var id_fields = [];
@@ -348,12 +347,11 @@ $('#container').on('click','#btn-edit-form',function () {
     $.each($('#sortContainer input:checkbox:checked'),function(i){
         required[i] = $(this).val();
     });
-    
-// console.log('queue: '+queue+' required: '+required+' id_form: '+id_form);
+
     $.ajax({
         type:"POST",
         url:"/constructor/addEditedNewForm",
-        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
+        data:{name_forms:name_forms, old_name_forms:old_name_forms, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -580,11 +578,38 @@ $('.editElementFromForm').on('click',function() {
 // showForms //
 // showForms //
 
+// Отображение содержимого формы (Просмотр списка форм) constructorForm
+$('.forms-info-admin').on('click', function(){
+    var id_forms = $(this).data("id");
+    var id_departments = $(this).data("idDepartments");
+    var generateString = $(this).data("generatestring")
+    var contentForm = $('#content-form'+generateString);
+    contentForm.empty();
+
+    if ($(this).hasClass("collapsed")) {
+        $.ajax({
+            type: "POST",
+            url: "getFormInfoAdmin",
+            data: {id_forms: id_forms, id_departments:id_departments},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (formsInfo) {
+
+                formsInfo.forEach(function (value, key, formsInfo) {
+                    switchElements(contentForm, formsInfo, key);
+                });
+            }
+
+        });
+    }
+});
 
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
-        var id_departments = $(this).data("idDepartments");
+        var id_forms_departments = $(this).data("idFormsDepartments");
         var generateString = $(this).data("generatestring")
         var contentForm = $('#content-form'+generateString);
         contentForm.empty();
@@ -593,7 +618,7 @@ $('.editElementFromForm').on('click',function() {
             $.ajax({
                 type: "POST",
                 url: "getFormInfo",
-                data: {id_forms: id_forms, id_departments:id_departments},
+                data: {id_forms: id_forms, id_forms_departments:id_forms_departments},
                 dataType: "JSON",
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -601,7 +626,7 @@ $('.editElementFromForm').on('click',function() {
                 success: function (formsInfo) {
 
                     formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
+                        switchElements(contentForm, formsInfo, key, " ");
                     });
                 }
 
@@ -612,7 +637,7 @@ $('.editElementFromForm').on('click',function() {
     // Отображение старого содержимого формы homeAdmin
     $('.forms-info-old').on('click', function() {
         var id_forms = $(this).data("id");
-        var id_departments = $(this).data("idDepartments");
+        var id_forms_departments = $(this).data("idFormsDepartments");
         var generateString = $(this).data("generatestring")
         var contentForm = $('#content-form-old'+generateString);
         contentForm.empty();
@@ -621,7 +646,7 @@ $('.editElementFromForm').on('click',function() {
             $.ajax({
                 type: "POST",
                 url: "getFormInfoOld",
-                data: {id_forms: id_forms, id_departments:id_departments},
+                data: {id_forms: id_forms, id_forms_departments:id_forms_departments},
                 dataType: "JSON",
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -632,7 +657,7 @@ $('.editElementFromForm').on('click',function() {
                         contentForm.append('<p class="text-center">Форма подана первый раз</p>');
                     } else {
                         formsInfo.forEach(function (value, key, formsInfo) {
-                            switchElements(contentForm, formsInfo, key);
+                            switchElements(contentForm, formsInfo, key, "disabled");
                         });
                     }
                 }
@@ -668,7 +693,7 @@ $('.editElementFromForm').on('click',function() {
         }
     });
 
-    function switchElements(contentForm, formsInfo, key) {
+    function switchElements(contentForm, formsInfo, key, disabled) {
 
         var required;
         if(formsInfo[key].required == true) {
@@ -678,25 +703,26 @@ $('.editElementFromForm').on('click',function() {
             formsInfo[key].required = "";
             required = "";
         }
-// console.log(required);
+
+        (disabled == 'disabled') ? formsInfo[key].id_fields_forms = " " : formsInfo[key].id_fields_forms;
+
         formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
-// console.log(formsInfo[key].values_fields_current);
-        // formsInfo[key].values_forms = "";
+
         switch (formsInfo[key].name_elements) {
 
             case "input(text)":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"><p></p>');
+                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"'+disabled+'><p></p>');
                 break;
 
             case "input(email)":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"><p></p>');
+                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"'+disabled+'><p></p>');
                 break;
 
             case "textarea":
                 contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
-                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required + '>'+formsInfo[key].values_fields_current+'</textarea><p></p>');
+                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required +disabled+'>'+formsInfo[key].values_fields_current+'</textarea><p></p>');
                 break;
 
             case "radiobutton":
@@ -710,16 +736,15 @@ $('.editElementFromForm').on('click',function() {
 
                     var show_empty_checkbox = true;
                     if (formsInfo[key].enum_sub_elements_current != 0) {
-console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current);
                         if (value_sub == formsInfo[key].enum_sub_elements_current) {
 
-                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
+                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
                             show_empty_checkbox = false;
 
                         }
                     }
                     if (show_empty_checkbox){
-                        contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                        contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+'> ' + label_sub_elements[key_value] + '</br>');
                     }
                 });
 
@@ -731,8 +756,6 @@ console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current)
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-// console.log(label_sub_elements);
-
                 contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
@@ -742,10 +765,9 @@ console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current)
                             var arr = formsInfo[key].enum_sub_elements_current;
 
                             arr.forEach(function(enum_sub_element, key_enum_sub_element, arr){
-// console.log(id_sub_element[key_value],enum_sub_element);
                                 if (id_sub_element[key_value] == enum_sub_element) {
 
-                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
+                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
                                     show_empty_checkbox = false;
 
                                 }
@@ -754,14 +776,14 @@ console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current)
                         } else {
                             if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
 
-                                contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + ' checked > ' + label_sub_elements[key_value] + '</br>');
+                                contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
                                 show_empty_checkbox = false;
 
                             }
                         }
                     }
                     if (show_empty_checkbox){
-                        contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
+                        contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+'> ' + label_sub_elements[key_value] + '</br>');
                     }
                 });
 
@@ -774,7 +796,7 @@ console.log(id_sub_element,value_sub , formsInfo[key].enum_sub_elements_current)
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
                 contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
-                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + '>');
+                contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + disabled+'>');
 
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
@@ -922,15 +944,16 @@ $('.btn-edit-departments').on('click', function () {
 // homeAdmin //
 
 
-// Список форм на проверку 
-// Кнопка принять 
+// Список форм на проверку
 
+// Кнопка принять
 $('.btn-accept-form').on('click', function () {
-    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
+    var id_forms_departments = $(this).data('idFormsDepartments');
+
     $.ajax({
         type:"POST",
         url:"acceptForm",
-        data:{ id_set_forms_departments:id_set_forms_departments },
+        data:{ id_forms_departments:id_forms_departments },
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
@@ -946,11 +969,12 @@ $('.btn-accept-form').on('click', function () {
 
 // Кнопка отклонить
 $('.btn-reject-form').on('click', function () {
-    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
+    var id_forms_departments = $(this).data('idFormsDepartments');
+    alert(id_forms_departments);
     $.ajax({
         type:"POST",
         url:"rejectForm",
-        data:{ id_set_forms_departments:id_set_forms_departments },
+        data:{ id_forms_departments:id_forms_departments },
         dataType:"JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
