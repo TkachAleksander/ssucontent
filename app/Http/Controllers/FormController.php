@@ -101,62 +101,6 @@ class FormController extends Controller
             // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
             if ($arrValues++ >= 3) {
 
-/*                // удаляем значения с values_fields_old
-                DB::table('values_fields_old')
-                    ->where('id_fields_forms','=',$id_fields_forms)
-                    ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                    ->delete();
-
-                // Выбираем значения с таблицы values_fields_current
-                $values_fields_current = DB::table('values_fields_current')
-                    ->where('id_fields_forms','=',$id_fields_forms)
-                    ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                    ->get();*/
-
-
-//dd($values_fields_current);
-
-/*                // Если есть значения переносим их в таблицу values_fields_old
-                if (!empty($values_fields_current)) {
-                    DB::table('values_fields_old')
-                        ->insert([
-                            'id_fields_forms' => $values_fields_current[0]->id_fields_forms,
-                            'id_forms_departments' => $values_fields_current[0]->id_forms_departments,
-                            'values_fields_old' => $values_fields_current[0]->values_fields_current,
-                            'enum_sub_elements_old' => $values_fields_current[0]->enum_sub_elements_current
-                        ]);
-
-                    // Если enum_sub_elements_current не равен нулю
-                    if ($values_fields_current[0]->enum_sub_elements_current != 0){
-
-                        // Узнаем значения sub_elements_current
-                        $sub_elements_current = DB::table('sub_elements_current')
-                            ->where('id_sub_elements_current','=', $values_fields_current[0]->enum_sub_elements_current)
-                            ->get();
-
-                        // Удаляем старые значения из таблицы sub_elements_old
-                        DB::table('sub_elements_old')
-                            ->where('id_fields_forms', '=', $id_fields_forms)
-                            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
-                            ->delete();
-
-                        // Переносим их в таблицу sub_elements_old
-                        DB::table('sub_elements_old')
-                            ->insert([
-                                'id_sub_elements_field' => $sub_elements_current[0]->id_sub_elements_field,
-                                'id_fields_forms' => $values_fields_current[0]->id_fields_forms,
-                                'id_forms_departments' => $values_fields_current[0]->id_forms_departments,
-                                'label_sub_elements_old' => $sub_elements_current[0]->label_sub_elements_current
-                            ]);
-                    }
-
-                    // удаляем значения с current
-                    DB::table('values_fields_current')
-                        ->where('id_fields_forms', '=', $id_fields_forms)
-                        ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
-                        ->delete();
-                }*/
-
                 // Если новые значения пришли строкой
                 if (!is_array($values)) {
 
