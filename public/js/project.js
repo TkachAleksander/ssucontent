@@ -452,7 +452,7 @@ $('.editElementFromForm').on('click',function() {
                             '</span>' +
                             '</div>');
                     }
-                }
+                } 
             }
             // Отключаем у success поля проверку на заполнение и неактивность
             $('.sub_elements').attr({'disabled':false, 'required':false});
