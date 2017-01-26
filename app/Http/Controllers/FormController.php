@@ -91,13 +91,17 @@ class FormController extends Controller
 
         $arrValues = 0;
 
+        DB::table('values_fields_current')
+            ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+            ->delete();
+
         // Получаем $id_fields_forms с ключей, $values с значений
         foreach ($request->all() as $id_fields_forms => $values) {
 
             // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
             if ($arrValues++ >= 3) {
 
-                // удаляем значения с values_fields_old
+/*                // удаляем значения с values_fields_old
                 DB::table('values_fields_old')
                     ->where('id_fields_forms','=',$id_fields_forms)
                     ->where('id_forms_departments','=',$request->input('id_forms_departments'))
@@ -107,12 +111,12 @@ class FormController extends Controller
                 $values_fields_current = DB::table('values_fields_current')
                     ->where('id_fields_forms','=',$id_fields_forms)
                     ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                    ->get();
+                    ->get();*/
 
 
 //dd($values_fields_current);
 
-                // Если есть значения переносим их в таблицу values_fields_old
+/*                // Если есть значения переносим их в таблицу values_fields_old
                 if (!empty($values_fields_current)) {
                     DB::table('values_fields_old')
                         ->insert([
@@ -151,7 +155,7 @@ class FormController extends Controller
                         ->where('id_fields_forms', '=', $id_fields_forms)
                         ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
                         ->delete();
-                }
+                }*/
 
                 // Если новые значения пришли строкой
                 if (!is_array($values)) {
@@ -207,7 +211,7 @@ class FormController extends Controller
         return response()->json(['message' => $message, 'bool' => $bool]);
     }
 
-    
+
     public function acceptForm(Request $request)
     {
         // Изменяем статус формы для данного отдела на принята
@@ -226,17 +230,39 @@ class FormController extends Controller
             ->join('fields as f', 'f.id_fields','=','ff.id_fields')
             ->orderBy('ff.id_fields_forms','asc')
             ->select('f.label_fields', 'ff.id_fields_forms','ff.id_fields')
+            ->distinct()
             ->get();
 
-        // Удаляем поля старой формы
         foreach ($fields_info as  $field_info) {
+            // Удаляем поля старой формы
             DB::table('fields_forms_old')
                 ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                 ->where('id_fields_forms','=',$field_info->id_fields_forms)
                 ->delete();
+
+            // Удаляем значения для полей старой формы
+            DB::table('values_fields_old')
+                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                ->where('id_fields_forms','=',$field_info->id_fields_forms)
+                ->delete();
+
+            // Удаляем значения sub_elements для полей старой формы
+            DB::table('sub_elements_old')
+                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                ->where('id_fields_forms','=',$field_info->id_fields_forms)
+                ->delete();
+//var_dump($field_info);
         }
 
         foreach ($fields_info as  $field_info) {
+
+            // Узнаем sub_elements_current
+            $sub_elements_current = DB::table('sub_elements_fields as sef')
+                ->where('sef.id_fields','=',$field_info->id_fields)
+                ->join('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+                ->select('sec.id_sub_elements_field','sec.label_sub_elements_current')
+                ->get();
+
             // Узнаем required
             $required = DB::table('fields_forms_current')
                 ->where('id_fields_forms','=', $field_info->id_fields_forms)
@@ -251,34 +277,63 @@ class FormController extends Controller
                     'label_fields_old' => $field_info->label_fields
                 ]);
 
-            // Узнаем id_sub_elements_field, label_sub_elements_current из таблицы sub_elements_current
-            $sub_elements_current = DB::table('sub_elements_fields as sef')
-                ->where('sef.id_fields','=',$field_info->id_fields)
-                ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
-                ->select('sec.id_sub_elements_field','sec.label_sub_elements_current')
-                ->get();
-
             // Удаляем sub_elements для старой формы
-            foreach ($sub_elements_current as $sub_element) {
                 DB::table('sub_elements_old')
                     ->where('id_fields_forms','=',$field_info->id_fields_forms)
                     ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                     ->delete();
-            }
+
+            // Узнаем values_fields_current, enum_sub_elements_current из таблицы values_fields_current
+            $values_fields_current = DB::table('values_fields_current')
+                ->where('id_fields_forms','=',$field_info->id_fields_forms)
+                ->value('values_fields_current');
+
+            $label_sub_elements_current = DB::table('values_fields_current as vfc')
+                ->where('id_fields_forms','=',$field_info->id_fields_forms)
+                ->join('sub_elements_current as sec', 'sec.id_sub_elements_current','=','vfc.enum_sub_elements_current')
+                ->value('label_sub_elements_current');
 
             if (!empty($sub_elements_current)){
 
                 // Вставляем новые sub_elements для старой формы
                 foreach ($sub_elements_current as $sub_element) {
-                DB::table('sub_elements_old')
-                    ->insert([
-                        'id_sub_elements_field' => $sub_element->id_sub_elements_field,
-                        'id_fields_forms' => $field_info->id_fields_forms,
-                        'id_forms_departments' => $request->input('id_forms_departments'),
-                        'label_sub_elements_old' => $sub_element->label_sub_elements_current
-                    ]);
+//var_dump($label_sub_elements_current,$sub_element->label_sub_elements_current);
+                    $id_sub_elements_old = DB::table('sub_elements_old')
+                        ->insertGetID([
+                            'id_sub_elements_field' => $sub_element->id_sub_elements_field,
+                            'id_fields_forms' => $field_info->id_fields_forms,
+                            'id_forms_departments' => $request->input('id_forms_departments'),
+                            'label_sub_elements_old' => $sub_element->label_sub_elements_current
+                        ]);
+                        if ($label_sub_elements_current == $sub_element->label_sub_elements_current) {
+
+                            // Вставляем новые значения для полей старой формы
+                            DB::table('values_fields_old')
+                                ->insert([
+                                    'id_fields_forms' => $field_info->id_fields_forms,
+                                    'id_forms_departments' => $request->input('id_forms_departments'),
+                                    'values_fields_old' => 0,
+                                    'enum_sub_elements_old' => $id_sub_elements_old
+                                ]);
+                        }
+                }
+            } else {
+                if (!empty($values_fields_current)) {
+                    // Вставляем новые значения для полей старой формы
+                    DB::table('values_fields_old')
+                        ->insert([
+                            'id_fields_forms' => $field_info->id_fields_forms,
+                            'id_forms_departments' => $request->input('id_forms_departments'),
+                            'values_fields_old' => $values_fields_current,
+                            'enum_sub_elements_old' => 0
+                        ]);
                 }
             }
+
+
+
+
+
         }
 
         return response()->json(['message' => $message, 'bool' => $bool]);

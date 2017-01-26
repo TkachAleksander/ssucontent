@@ -942,7 +942,7 @@ $('.btn-accept-form').on('click', function () {
 // Кнопка отклонить
 $('.btn-reject-form').on('click', function () {
     var id_forms_departments = $(this).data('idFormsDepartments');
-    alert(id_forms_departments);
+
     $.ajax({
         type:"POST",
         url:"rejectForm",
