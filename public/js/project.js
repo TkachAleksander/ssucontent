@@ -578,34 +578,6 @@ $('.editElementFromForm').on('click',function() {
 // showForms //
 // showForms //
 
-// Отображение содержимого формы (Просмотр списка форм) constructorForm
-$('.forms-info-admin').on('click', function(){
-    var id_forms = $(this).data("id");
-    var id_departments = $(this).data("idDepartments");
-    var generateString = $(this).data("generatestring")
-    var contentForm = $('#content-form'+generateString);
-    contentForm.empty();
-
-    if ($(this).hasClass("collapsed")) {
-        $.ajax({
-            type: "POST",
-            url: "getFormInfoAdmin",
-            data: {id_forms: id_forms, id_departments:id_departments},
-            dataType: "JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (formsInfo) {
-
-                formsInfo.forEach(function (value, key, formsInfo) {
-                    switchElements(contentForm, formsInfo, key);
-                });
-            }
-
-        });
-    }
-});
-
     // Отображение содержимого формы (Просмотр списка форм) constructorForm
     $('.forms-info').on('click', function(){
         var id_forms = $(this).data("id");
@@ -652,9 +624,9 @@ $('.forms-info-admin').on('click', function(){
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-
+                    console.log(formsInfo);
                     if (JSON.stringify(formsInfo) == "{}"){
-                        contentForm.append('<p class="text-center">Форма подана первый раз</p>');
+                        contentForm.append('<p class="text-center"><b>Прошлая версия формы отсутствует !</b></p>');
                     } else {
                         formsInfo.forEach(function (value, key, formsInfo) {
                             switchElements(contentForm, formsInfo, key, "disabled");
@@ -881,7 +853,7 @@ $('.forms-info-admin').on('click', function(){
     $('#btn-forms-disconnect-users').on('click', function(){
         var id_forms = $('#id_forms option:selected').val();
         var id_departments = $('#id_departments option:selected').val();
-        // alert (id_forms+id_users);
+        
         $.ajax({
             type:"POST",
             url:"setTableDisconnectUsers",
