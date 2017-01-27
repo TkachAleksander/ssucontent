@@ -424,7 +424,10 @@ $('.editElementFromForm').on('click',function() {
             label_fields.val(data.fields[0].label_fields);
 
             // Вставка hidden поля с id_fields
-            label_fields.after('<input class="old-value-hidden" type="hidden" name="id_fields" value="' + data.fields[0].id_fields + '" required>');
+            label_fields.after(
+                '<input class="old-value-hidden" type="hidden" name="id_sub_elements_from_fields" value="' + data.fields[0].id_sub_elements_from_fields + '" required>' +
+                '<input class="old-value-hidden" type="hidden" name="id_fields" value="' + data.fields[0].id_fields + '" required>'
+            );
 
             // Вставка значения в multiselect
             $('#select_labels option').removeAttr('selected');
@@ -439,13 +442,14 @@ $('.editElementFromForm').on('click',function() {
             // Заполняем поля под элементами
             if (data.fields[0].labels_sub_elements) {
                 var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
+                var id_sub_elements_from_field = getSubElementsInArray(data.fields[0].id_sub_elements_from_fields);
 
                 var controlsForm = $('.controls-form');
                 for (var i = labels_sub_elements.length; i >= 0; i--) {
                     if (labels_sub_elements[i] != null) {
                         controlsForm.prepend(
                             '<div class="entry input-group col-xs-12">' +
-                            '<input class="form-control sub_elements" name="label_sub_elements[]" type="text" value="' + labels_sub_elements[i] + '">' +
+                            '<input class="form-control sub_elements" name="label_sub_elements[]['+ id_sub_elements_from_field[i] +']" type="text" value="' + labels_sub_elements[i] + '">' +
                             '<span class="input-group-btn">' +
                             '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
                             '</span>' +
@@ -459,7 +463,7 @@ $('.editElementFromForm').on('click',function() {
             // Вставляем кнопку редактировать / отменить
             $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement(' + id_fields + ');" style="margin-left:10px" class="confirmDelete"> Удаить </button>' +
                 '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>' +
-                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement(' + id_fields + ');" style="margin-left:10px"> Редактировать </button>');
+                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement();" style="margin-left:10px"> Редактировать </button>');
             $('#btn-add').remove();
             // Проверяем на активность поля Список выбора
             select_labels();
@@ -491,8 +495,7 @@ $('.editElementFromForm').on('click',function() {
     }
 
     // Кнопка отправки отредактираванного элемента
-    function editNewSetElement(id_fields) {
-        $('#label_set_elements').after('<input type="hidden" name="id_set_elements" value="'+ id_fields +'">');
+    function editNewSetElement() {
         $('form').attr('action', '/addEditedNewSetElement');
     }
 

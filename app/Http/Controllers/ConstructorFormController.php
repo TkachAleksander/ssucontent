@@ -6,7 +6,6 @@ use App;
 
 use App\Department;
 use App\Field;
-use App\Fields_form;
 use App\Fields_forms_current;
 
 use Illuminate\Http\Request;
@@ -325,7 +324,9 @@ class ConstructorFormController extends Controller
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
             ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
             ->groupBy('f.id_fields')
-            ->select(DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),'f.id_fields', 'f.label_fields', 'e.id_elements', 'e.name_elements', 'sef.id_sub_elements_field')
+            ->select('f.id_fields', 'f.label_fields', 'e.id_elements', 'e.name_elements', 'sef.id_sub_elements_field',
+                DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(sec.id_sub_elements_field separator " | ") as id_sub_elements_from_fields'))
             ->get();
 
 //dd($fields);
@@ -335,7 +336,6 @@ class ConstructorFormController extends Controller
     // Добавление нового fields
     public function addNewElementToServer(Request $request)
     {
-
         $this->validate($request, [
             'label_fields' => 'required|max:255|unique:fields',
         ],
@@ -351,7 +351,7 @@ class ConstructorFormController extends Controller
         ]);
 
         // Проверяем есть ли label_sub_elements
-        if (!empty($label_sub_elements)) {
+        if (!empty($request->input('label_sub_elements'))) {
 
             foreach ($request->input('label_sub_elements')as $label_sub_element) {
                 // Вставляем id_fields в таблицу sub_elements_fields
@@ -374,7 +374,8 @@ class ConstructorFormController extends Controller
     // Запись отредактированного fields
     public function addEditedNewSetElement(Request $request)
     {
-dd($request->all());
+//dd($request->all());
+
         // Ни одна форма в составе которой есть редактируемое поле не должна иметь статус 2 (проверяется администратором)
         $list_forms = DB::table('fields as f')
             ->where('f.id_fields','=',$request->input('id_edit_fields'))
@@ -386,13 +387,6 @@ dd($request->all());
             ->select('f.label_fields','forms.name_forms')
             ->distinct()
             ->get();
-        // Получаем old_id_elements и old_label_fields
-        $old_value = DB::table('fields')
-            ->where('id_fields','=',$request->input('id_fields'))
-            ->select('id_elements','label_fields')
-            ->get();
-
-//dd($list_forms,$old_value,$id_sub_elements_field);
 
         // Вывод списка форм какие нужно принять\отклонить
         if(!empty($list_forms)){
@@ -411,117 +405,66 @@ dd($request->all());
         } else {
 
 
-//            // Для все форм/отделов изменяемое поле current записываем в таблицу sub_elements_old
-//            $list_departments = DB::table('fields as f')
-//                ->where('f.id_fields', '=', $request->input('id_edit_fields'))
-//                ->leftJoin('fields_forms as ff', 'ff.id_fields', '=', 'f.id_fields')
-//                ->leftJoin('forms_departments as fd', 'fd.id_forms', '=', 'ff.id_forms')
-//                ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
-//                ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field', '=', 'sef.id_sub_elements_field')
-//                ->select('fd.id_forms_departments', 'ff.id_fields', 'sef.id_sub_elements_field', 'ff.id_fields_forms', 'sec.label_sub_elements_current')
-//                ->get();
-//
-////dd($list_departments, $list_departments[0]->id_sub_elements_field );
-//            // Если поле имеет sub_elements записываем их
-//            if (!empty($list_departments) && $list_departments[0]->id_sub_elements_field != null) {
-//                // Удаляем старые sub_elements
-//                foreach ($list_departments as $department) {
-//                    DB::table('sub_elements_old')
-//                        ->where('id_sub_elements_field', '=', $department->id_sub_elements_field)
-//                        ->where('id_fields_forms', '=', $department->id_fields_forms)
-//                        ->where('id_forms_departments', '=', $department->id_forms_departments)
-//                        ->delete();
-//                }
-//                // Добавляем новые sub_elements в sub_elements_old
-//                foreach ($list_departments as $department) {
-//                    DB::table('sub_elements_old')->insert([
-//                        'id_sub_elements_field' => $department->id_sub_elements_field,
-//                        'id_fields_forms' => $department->id_fields_forms,
-//                        'id_forms_departments' => $department->id_forms_departments,
-//                        'label_sub_elements_old' => $department->label_sub_elements_current
-//                    ]);
-//                }
-//            }
-//
-//            // Добавляем старое имя и ид элемента в таблицу fields
-//            DB::table('fields as f')
-//                ->where('f.id_fields', '=', $request->input('id_fields'))
-//                ->update([
-//                    'id_elements_old' => $old_value[0]->id_elements,
-//                    'label_fields_old' => $old_value[0]->label_fields,
-//                    'id_elements' => $request->input('id_elements'),
-//                    'label_fields' => $request->input('label_fields')
-//                ]);
-//
-////dd($request->all());
-//            if ($request->input('id_elements') >= 3) {
-//
-//                // Получаем id_sub_elements_field
-//                $id_sub_elements_field = DB::table('fields as f')
-//                    ->where('f.id_fields', '=', $request->input('id_fields'))
-//                    ->join('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
-//                    ->value('id_sub_elements_field');
-//
-//                // Если есть id_sub_elements_field удаляем из таблицы sub_elements_current старые данные
-//                // и записываем новые label sub_elements
-//                if ($id_sub_elements_field != null) {
-//                    DB::table('sub_elements_current')->where('id_sub_elements_field', '=', $id_sub_elements_field)->delete();
-//
-//                    if ($request->input('label_sub_elements') != null) {
-//                        foreach ($request->input('label_sub_elements') as $label_sub_element) {
-//                            if (!empty($label_sub_element)) {
-//                                DB::table('sub_elements_current')
-//                                    ->insert([
-//                                        'id_sub_elements_field' => $id_sub_elements_field,
-//                                        'label_sub_elements_current' => $label_sub_element
-//                                    ]);
-//                            }
-//                        }
-//                    }
-//                } else {
-//
-//                    // Записываем id_fields если такого нет в sub_elements_fields
-//                    $id_sub_elements_field = DB::table('sub_elements_fields')
-//                        ->where('id_fields','=',$request->input('id_fields'))
-//                        ->value('id_sub_elements_field');
-//
-//                    if (empty($id_sub_elements_field)){
-//                        $id_sub_elements_field = DB::table('sub_elements_fields')
-//                            ->insertGetId([
-//                                'id_fields' => $request->input('id_fields')
-//                            ]);
-//                    }
-////                    dd($request->input('id_fields'),$id_sub_elements_field);
-//
-////                    // Узнаем $id_sub_elements_field записанного id_fields
-////                    $id_sub_elements_field = DB::table('sub_elements_fields as sef')
-////                        ->where('sef.id_fields', '=', $request->input('id_fields'))
-////                        ->value('id_sub_elements_field');
-//
-//                    // Если есть $label_sub_element записываем в sub_elements_current
-//                    if ($request->input('label_sub_elements') != null) {
-//                        foreach ($request->input('label_sub_elements') as $label_sub_element) {
-//                            if (!empty($label_sub_element)) {
-//                                DB::table('sub_elements_current')
-//                                    ->insert([
-//                                        'id_sub_elements_field' => $id_sub_elements_field,
-//                                        'label_sub_elements_current' => $label_sub_element
-//                                    ]);
-//                            }
-//                        }
-//                    }
-//                }
-//            } else {
-//                $value = DB::table('fields_forms')
-//                    ->where('id_fields','=',$request->input('id_fields'))
-//                    ->value('id_fields_forms');
-//
-//                if (empty($value)){
-//                    DB::table('sub_elements_fields')
-//                        ->where('id_fields','=',$request->input('id_fields'))
-//                        ->delete();
-//                }
-//            }
+
+            // Получаем массив id_sub_elements_fields которые уже есть в таблице sub_elements_fields
+            $id_sub_elements_from_fields = explode(" | ", $request->input('id_sub_elements_from_fields'));
+
+            // Удаляем текущие sub_elements
+            foreach ($id_sub_elements_from_fields as $id_sub_elements_field) {
+                DB::table('sub_elements_current')
+                    ->where('id_sub_elements_field','=',$id_sub_elements_field)
+                    ->delete();
+            }
+
+            $arr_key =[];
+            foreach ($request->input('label_sub_elements') as $label_sub_element) {
+
+                // Если это не массив
+                if (!is_array($label_sub_element)) {
+                    // И не пустое значение
+                    if ($label_sub_element != "") {
+
+                        // Записываем в sub_elements_fields, получаем его id
+                        $id_sub_elements_field = DB::table('sub_elements_fields')
+                            ->insertGetId([
+                                'id_fields' => $request->input('id_fields')
+                            ]);
+
+                        // Записываем в sub_elements_current
+                        DB::table('sub_elements_current')
+                            ->insert([
+                                'id_sub_elements_field' => $id_sub_elements_field,
+                                'label_sub_elements_current' => $label_sub_element
+                            ]);
+                    }
+                    
+                } else {
+
+                    foreach ($label_sub_element as $key => $label) {
+                        // Если значение не пустое
+                        if ($label != '') {
+                            // Записываем в sub_elements_current
+                            DB::table('sub_elements_current')
+                                ->insert([
+                                    'id_sub_elements_field' => $key,
+                                    'label_sub_elements_current' => $label
+                                ]);
+                        }
+                        array_push($arr_key,$key);
+
+                    }
+                }
+            }
+
+            // Находим элементы которых нет в $arr_key
+            $arr_for_dell = array_diff($id_sub_elements_from_fields,$arr_key);
+
+            // Удаляем элементы из таблицы sub_elements_fields которых нет sub_elements_current
+            foreach ($arr_for_dell as $id_for_dell){
+                DB::table('sub_elements_fields')
+                    ->where('id_sub_elements_field','=',$id_for_dell)
+                    ->delete();
+            }
         }
         return redirect('/constructor/newElement');
     }
