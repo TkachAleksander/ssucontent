@@ -381,7 +381,7 @@ $(document).on('click', '.btn-add', function(e)
     var controlForm = $('.controls div:first'),
         currentEntry = $(this).parents('.entry:first'),
         newEntry = $(currentEntry.clone()).appendTo(controlForm);
-
+console.log(currentEntry);
     newEntry.find('input').val('');
     controlForm.find('.entry:not(:last) .btn-add')
         .removeClass('btn-add').addClass('btn-remove')
@@ -398,7 +398,6 @@ $(document).on('click', '.btn-add', function(e)
         if ($.cookie('uninstalled_sub_elements') != Array()) {
             id += "," + $.cookie('uninstalled_sub_elements');
         }
-        $.cookie('uninstalled_sub_elements', id, {expires: 1, path:'/'});
     }
     e.preventDefault();
     return false;
@@ -425,83 +424,28 @@ $('.editElementFromForm').on('click',function() {
             label_fields.val(data.fields[0].label_fields);
 
             // Вставка hidden поля с id_fields
-            label_fields.after('<input class="old-value-hidden" type="hidden" name="id_fields" value="'+data.fields[0].id_fields+'" required>');
+            label_fields.after('<input class="old-value-hidden" type="hidden" name="id_fields" value="' + data.fields[0].id_fields + '" required>');
 
             // Вставка значения в multiselect
             $('#select_labels option').removeAttr('selected');
-            $('#select_labels [value="'+data.fields[0].id_elements+'"]').prop("selected", true);
+            $('#select_labels [value="' + data.fields[0].id_elements + '"]').prop("selected", true);
             var name = $('#select_labels :selected').text();
-            $('.multiselect-selected-text').html(name).parent().attr('title',name);
+            $('.multiselect-selected-text').html(name).parent().attr('title', name);
 
             // Удаляем старые danger поля
             $('.btn-danger-last').parents('.entry').remove();
-            $('#btn-edit','#btn-cancel').remove();
+            $('#btn-edit', '#btn-cancel').remove();
 
             // Заполняем поля под элементами
-            if(data.fields[0].labels_sub_elements){
+            if (data.fields[0].labels_sub_elements) {
                 var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
 
                 var controlsForm = $('.controls-form');
-                for(var i=labels_sub_elements.length; i>=0; i--) {
-                    if(labels_sub_elements[i] != null) {
+                for (var i = labels_sub_elements.length; i >= 0; i--) {
+                    if (labels_sub_elements[i] != null) {
                         controlsForm.prepend(
                             '<div class="entry input-group col-xs-12">' +
-                            '<input class="form-control sub_elements" name="label_sub_elements[' + labels_sub_elements[i] + ']" type="text" value="' + labels_sub_elements[i] + '">' +
-                            '<span class="input-group-btn">' +
-                            '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
-                            '</span>' +
-                            '</div>');
-                    }
-                } 
-            }
-            // Отключаем у success поля проверку на заполнение и неактивность
-            $('.sub_elements').attr({'disabled':false, 'required':false});
-
-            // Вставляем кнопку редактировать / отменить
-            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement('+id_fields+');" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
-                '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
-                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement('+id_fields+');" style="margin-left:10px"> Редактировать </button>');
-            $('#btn-add').remove();
-            // Проверяем на активность поля Список выбора
-            select_labels();
-
-/*            // var name_fields = $('#name_fields');
-            var label_fields = $('#label_fields');
-
-            // Очищаем hidden поля
-            $('#old_name_fields').remove();
-            $('#old_label_fields').remove();
-
-            // Вставка Label
-            label_fields.val(data.fields[0].label_fields);
-
-            // Вставка Label в hidden поля
-            label_fields.after('<input class="old-value-hidden" type="hidden" name="old_label_fields" value="'+data.fields[0].label_fields+'" required>'+
-                               '<input class="old-value-hidden" type="hidden" name="old_id_elements" value="'+data.fields[0].id_elements+'" required>');
-
-
-            // Вставка значения в multiselect
-            $('#select_labels option').removeAttr('selected');
-            $('#select_labels [value="'+data.fields[0].id_elements+'"]').prop("selected", true);
-            var name = $('#select_labels :selected').text();
-            $('.multiselect-selected-text').html(name).parent().attr('title',name);
-
-            // Удаляем старые danger поля
-            $('.btn-danger-last').parents('.entry').remove();
-            $('#btn-edit','#btn-cancel').remove();
-
-
-
-            // Заполняем поля под элементами
-            if(data.fields[0].labels_sub_elements){
-                var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
-
-                var controlsForm = $('.controls-form');
-                for(var i=labels_sub_elements.length; i>=0; i--) {
-                    if(labels_sub_elements[i] != null) {
-                        controlsForm.prepend(
-                            '<div class="entry input-group col-xs-12">' +
-                            '<input class="form-control sub_elements" name="label_sub_elements[' + labels_sub_elements[i] + ']" type="text" value="' + labels_sub_elements[i] + '">' +
+                            '<input class="form-control sub_elements" name="label_sub_elements[]" type="text" value="' + labels_sub_elements[i] + '">' +
                             '<span class="input-group-btn">' +
                             '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
                             '</span>' +
@@ -510,17 +454,15 @@ $('.editElementFromForm').on('click',function() {
                 }
             }
             // Отключаем у success поля проверку на заполнение и неактивность
-            $('.sub_elements').attr({'disabled':false, 'required':false});
+            $('.sub_elements').attr({'disabled': false, 'required': false});
 
             // Вставляем кнопку редактировать / отменить
-            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement('+id_fields+');" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
-                                 '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
-                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement('+id_fields+');" style="margin-left:10px"> Редактировать </button>');
+            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement(' + id_fields + ');" style="margin-left:10px" class="confirmDelete"> Удаить </button>' +
+                '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>' +
+                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement(' + id_fields + ');" style="margin-left:10px"> Редактировать </button>');
             $('#btn-add').remove();
             // Проверяем на активность поля Список выбора
             select_labels();
-            // создаем куки для элементов которые будут скрыты в бд после редактирования
-            $.cookie('uninstalled_sub_elements', new Array(), {expires: 1, path:'/'});*/
 
         }
 
