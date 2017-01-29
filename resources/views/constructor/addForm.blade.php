@@ -11,6 +11,9 @@
                     @include('constructor.constructorTabs')
                     <script defer> $('ul[role=tablist]').removeClass('active');$('#tab1').addClass('active') </script>
 
+                    @if(isset($message))
+                        <script> alert("{{$message}}")</script>
+                    @endif
 
                     <div class="panel-body">
                         <div class="panel panel-default">
@@ -40,36 +43,58 @@
                             </div>
                         </div>
 
-
-                        <div class="col-sm-12">
+                        <form action="addNewForm" method="POST">
+                            {{ csrf_field() }}
+                            <div class="col-sm-12">
+                                <div class="col-sm-6">
+                                    <input type="text" id="name_forms" class="form-control" name="name_forms" placeholder="Имя  формы" required>
+                                    @if ($errors->has('name_forms'))
+                                        <span class="help-block">
+                                            <strong>{{ $errors->first('name_forms') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
                             <div class="col-sm-6">
-                                <input type="text" id="name_forms" class="form-control" name="name_forms" placeholder="Имя  формы" required>
-                            </div>
+                                <div id="container" class="col-sm-12">
+
+                                    <p><div class="text-center">Порядок элементов в форме</div></p>
+                                    <table class="table table-bordered table-padding table-sort">
+
+                                        <tr class="active">
+                                            <th class="text-center"> Имя элемента </th>
+                                            <th class="text-center"> Под элементы </th>
+                                            <th class="text-center"> * </th>
+                                            <th class="text-center"> Удалить </th>
+                                        </tr>
+
+                                        <tbody id="sortContainer"></tbody>
+                                        @if ($errors->has('info_new_form'))
+                                            <tr id="help-block">
+                                                <td colspan="4">
+                                                    <span class="help-block">
+                                                    <strong>{{ $errors->first('info_new_form') }}</strong>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    </table>
+
+                                    <input id="date_update_forms" type="text" name="date_update_forms" class="tcal" value="" placeholder=" Дата обновления формы" required/>
+                                    @if ($errors->has('date_update_forms'))
+                                        <span class="help-block">
+                                            <strong>{{ $errors->first('date_update_forms') }}</strong>
+                                        </span>
+                                    @endif
+                                    <button type="submit" id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
+
+                                </div>
+                                <div class="col-sm-12" style="margin-top:20px;">
+                                    * - поле станет обязательным к заполнению если checkbox активен
+                                </div>
+
                         </div>
-                        <div class="col-sm-6">
-                            <div id="container" class="col-sm-12">
-
-                                <p><div class="text-center">Порядок элементов в форме</div></p>
-                                <table class="table table-bordered table-padding table-sort">
-
-                                    <tr class="active">
-                                        <th class="text-center"> Имя элемента </th>
-                                        <th class="text-center"> Под элементы </th>
-                                        <th class="text-center"> * </th>
-                                        <th class="text-center"> Удалить </th>
-                                    </tr>
-                                    <tbody id="sortContainer"></tbody>
-
-                                </table>
-                                <input id="date_update_forms" type="text" name="date_update_forms" class="tcal" value="" placeholder=" Дата обновления формы" required/>
-                                <button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>
-
-                            </div>
-                            <div class="col-sm-12" style="margin-top:20px;">
-                                * - поле станет обязательным к заполнению если checkbox активен
-                            </div>
-
-                        </div>
+                        </form>
 
                         <div class="col-sm-6">
                             <p><div class="text-center">Список возможных элементов</div></p>
@@ -80,7 +105,6 @@
                                         <td><button id="{{ $field->id_fields }}" class="addElementInForm btn btn-sm btn-warning btn-padding-0"> < </button></td>
                                         <td data-label-fields="{{ $field->label_fields }}">{{ $field->label_fields }}</td>
                                         <td>{{ $field->name_elements }}</td>
-                                        {{--<td {{(empty($field->labels_sub_elements)) ? "class=text-center" : ""}}>--}}
                                         <td class="text-center">
                                             @if(!empty($field->labels_sub_elements))
                                                 {{$field->labels_sub_elements}}

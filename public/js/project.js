@@ -117,6 +117,18 @@
 }));
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// рандомная строка
+function str_rand(size) {
+    var result       = '';
+    var words        = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+    var max_position = words.length - 1;
+    for( i = 0; i < size; ++i ) {
+        position = Math.floor ( Math.random() * max_position );
+        result = result + words.substring(position, position + 1);
+    }
+    return result;
+}
+
 // Из строки в массив
 function getSubElementsInArray (str){
     var sub_elements = str.split(' | ');
@@ -228,8 +240,9 @@ $(document).ready(function() {
 console.log(fields);
                     var sortContainer = $('#sortContainer');
                     sortContainer.empty();
+                    $('form').attr('action','addEditedNewForm');
                     $('#old_name_forms').remove();
-                    $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="' + fields[0].name_forms + '" required>')
+                    $('#name_forms').after('<input type="hidden" name="id_forms" value="' + fields[0].id_forms + '">')
                         .empty().val(fields[0].name_forms);
                     $('#date_update_forms').empty().val(fields[0].date_update_forms);
             
@@ -240,14 +253,7 @@ console.log(fields);
 
                     fields.forEach(function (field, key, fields) {
                         var checked = (field.required_fields_current == 1) ? "checked=true" : "";
-                        sortContainer.append('<tr id="' + field.id_fields + '" >' +
-                            '<td>' + field.label_fields + '</td>' +
-                            '<td>' + field.labels_sub_elements + '</td>' +
-                            '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="' + field.id_fields + '" ' + checked + ' ></td>' +
-                            '<td class="text-center"><button id="' + field.id_fields + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + field.id_fields + '"> X </button></td>' +
-                            '<td class="id-set-elements" style="display: none;">'+field.id_fields+'</td>'+
-                            '</tr>'
-                        );
+                        setFields(field, checked, "["+str_rand(3)+"]", "[exists_id_fields_forms]")
 
                     });
             
@@ -257,39 +263,40 @@ console.log(fields);
 
     });
 
-    // Кнопка добавления формы на сервер
-    $('#container').on('click','#addNewForm', function() {
-        var name_forms = $('#name_forms').val();
-        var id_fields = $('#sortContainer').sortable("toArray");
-        var date_update_forms = $('#date_update_forms').val();
-
-        var required = [];
-        var i = 0;
-        $('#sortContainer input:checkbox:checked').each(function(){
-                required[i++] = $(this).val();
-        });
-
-        $.ajax({
-            type: "POST",
-            url: "addSetFormsElements",
-            data: { name_forms:name_forms, id_fields:id_fields, required:required, date_update_forms:date_update_forms },
-            dataType:"JSON",
-            beforeSend: function (xhr){
-                xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
-            },
-            success: function(data){
-                alert(data.message);
-                if(data.bool) {
-                    location.reload();
-                }
-            }
-        });
-
-    });
+    // // Кнопка добавления формы на сервер
+    // $('#container').on('click','#addNewForm', function() {
+    //     var name_forms = $('#name_forms').val();
+    //     var id_fields = $('#sortContainer').sortable("toArray");
+    //     var date_update_forms = $('#date_update_forms').val();
+    //
+    //     var required = [];
+    //     var i = 0;
+    //     $('#sortContainer input:checkbox:checked').each(function(){
+    //             required[i++] = $(this).val();
+    //     });
+    //
+    //     $.ajax({
+    //         type: "POST",
+    //         url: "addSetFormsElements",
+    //         data: { name_forms:name_forms, id_fields:id_fields, required:required, date_update_forms:date_update_forms },
+    //         dataType:"JSON",
+    //         beforeSend: function (xhr){
+    //             xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
+    //         },
+    //         success: function(data){
+    //             alert(data.message);
+    //             if(data.bool) {
+    //                 location.reload();
+    //             }
+    //         }
+    //     });
+    //
+    // });
 
     // Добаление элементов в область перетаскивания
     $('.table-constructorForm').on('click','.addElementInForm', function(){
             var id_fields = $(this).attr('id');
+            $('#help-block').remove();
             $.ajax({
                 url: 'getSetElements',
                 data: {id_fields:id_fields},
@@ -299,19 +306,42 @@ console.log(fields);
                 {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
-                success: function (fields)
+                success: function (field)
                 {
-                    // console.log(fields);
-                    $('#sortContainer').append( '<tr id="' +fields[0].id_fields+ '">'+
-                        '<td>' +fields[0].label_fields+ '</td>'+
-                        '<td>' +fields[0].labels_sub_elements+ '</td>'+
-                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+fields[0].id_fields+'"></td>'+
-                        '<td class="text-center"><button id="'+fields[0].id_fields+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" fields-id="0"> X </button></td>'+
-                        '<td class="id-set-elements" style="display: none;">'+fields[0].id_fields+'</td>'+
-                        '</tr>');
+                    setFields(field[0], "", "["+str_rand(3)+"]", "[new_id_fields_forms]");
                 }
             });
     });
+
+
+    function setFields (field, checked, arr, name_input) {
+        field.id_fields_forms = (field.id_fields_forms === undefined) ? "new" : field.id_fields_forms;
+        field.labels_sub_elements = (field.labels_sub_elements == null) ? "---" : field.labels_sub_elements;
+        $('#sortContainer').append(
+            '<tr id="' + field.id_fields + '" >' +
+            '<td>' +
+            field.label_fields +
+            // '<input type="hidden" name="label_fields'+arr+'" value="' + field.label_fields + '">' +
+            '</td>' +
+
+            '<td class="text-center">' +
+            field.labels_sub_elements +
+            // '<input type="hidden" name="id_fields'+arr+'" value="' + field.id_fields + '">' +
+            '</td>' +
+
+            '<td class="text-center">' +
+            '<input type="checkbox" class="required" name="info_new_form'+arr+'[required]" value="' + field.id_fields + '"' + checked + ' >' +
+            '<input type="hidden"   class="required" name="info_new_form'+arr+'[id_fields]" value="' + field.id_fields + '"' + checked + ' >' +
+            '<input type="hidden"   class="required" name="info_new_form'+arr+name_input+'" value="' + field.id_fields_forms + '"' + checked + ' >' +
+            '</td>' +
+
+            '<td class="text-center">' +
+            '<button id="' + field.id_fields + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + field.id_fields + '"> X </button>' +
+            '</td>' +
+
+            '</tr>'
+        );
+    }
 
 
 
@@ -323,6 +353,7 @@ $('#sortContainer').on('click','.dellElementFromForm', function(){
 
 // Кнопка отмены редактируемой формы
 function cleanTableNewForm() {
+    $('form').attr('action','addNewForm');
     $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
@@ -330,40 +361,40 @@ function cleanTableNewForm() {
     $('#old_name_forms').remove();
 }
 
-// Кнопка отправки отредактированной формы
-$('#container').on('click','#btn-edit-form',function () {
-
-    var id_form = $('#btn-edit-form').data('idThisForm');
-    var name_forms = $('#name_forms').val();
-    var old_name_forms = $('#old_name_forms').val();
-    var date_update_forms = $('#date_update_forms').val();
-    
-    var id_fields = [];
-    var required = [];
-    $.each($('#sortContainer tr td:last-child'),function(i){
-        id_fields[i] = $(this).html();
-
-    });
-    $.each($('#sortContainer input:checkbox:checked'),function(i){
-        required[i] = $(this).val();
-    });
-
-    $.ajax({
-        type:"POST",
-        url:"/constructor/addEditedNewForm",
-        data:{name_forms:name_forms, old_name_forms:old_name_forms, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {console.log(data);
-            alert(data.message);
-            if(data.bool) {
-                location.reload();
-            }
-        }
-    })
-});
+// // Кнопка отправки отредактированной формы
+// $('#container').on('click','#btn-edit-form',function () {
+//
+//     var id_form = $('#btn-edit-form').data('idThisForm');
+//     var name_forms = $('#name_forms').val();
+//     var old_name_forms = $('#old_name_forms').val();
+//     var date_update_forms = $('#date_update_forms').val();
+//    
+//     var id_fields = [];
+//     var required = [];
+//     $.each($('#sortContainer tr td:last-child'),function(i){
+//         id_fields[i] = $(this).html();
+//
+//     });
+//     $.each($('#sortContainer input:checkbox:checked'),function(i){
+//         required[i] = $(this).val();
+//     });
+//
+//     $.ajax({
+//         type:"POST",
+//         url:"/constructor/addEditedNewForm",
+//         data:{name_forms:name_forms, old_name_forms:old_name_forms, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
+//         dataType:"JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {console.log(data);
+//             alert(data.message);
+//             if(data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     })
+// });
 
 
 // newElement //

@@ -42,7 +42,7 @@ Route::group(['middleware' => 'auth'], function(){
     //> Вкладка Собрать форму
     Route::get('/constructor/addForm', 'ConstructorFormController@addForm');
     Route::post('/constructor/getSetElements', 'ConstructorFormController@getSetElements');
-    Route::post('/constructor/addSetFormsElements', 'ConstructorFormController@addSetFormsElementsToServer');
+    Route::post('/constructor/addNewForm', 'ConstructorFormController@addNewForm');
     Route::post('/constructor/editForm', 'ConstructorFormController@editForm');
     Route::post('/constructor/addEditedNewForm', 'ConstructorFormController@addEditedNewForm');
     //> Вкладка Добавить элемент

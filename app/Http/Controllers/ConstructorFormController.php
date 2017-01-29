@@ -63,76 +63,79 @@ class ConstructorFormController extends Controller
             ->where('f.id_fields','=',$request->input('id_fields'))
             ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields','=','f.id_fields')
-            ->select('f.id_fields','f.label_fields','e.name_elements','sef.id_sub_elements_field')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->select('f.id_fields','f.label_fields','e.name_elements','sef.id_sub_elements_field','sec.label_sub_elements_current')
             ->get();
 
-            if ($fields[0]->id_sub_elements_field != null) {
-                $label_sub_elements = DB::table('sub_elements_current as sec')
-                    ->where('id_sub_elements_field', '=', $fields[0]->id_sub_elements_field)
-                    ->pluck('label_sub_elements_current');
-                $label_sub_elements_current = implode(" | ", $label_sub_elements);
+            $arr_labels = [];
+            if(!empty($fields[0]->label_sub_elements_current)) {
+                foreach ($fields as $key => $field) {
+                    array_push($arr_labels,$field->label_sub_elements_current); 
+                }
+                $label_sub_elements_current = implode(" | ", $arr_labels);
                 $fields[0]->labels_sub_elements = $label_sub_elements_current;
             } else {
                 $fields[0]->labels_sub_elements = "---";
             }
-
+// dd($fields);
         return response()->json($fields);
     }
 
     // Кнопка добавления новой формы
-    public function addSetFormsElementsToServer(Request $request)
+    public function addNewForm(Request $request)
     {
-        if ($request->input('name_forms') != null && $request->input('id_fields') != null && $request->input('date_update_forms') != null) {
-            $all_old_forms = DB::table('forms')->get();
+//        dd($request->all());
 
-            // Если новая форма имееи такое же имя и не такой ид формы
-            // Обрываем выполнение метода и выводим алерт с ошибкой
-            foreach ($all_old_forms as $old_form) {
-                if ($old_form->name_forms == $request->input('name_forms') && $old_form->id_forms != $request->input('id_form')) {
-                    return response()->json(['message' => 'Форма с таким именем уже существует. Пожалуйста измените имя формы.', 'bool' => false]);
-                }
+        $this->validate($request, [
+            'name_forms' => 'required|max:255|unique:forms',
+            'date_update_forms' => 'required',
+            'info_new_form' => 'required'
+        ],
+            [
+                'required' => 'Поле обязательно для заполнения',
+                'max' => 'Поле должно содержать максимум :max символов',
+                'unique' => 'Форма с таким именем уже существует',
+            ]);
+
+        $id_form = DB::table('forms')
+            ->insertGetId([
+                'name_forms' => $request->input('name_forms'),
+                'date_update_forms' => $request->input('date_update_forms')
+            ]);
+
+        $info_new_fields_form = $request->input('info_new_form');
+
+        foreach ($info_new_fields_form as $arr_value){
+
+            // Если это новое поле
+            if (isset($arr_value['new_id_fields_forms'])){
+
+                $id_fields = $arr_value['id_fields'];
+                $required = (isset($arr_value['required'])) ? 1 : 0;
+
+                // Запиываем новое поле в fields_forms и узнаем его id
+                $id_fields_forms = DB::table('fields_forms')
+                    ->insertGetID([
+                        'id_forms' => $id_form,
+                        'id_fields' =>  $id_fields
+                    ]);
+
+                // Записываеем новое поле в таблицу fields_forms_current
+                DB::table('fields_forms_current')
+                    ->insert([
+                        'id_fields_forms' => $id_fields_forms,
+                        'required_fields_current' => $required
+                    ]);
+
             }
-
-            $this->validate($request, [
-                'name_forms' => 'required|max:255|unique:forms',
-                'date_update_forms' => 'required'
-            ],
-                [
-                    'required' => 'Поле обязательно для заполнения',
-                    'max' => 'Поле должно содержать максимум :max символов',
-                    'unique' => 'Такая форма уже существует',
-                ]);
-            $id_forms = DB::table('forms')->insertGetId(['name_forms' => $request->input('name_forms'), 'date_update_forms' => $request->input('date_update_forms')]);
-
-            foreach ($request->input('id_fields') as $key => $id_field) {
-
-                // Узнаем required
-                $require = false;
-                if (!empty($request->input('required'))) {
-                    foreach ($request->input('required') as $required) {
-                        if ($required == $id_field) {
-                            $require = true;
-                        }
-                    }
-                }
-                $id_fields_forms = DB::table('fields_forms')->insertGetId([
-                    'id_forms' => $id_forms,
-                    'id_fields' => $id_field
-                ]);
-                Fields_forms_current::create([
-                    'id_fields_forms' => $id_fields_forms,
-                    'required_fields_current' => $require
-                ]);
-            }
-            return response()->json(['message' => 'Форма успешно добавлена !', 'bool' => true]);
-        } else {
-            return response()->json(['message' => 'Форма заполнена неверно !', 'bool' => false]);
         }
+        return redirect('/constructor/addForm');
     }
 
     // Кнопка добавления формы на редактирование
     public function editForm(Request $request)
     {
+
         $fields = DB::table('fields_forms as ff')
             ->where('ff.id_forms','=',$request->input('id_form'))
             ->join('fields as f', 'f.id_fields','=','ff.id_fields')
@@ -140,21 +143,17 @@ class ConstructorFormController extends Controller
             ->join('elements as e', 'e.id_elements','=','f.id_elements')
             ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields','=','f.id_fields')
-            ->orderBy('ffc.id_fields_forms_current')
-            ->select('ff.id_fields_forms', 'f.id_fields', 'ffc.required_fields_current', 'forms.name_forms', 'forms.date_update_forms', 'f.id_fields', 'f.label_fields', 'e.name_elements', 'sef.id_sub_elements_field')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->orderBy('ffc.id_fields_forms_current','asc')
+//            ->orderBy('sec.id_sub_elements_field','asc')
+            ->groupBy('sef.id_fields','ff.id_fields_forms')
+            ->select(
+                'ff.id_fields_forms', 'f.id_fields', 'ffc.required_fields_current', 'forms.name_forms', 'forms.id_forms',
+                'forms.date_update_forms', 'f.id_fields', 'f.label_fields', 'e.name_elements', 'sef.id_sub_elements_field',
+                DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements')
+            )
             ->get();
 //dd($request->all(),$fields);
-        foreach ($fields as $key => $field) {
-            if ($field->id_sub_elements_field != null) {
-                $label_sub_elements = DB::table('sub_elements_current as sec')
-                    ->where('id_sub_elements_field', '=', $field->id_sub_elements_field)
-                    ->pluck('label_sub_elements_current');
-                $label_sub_elements_current = implode(" | ", $label_sub_elements);
-                $fields[$key]->labels_sub_elements = $label_sub_elements_current;
-            } else {
-                $fields[$key]->labels_sub_elements = "---";
-            }
-        }
 
         return response()->json($fields);
     }
@@ -171,84 +170,93 @@ class ConstructorFormController extends Controller
     public function addEditedNewForm(Request $request)
     {
 //dd($request->all());
-        $id_form = $request->input('id_form');
 
+        $id_form = $request->input('id_forms');
 
-        // Получаем все старые формы
-        $all_old_forms = DB::table('forms')->get();
+        $this->validate($request, [
+            'name_forms' => 'required|max:255|unique:forms,name_forms,'.$id_form.',id_forms',
+            'date_update_forms' => 'required',
+            'info_new_form' => 'required'
+        ],
+            [
+                'required' => 'Поле обязательно для заполнения',
+                'max' => 'Поле должно содержать максимум :max символов',
+                'unique' => 'Форма с таким именем уже существует',
+            ]);
 
-        // Если новая форма имееи такое же имя и не ее ид формы
-        // Обрываем выполнение метода и выдаем алерт с ошибкой
-        foreach($all_old_forms as $old_form){
-
-            if($old_form->name_forms == $request->input('name_forms') && $old_form->id_forms != $request->input('id_form')){
-                return response()->json(['message' => 'Форма с таким именем уже существует. Пожалуйста измените имя формы.', 'bool' => false]);
-            }
-        }
         // Апдейтим имя и дату формы
-        DB::table('forms')->where('id_forms','=',$request->input('id_form'))->update(['name_forms' => $request->input('name_forms'), 'date_update_forms' => $request->input('date_update_forms')]);
+        DB::table('forms')
+            ->where('id_forms','=',$id_form)
+            ->update([
+                'name_forms' => $request->input('name_forms'),
+                'date_update_forms' => $request->input('date_update_forms')
+            ]);
 
-        // Узнаем id_fields_forms которые нужно удалить из таблицы fields_forms_current
-        $id_fields_forms = DB::table('fields_forms')
-            ->where('id_forms','=', $id_form)
+
+
+        // Узнаем все id_fields_forms для редактируемой таблицы
+        $all_id_fields_forms = DB::table('fields_forms')
+            ->where('id_forms','=',$id_form)
             ->pluck('id_fields_forms');
 
-
-        // Удаляем старые поля из current
-        foreach ($id_fields_forms as $id_field_form){
+        // Удаляем поля для редактируемой таблицы с таблицы fields_forms_current
+        foreach ($all_id_fields_forms as $id_fields_form){
             DB::table('fields_forms_current')
-                ->where('id_fields_forms','=', $id_field_form)
+                ->where('id_fields_forms','=',$id_fields_form)
                 ->delete();
         }
 
+        // Получаем информацию о новы полях формы
+        $info_new_fields_form = $request->input('info_new_form');
 
-        foreach ($request->input('id_fields') as $id_field){
-            // Добавляем fields_forms поля к редактируемой фрме если таких раньше не было
-            $isset = DB::table('fields_forms')
-                ->where('id_forms','=', $id_form)
-                ->where('id_fields','=', $id_field)
-                ->get();
+        foreach ($info_new_fields_form as $arr_value){
 
-            if(!$isset){
-                DB::table('fields_forms')
-                    ->insert([
-                        'id_forms' => $id_form,
-                        'id_fields' => $id_field
-                    ]);
-            }
+            // Если это старое поле 
+            if (isset($arr_value['exists_id_fields_forms'])) {
 
-            // Узнаем required поля
-            $required = 0;
-            if(!empty($request->input('required'))) {
-                foreach ($request->input('required') as $r) {
-                    if ($r == $id_field) {
-                        $required = 1;
-                    }
+                $id_fields_forms = $arr_value['exists_id_fields_forms'];
+                $required = (isset($arr_value['required'])) ? 1 : 0;
+
+                if (!empty($id_fields_forms)) {
+                    // Записываеем старое поле в таблицу fields_forms_current
+                    DB::table('fields_forms_current')
+                        ->insert([
+                            'id_fields_forms' => $id_fields_forms,
+                            'required_fields_current' => $required
+                        ]);
                 }
             }
+            // Если это новое поле
+            if (isset($arr_value['new_id_fields_forms'])){
 
-            // Берем id_fields_forms нового поля для current
-            $id_fields_forms = DB::table('fields_forms')
-                ->where('id_forms','=', $id_form)
-                ->where('id_fields','=', $id_field)
-                ->value('id_fields_forms');
+                $id_fields = $arr_value['id_fields'];
+                $required = (isset($arr_value['required'])) ? 1 : 0;
 
-            // Добавляем новое поле
-            DB::table('fields_forms_current')
-                ->insert([
-                    'id_fields_forms' => $id_fields_forms,
-                    'required_fields_current' => $required
-                ]);
-//            var_dump($id_fields_forms,$required);
+                // Запиываем новое поле в fields_forms и узнаем его id
+                $id_fields_forms = DB::table('fields_forms')
+                    ->insertGetID([
+                        'id_forms' => $id_form,
+                        'id_fields' =>  $id_fields
+                    ]);
+
+                // Записываеем новое поле в таблицу fields_forms_current
+                DB::table('fields_forms_current')
+                    ->insert([
+                        'id_fields_forms' => $id_fields_forms,
+                        'required_fields_current' => $required
+                    ]);
+
+            }
         }
+
+
 
         // Берем все id_fields_forms для редактируемой таблицы
         $id_fields_forms = DB::table('fields_forms')
             ->where('id_forms','=',$id_form)
             ->pluck('id_fields_forms');
 
-
-        // удаляем его из таблтцы fields_forms
+        // Удаляем его из таблицы fields_forms
         foreach ($id_fields_forms as $id_field_form){
 
             // Ищем id_fields_forms в таблице fields_forms_current
@@ -277,7 +285,7 @@ class ConstructorFormController extends Controller
 
         }
 
-        return response()->json(['message' => 'Форма успешно отредактирована!', 'bool' => true]);
+        return redirect('/constructor/addForm');
     }
 
 

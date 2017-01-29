@@ -36,19 +36,20 @@
                                             <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
 
                                             </div>
-                                            <form action="submitFillForm" method="POST">
+                                            <form action="acceptForm" method="POST">
                                                 {{ csrf_field() }}
                                                 <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
 
                                                 </div>
-                                            </form>
+
                                         </div>
 
                                         <div class="row">
                                             <div class="col-sm-12">
                                                 <hr>
                                                 <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
-                                                <input type="button" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
+                                                <input type="submit" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
+                                                </form>
                                             </div>
                                         </div>
                                 </div>

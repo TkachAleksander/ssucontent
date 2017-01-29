@@ -95,7 +95,7 @@ class FormController extends Controller
             ->where('id_forms_departments','=',$request->input('id_forms_departments'))
             ->delete();
 
-        // Получаем $id_fields_forms с ключей, $values с значений
+        // Получаем: $id_fields_forms с ключей, $values с значений
         foreach ($request->all() as $id_fields_forms => $values) {
 
             // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
@@ -158,15 +158,27 @@ class FormController extends Controller
 
     public function acceptForm(Request $request)
     {
+//        dd($request->all());
         // Изменяем статус формы для данного отдела на принята
-        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
-            $bool = true;
-            $message = "Форма успешно принята !";
-        } else {
-            $bool = false;
-            $message = "Форма не найдена !";
-        }
+//        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
+//            $bool = true;
+//            $message = "Форма успешно принята !";
+//        } else {
+//            $bool = false;
+//            $message = "Форма не найдена !";
+//        }
 
+        foreach ($request->all() as $key => $arr){
+            if ($key != 0){
+                foreach ($arr as $value) {
+                    var_dump($value);
+                    DB::table('sub_elements_current')
+                        ->where('id_sub_elements_current', '=', $value)
+                    ->value('id_sub_elements_field');
+                }
+            }
+        }
+die();
         // Узнаем label_fields, id_fields_forms, id_fields
         $fields_info = DB::table('values_fields_current as vfc')
             ->where('vfc.id_forms_departments', '=', $request->input('id_forms_departments'))
@@ -176,7 +188,7 @@ class FormController extends Controller
             ->select('f.label_fields', 'ff.id_fields_forms','ff.id_fields')
             ->distinct()
             ->get();
-
+//dd($fields_info);
         foreach ($fields_info as  $field_info) {
             // Удаляем поля старой формы
             DB::table('fields_forms_old')
@@ -195,18 +207,18 @@ class FormController extends Controller
                 ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                 ->where('id_fields_forms','=',$field_info->id_fields_forms)
                 ->delete();
-//var_dump($field_info);
-        }
 
+        }
+//var_dump($fields_info);
         foreach ($fields_info as  $field_info) {
 
-            // Узнаем sub_elements_current
-            $sub_elements_current = DB::table('sub_elements_fields as sef')
+            // Узнаем все sub_elements_current
+            $sub_elements_current_all = DB::table('sub_elements_fields as sef')
                 ->where('sef.id_fields','=',$field_info->id_fields)
                 ->join('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
                 ->select('sec.id_sub_elements_field','sec.label_sub_elements_current')
                 ->get();
-
+//var_dump($sub_elements_current_all);
             // Узнаем required
             $required = DB::table('fields_forms_current')
                 ->where('id_fields_forms','=', $field_info->id_fields_forms)
@@ -232,16 +244,17 @@ class FormController extends Controller
                 ->where('id_fields_forms','=',$field_info->id_fields_forms)
                 ->value('values_fields_current');
 
-            $label_sub_elements_current = DB::table('values_fields_current as vfc')
+            $sub_elements_current = DB::table('values_fields_current as vfc')
                 ->where('id_fields_forms','=',$field_info->id_fields_forms)
                 ->join('sub_elements_current as sec', 'sec.id_sub_elements_current','=','vfc.enum_sub_elements_current')
-                ->value('label_sub_elements_current');
+                ->pluck('sec.id_sub_elements_field');
 
-            if (!empty($sub_elements_current)){
+//var_dump(array_values($sub_elements_current));
+            if (!empty($sub_elements_current_all)){
 
                 // Вставляем новые sub_elements для старой формы
-                foreach ($sub_elements_current as $sub_element) {
-//var_dump($label_sub_elements_current,$sub_element->label_sub_elements_current);
+                foreach ($sub_elements_current_all as $sub_element) {
+//var_dump($label_sub_elements_current,$sub_element);
                     $id_sub_elements_old = DB::table('sub_elements_old')
                         ->insertGetID([
                             'id_sub_elements_field' => $sub_element->id_sub_elements_field,
@@ -249,7 +262,8 @@ class FormController extends Controller
                             'id_forms_departments' => $request->input('id_forms_departments'),
                             'label_sub_elements_old' => $sub_element->label_sub_elements_current
                         ]);
-                        if ($label_sub_elements_current == $sub_element->label_sub_elements_current) {
+var_dump($sub_element->id_sub_elements_field, $sub_elements_current, in_array($sub_element->id_sub_elements_field, $sub_elements_current) );
+                        if (in_array($sub_element->id_sub_elements_field, $sub_elements_current)) {
 
                             // Вставляем новые значения для полей старой формы
                             DB::table('values_fields_old')
@@ -280,7 +294,7 @@ class FormController extends Controller
 
         }
 
-        return response()->json(['message' => $message, 'bool' => $bool]);
+//        return response()->json(['message' => $message, 'bool' => $bool]);
     }
 
 
