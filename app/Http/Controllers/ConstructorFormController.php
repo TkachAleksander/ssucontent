@@ -145,16 +145,15 @@ class ConstructorFormController extends Controller
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields','=','f.id_fields')
             ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
             ->orderBy('ffc.id_fields_forms_current','asc')
-//            ->orderBy('sec.id_sub_elements_field','asc')
             ->groupBy('sef.id_fields','ff.id_fields_forms')
             ->select(
                 'ff.id_fields_forms', 'f.id_fields', 'ffc.required_fields_current', 'forms.name_forms', 'forms.id_forms',
                 'forms.date_update_forms', 'f.id_fields', 'f.label_fields', 'e.name_elements', 'sef.id_sub_elements_field',
-                DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements')
+                DB::raw('group_concat(sec.label_sub_elements_current ORDER BY sec.id_sub_elements_current asc separator " | ") as labels_sub_elements ')
             )
             ->get();
-//dd($request->all(),$fields);
 
+//dd($request->all(),$fields);
         return response()->json($fields);
     }
 
@@ -535,6 +534,7 @@ class ConstructorFormController extends Controller
                 DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
                 DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
             ->get();
+
 //dd($form_infos);
 //dd($form_infos, $id_forms_departments);
 
