@@ -269,18 +269,19 @@ class ConstructorFormController extends Controller
                 ->get();
 
             // Если отсутствует в обоих таблицах удаляем id_fields_forms из таблицы fields_forms
+            // каскадом удалятся значения и с таблицы values_fields_current
             if(!$isset_field_current && !$isset_field_old){
                 DB::table('fields_forms')
                     ->where('id_fields_forms','=',$id_field_form)
                     ->delete();
             }
 
-            // Если отсутствует fields_forms_current удаляем id_fields_forms из таблицы id_values_fields_current
-            if(!$isset_field_current){
-                DB::table('values_fields_current')
-                    ->where('id_fields_forms','=',$id_field_form)
-                    ->delete();
-            }
+//            // Если отсутствует fields_forms_current удаляем id_fields_forms из таблицы id_values_fields_current
+//            if(!$isset_field_current){
+//                DB::table('values_fields_current')
+//                    ->where('id_fields_forms','=',$id_field_form)
+//                    ->delete();
+//            }
 
         }
 
@@ -529,7 +530,7 @@ class ConstructorFormController extends Controller
             ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
             ->orderBy('ffc.id_fields_forms_current','asc')
             ->orderBy('sec.id_sub_elements_current','asc')
-            ->groupBy('f.id_fields')
+            ->groupBy('ff.id_fields_forms')
             ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field','ffc.required_fields_current as required',
                 DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),
                 DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
@@ -597,7 +598,7 @@ class ConstructorFormController extends Controller
             ->where('ffo.id_forms_departments','=', $request->input('id_forms_departments'))
             ->leftJoin('sub_elements_old as seo' ,'seo.id_fields_forms','=','ff.id_fields_forms')
             ->orderBY('ff.id_fields_forms', 'asc')
-            ->groupBy('f.id_fields')
+            ->groupBy('ff.id_fields_forms')
             ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'seo.id_forms_departments',
                 DB::raw('group_concat(seo.label_sub_elements_old separator " | ") as labels_sub_elements'),
                 DB::raw('group_concat(seo.id_sub_elements_old separator " | ") as id_sub_elements'))
