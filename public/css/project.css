@@ -140,3 +140,12 @@ body {
 	margin: 0px;
 	color: #ff0000;
 }
+
+.block {
+	display: block;
+	margin-bottom: 0px;
+}
+
+.red{
+	color: red;
+}
