@@ -600,7 +600,7 @@ $('.editElementFromForm').on('click',function() {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-                    console.log(formsInfo);
+//console.log(formsInfo);
                     if (JSON.stringify(formsInfo) == "{}"){
                         contentForm.append('<p class="text-center"><b>Прошлая версия формы отсутствует !</b></p>');
                     } else {
@@ -645,7 +645,7 @@ $('.editElementFromForm').on('click',function() {
 
         var required;
         if(formsInfo[key].required == true) {
-            formsInfo[key].required = "*";
+            formsInfo[key].required = "* ";
             required = "required";
         } else {
             formsInfo[key].required = "";
@@ -653,58 +653,57 @@ $('.editElementFromForm').on('click',function() {
         }
 
         (disabled == 'disabled') ? formsInfo[key].id_fields_forms = " " : formsInfo[key].id_fields_forms;
-
         formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
+
+        var label = '<b><span class="red">' + formsInfo[key].required + '</span>' + formsInfo[key].label_fields + '</b>';
 
         switch (formsInfo[key].name_elements) {
 
             case "input(text)":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
+                contentForm.append(label);
                 contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"'+disabled+'><p></p>');
                 break;
-
             case "input(email)":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
+                contentForm.append(label);
                 contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="'+formsInfo[key].values_fields_current+'"'+disabled+'><p></p>');
                 break;
-
             case "textarea":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
+                contentForm.append(label);
                 contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required +disabled+'>'+formsInfo[key].values_fields_current+'</textarea><p></p>');
                 break;
 
             case "radiobutton":
-
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b><br>');
+                contentForm.append(label);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
                     var show_empty_checkbox = true;
                     if (formsInfo[key].enum_sub_elements_current != 0) {
                         if (value_sub == formsInfo[key].enum_sub_elements_current) {
-
-                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
+                            contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+' checked > ' + label_sub_elements[key_value] + '</label>');
                             show_empty_checkbox = false;
-
                         }
                     }
-                    if (show_empty_checkbox){
-                        contentForm.append('<input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+'> ' + label_sub_elements[key_value] + '</br>');
-                    }
+                    if (show_empty_checkbox){ contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+'> ' + label_sub_elements[key_value] + '</label>');}
                 });
-
+                wrapAll();
+                if($('.group'+ formsInfo[key].id_fields_forms + ' :radio:checked').length > 0) {
+                    $('#'+ formsInfo[key].id_fields_forms).children('.error').remove();
+                } else{
+                    $('#'+ formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
+                }
                 contentForm.append('<p></p>');
                 break;
 
             case "checkbox":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b><br>');
+                contentForm.append(label);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
                     var show_empty_checkbox = true;
@@ -714,36 +713,35 @@ $('.editElementFromForm').on('click',function() {
 
                             arr.forEach(function(enum_sub_element, key_enum_sub_element, arr){
                                 if (id_sub_element[key_value] == enum_sub_element) {
-
-                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
+                                    contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="checkbox"  name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+' checked > ' + label_sub_elements[key_value] + '</label>');
                                     show_empty_checkbox = false;
-
                                 }
                             });
 
                         } else {
                             if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
-
-                                contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+' checked > ' + label_sub_elements[key_value] + '</br>');
+                                contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+' checked > ' + label_sub_elements[key_value] + '</label>');
                                 show_empty_checkbox = false;
-
                             }
                         }
                     }
-                    if (show_empty_checkbox){
-                        contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + required + disabled+'> ' + label_sub_elements[key_value] + '</br>');
-                    }
+                    if (show_empty_checkbox){contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+'> ' + label_sub_elements[key_value] + '</label>');}
                 });
-
+                wrapAll();
+                if($('.group'+ formsInfo[key].id_fields_forms + ' :checked:checked').length > 0) {
+                    $('#'+ formsInfo[key].id_fields_forms).children('.error').remove();
+                } else{
+                    $('#'+ formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
+                }
                 contentForm.append('<p></p>');
                 break;
 
             case "select":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_fields + '</b>');
+                contentForm.append(label);
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
+                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + disabled+'>');
 
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
@@ -751,21 +749,38 @@ $('.editElementFromForm').on('click',function() {
                     var show_empty_checkbox = true;
                     if (formsInfo[key].enum_sub_elements_current != 0) {
                         if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
-
                             $('#select' + key).append('<option value="' + id_sub_element[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
                             show_empty_checkbox = false;
                         }
                     }
-                    if (show_empty_checkbox){
-                        $('#select' + key).append('<option value="' + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');
-                    }
+                    if (show_empty_checkbox){$('#select' + key).append('<option value="' + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');}
                 });
 
                 contentForm.append('<p></p>');
                 break;
         }
+        function wrapAll(){ $('.group'+formsInfo[key].id_fields_forms ).wrapAll('<div id="'+formsInfo[key].id_fields_forms +'" class="group'+formsInfo[key].id_fields_forms +' '+ required+'">'); }
     }
 
+    // вывод сообщения "поле обязательно для заполнения"
+    $(document).on('click','.required', function () {
+        var id = $(this).attr('id');
+
+        if($('.group'+ id + ' :checked:checked').length > 0) {
+            $(this).children('.error').remove();
+        } else{
+            $(this).children('.error').remove();
+            $(this).append('<span class="error red"> поле обязательно для заполнения </span>');
+        }
+    });
+
+// нажатие на кнопку принять форму
+$('.confirmRequired').on('click', function(){
+    if(($('.required span').hasClass('error'))){
+        alert("Форма заполнена некорректно !");
+        return false;
+    }
+});
 
 // formsConnectUsers //
 // formsConnectUsers //
