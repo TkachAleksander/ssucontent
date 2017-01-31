@@ -101,7 +101,7 @@
                             <div class="col-md-6">
                                 <select class="multiselect" name="id_roles">
                                     @foreach($roles as $role)
-                                        <option value="{{ $role->id }}">{{ $role->name_roles }}</option>
+                                        <option value="{{ $role->id_roles }}">{{ $role->name_roles }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -113,7 +113,7 @@
                             <div class="col-md-6">
                                 <select class="multiselect" name="id_departments">
                                     @foreach($departments as $department)
-                                        <option value="{{ $department->id }}">{{ $department->name_departments }}</option>
+                                        <option value="{{ $department->id_departments }}">{{ $department->name_departments }}</option>
                                     @endforeach
                                 </select>
                             </div>

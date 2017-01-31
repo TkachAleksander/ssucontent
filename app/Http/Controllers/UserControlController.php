@@ -12,12 +12,16 @@ class UserControlController extends Controller
 {
 	public function index()
 	{
-        $users = DB::table('users')->join('roles', 'roles.id','=','users.id_roles')
-                                   ->where('name_roles', '!=', 'administrator')->get();
-        $administrators = DB::table('users')->join('roles', 'roles.id','=','users.id_roles')
-                                            ->where('name_roles', '=', 'administrator')->get();
-        $departments = DB::table('users as u')->join('departments as d', 'd.id','=','u.id_departments')->get();
-        $roles = DB::table('roles')->get();
+        $users = DB::table('users')
+            ->join('roles', 'roles.id_roles','=','users.id_roles')
+            ->where('name_roles', '!=', 'administrator')->get();
+        $administrators = DB::table('users')
+            ->join('roles', 'roles.id_roles','=','users.id_roles')
+            ->where('name_roles', '=', 'administrator')->get();
+        $departments = DB::table('departments as d')
+            ->get();
+        $roles = DB::table('roles')
+            ->get();
 		return view('userControl', ['users' => $users, 'roles' => $roles, 'administrators' => $administrators, 'departments' => $departments]);
 	}
 
@@ -54,7 +58,7 @@ class UserControlController extends Controller
     public function removeUser($id)
     {
         DB::table('users')->where('id',$id)->delete();
-        return redirect('userControl');
+        return redirect('registration');
     }
 
 }
