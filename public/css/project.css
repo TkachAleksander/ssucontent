@@ -1,5 +1,13 @@
-body {
-	background-color: #edeef0;
+body{ background-color: #edeef0;}
+
+body,
+.panel-title{
+	font-family: 'Open Sans','Roboto', serif;
+	font-size: 14px;
+}
+
+label{
+	font-weight: normal;
 }
 
 .container-edit {

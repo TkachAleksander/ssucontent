@@ -573,7 +573,7 @@ $('.editElementFromForm').on('click',function() {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-console.log(formsInfo);
+// console.log(formsInfo);
                     formsInfo.forEach(function (value, key, formsInfo) {
                         switchElements(contentForm, formsInfo, key, " ");
                     });
@@ -602,7 +602,7 @@ console.log(formsInfo);
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-console.log(formsInfo);
+// console.log(formsInfo);
                     if (JSON.stringify(formsInfo) == "{}"){
                         contentForm.append('<p class="text-center"><b>Прошлая версия формы отсутствует !</b></p>');
                     } else {
@@ -630,10 +630,8 @@ console.log(formsInfo);
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
-                success: function (data) {
-                    // $('.input-id-form').val(formsInfo[0].id_forms);
-                    var formsInfo = data;
-                    console.log(data);
+                success: function (formsInfo) {
+// console.log(data);
                     formsInfo.forEach(function (value, key, formsInfo) {
                         switchElements(contentForm, formsInfo, key, "");
                     });
@@ -730,7 +728,6 @@ console.log(formsInfo);
                     if (show_empty_checkbox){contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+'> ' + label_sub_elements[key_value] + '</label>');}
                 });
                 wrapAll();
-                console.log(old);
                 if($('.group'+ old + formsInfo[key].id_fields_forms + ' :checked:checked').length > 0) {
                     $('#'+ old + formsInfo[key].id_fields_forms).children('.error').remove();
                 } else{
