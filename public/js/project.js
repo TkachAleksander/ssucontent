@@ -237,7 +237,7 @@ $(document).ready(function() {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (fields) {
-console.log(fields);
+//console.log(fields);
                     var sortContainer = $('#sortContainer');
                     sortContainer.empty();
                     $('form').attr('action','addEditedNewForm');
@@ -568,11 +568,12 @@ $('.editElementFromForm').on('click',function() {
                 url: "getFormInfo",
                 data: {id_forms: id_forms, id_forms_departments:id_forms_departments},
                 dataType: "JSON",
+                async: false,
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-
+console.log(formsInfo);
                     formsInfo.forEach(function (value, key, formsInfo) {
                         switchElements(contentForm, formsInfo, key, " ");
                     });
@@ -596,15 +597,16 @@ $('.editElementFromForm').on('click',function() {
                 url: "getFormInfoOld",
                 data: {id_forms: id_forms, id_forms_departments:id_forms_departments},
                 dataType: "JSON",
+                async: false,
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
                 },
                 success: function (formsInfo) {
-//console.log(formsInfo);
+console.log(formsInfo);
                     if (JSON.stringify(formsInfo) == "{}"){
                         contentForm.append('<p class="text-center"><b>Прошлая версия формы отсутствует !</b></p>');
                     } else {
-                        formsInfo.forEach(function (value, key, formsInfo) {
+                        formsInfo.forEach(function (value, key) {
                             switchElements(contentForm, formsInfo, key, "disabled");
                         });
                     }
@@ -633,7 +635,7 @@ $('.editElementFromForm').on('click',function() {
                     var formsInfo = data;
                     console.log(data);
                     formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
+                        switchElements(contentForm, formsInfo, key, "");
                     });
                 }
 
@@ -644,7 +646,7 @@ $('.editElementFromForm').on('click',function() {
     function switchElements(contentForm, formsInfo, key, disabled) {
 
         var required;
-        if(formsInfo[key].required == true) {
+        if(formsInfo[key].required) {
             formsInfo[key].required = "* ";
             required = "required";
         } else {
@@ -652,10 +654,10 @@ $('.editElementFromForm').on('click',function() {
             required = "";
         }
 
-        (disabled == 'disabled') ? formsInfo[key].id_fields_forms = " " : formsInfo[key].id_fields_forms;
+        var old = (disabled == 'disabled') ? "old"  : "";
         formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
 
-        var label = '<b><span class="red">' + formsInfo[key].required + '</span>' + formsInfo[key].label_fields + '</b>';
+        var label = '<b><span class="red">' +formsInfo[key].required+ '</span>' +formsInfo[key].label_fields+ '</b>';
 
         switch (formsInfo[key].name_elements) {
 
@@ -677,23 +679,24 @@ $('.editElementFromForm').on('click',function() {
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
                     var show_empty_checkbox = true;
                     if (formsInfo[key].enum_sub_elements_current != 0) {
                         if (value_sub == formsInfo[key].enum_sub_elements_current) {
-                            contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+' checked > ' + label_sub_elements[key_value] + '</label>');
+                            // вывод отмеченого radio
+                            contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' +old +formsInfo[key].id_fields_forms + "[]" + '" value="' +old +id_sub_element[key_value]+ '"' +disabled+ ' checked > ' +label_sub_elements[key_value]+ '</label>');
                             show_empty_checkbox = false;
                         }
                     }
-                    if (show_empty_checkbox){ contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+'> ' + label_sub_elements[key_value] + '</label>');}
+                    // Вывод неактивных radio
+                    if (show_empty_checkbox){ contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' +old +formsInfo[key].id_fields_forms+ "[]" + '" value="' +id_sub_element[key_value]+ '"' +disabled+'> ' +label_sub_elements[key_value]+ '</label>');}
                 });
                 wrapAll();
-                if($('.group'+ formsInfo[key].id_fields_forms + ' :radio:checked').length > 0) {
-                    $('#'+ formsInfo[key].id_fields_forms).children('.error').remove();
+                if($('.group' +old +formsInfo[key].id_fields_forms+ ' :radio:checked').length > 0) {
+                    $('#'+old +formsInfo[key].id_fields_forms).children('.error').remove();
                 } else{
-                    $('#'+ formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
+                    $('#'+old +formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
                 }
                 contentForm.append('<p></p>');
                 break;
@@ -703,7 +706,6 @@ $('.editElementFromForm').on('click',function() {
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
 
                     var show_empty_checkbox = true;
@@ -728,10 +730,11 @@ $('.editElementFromForm').on('click',function() {
                     if (show_empty_checkbox){contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled+'> ' + label_sub_elements[key_value] + '</label>');}
                 });
                 wrapAll();
-                if($('.group'+ formsInfo[key].id_fields_forms + ' :checked:checked').length > 0) {
-                    $('#'+ formsInfo[key].id_fields_forms).children('.error').remove();
+                console.log(old);
+                if($('.group'+ old + formsInfo[key].id_fields_forms + ' :checked:checked').length > 0) {
+                    $('#'+ old + formsInfo[key].id_fields_forms).children('.error').remove();
                 } else{
-                    $('#'+ formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
+                    $('#'+ old + formsInfo[key].id_fields_forms).append('<span class="error red"> поле обязательно для заполнения </span>');
                 }
                 contentForm.append('<p></p>');
                 break;
@@ -741,7 +744,6 @@ $('.editElementFromForm').on('click',function() {
                 var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
                 var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
 
-                // contentForm.append('<input type="hidden" name="' + formsInfo[key].id_fields_forms + '" value="">');
                 contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_fields_forms +"[]" + '" style="margin-left: 10px;" ' + required + disabled+'>');
 
                 id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
@@ -759,10 +761,13 @@ $('.editElementFromForm').on('click',function() {
                 contentForm.append('<p></p>');
                 break;
         }
-        function wrapAll(){ $('.group'+formsInfo[key].id_fields_forms ).wrapAll('<div id="'+formsInfo[key].id_fields_forms +'" class="group'+formsInfo[key].id_fields_forms +' '+ required+'">'); }
+        function wrapAll(){
+            $('.group'+ old +formsInfo[key].id_fields_forms ).
+            wrapAll('<div id="'+ old + formsInfo[key].id_fields_forms +'" class="group'+ old +formsInfo[key].id_fields_forms +' '+ required+'">');
+        }
     }
 
-    // вывод сообщения "поле обязательно для заполнения"
+    // вывод сообщения "поле обязательно для заполнения" (sub_elements)
     $(document).on('click','.required', function () {
         var id = $(this).attr('id');
 
@@ -773,6 +778,18 @@ $('.editElementFromForm').on('click',function() {
             $(this).append('<span class="error red"> поле обязательно для заполнения </span>');
         }
     });
+
+// вывод сообщения "поле обязательно для заполнения" (input)
+$(document).on('blur','input', function () {
+    // var id = $(this).attr('id');
+
+    if($(this).val() != "") {
+        $(this).prev('span').remove();
+    } else{
+        $(this).prev('span').remove();
+        $(this).after('<span class="error red"> поле обязательно для заполнения </span>');
+    }
+});
 
 // нажатие на кнопку принять форму
 $('.confirmRequired').on('click', function(){
@@ -909,26 +926,26 @@ $('.btn-edit-departments').on('click', function () {
 
 // Список форм на проверку
 
-// Кнопка принять
-$('.btn-accept-form').on('click', function () {
-    var id_forms_departments = $(this).data('idFormsDepartments');
-
-    $.ajax({
-        type:"POST",
-        url:"acceptForm",
-        data:{ id_forms_departments:id_forms_departments },
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if(data.bool) {
-                location.reload();
-            }
-        }
-    })
-});
+// // Кнопка принять
+// $('.btn-accept-form').on('click', function () {
+//     var id_forms_departments = $(this).data('idFormsDepartments');
+//
+//     $.ajax({
+//         type:"POST",
+//         url:"acceptForm",
+//         data:{ id_forms_departments:id_forms_departments },
+//         dataType:"JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if(data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     })
+// });
 
 // Кнопка отклонить
 $('.btn-reject-form').on('click', function () {

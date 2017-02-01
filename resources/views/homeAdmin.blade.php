@@ -30,28 +30,23 @@
                             </div>
                             <div id="{{$form->generateString}}" class="panel-collapse collapse">
                                 <div class="panel-body">
-                                        <input type="hidden" class="input-id-form" name="id_form" value="">
 
-                                        <div class="row">
-                                            <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
+                                    <div id="content-form-old{{$form->generateString}}" class="col-sm-6"></div>
 
-                                            </div>
-                                            <form action="acceptForm" method="POST">
-                                                {{ csrf_field() }}
-                                                <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
+                                    <form action="acceptForm" method="POST">
+                                        {{ csrf_field() }}
+                                        <input type="hidden" name="id_forms_departments" value="{{$form->id_forms_departments}}">
+                                        <input type="hidden" name="id_forms" value="{{$form->id_forms}}">
 
-                                                </div>
+                                        <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;"></div>
 
+                                        <div class="col-sm-12">
+                                            <hr>
+                                            <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
+                                            <input type="submit" class="btn btn-sm btn-success btn-accept-form pull-right confirmRequired" data-id-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
                                         </div>
 
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <hr>
-                                                <input type="button" class="btn btn-sm btn-danger btn-reject-form" data-id-forms-departments="{{$form->id_forms_departments}}" value="Отклонить">
-                                                <input type="submit" class="btn btn-sm btn-success btn-accept-form pull-right" data-id-forms-departments="{{$form->id_forms_departments}}" value="Притнять">
-                                                </form>
-                                            </div>
-                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>

@@ -31,30 +31,22 @@
                             <div id="{{$form->generateString}}" class="panel-collapse collapse ">
                                 <div class="panel-body">
 
+                                    <div id="content-form-old{{$form->generateString}}" class="col-sm-6"></div>
+
                                     <form action="submitFillForm" method="POST">
                                         {{ csrf_field() }}
-
                                         <input type="hidden" class="input-id-form" name="id_forms" value="{{$form->id_forms}}">
                                         <input type="hidden" class="input-id-forms-departments" name="id_forms_departments" value="{{$form->id_forms_departments}}">
-                                        <div class="row">
-                                            <div id="content-form-old{{$form->generateString}}" class="col-sm-6">
 
-                                            </div>
+                                        <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;"></div>
 
-                                            <div id="content-form{{$form->generateString}}" class="col-sm-6" style="border-left: 1px solid #eee;">
-
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-sm-12">
-                                                <hr>
-                                                @if($form->id_status_checks !=2 )
-                                                    <input type="submit" class="btn btn-sm btn-primary pull-right" value="Отправить">
-                                                @else
-                                                    <p class="text-center">Пожалуйста подождите администратор проверяет форму!</p>
-                                                @endif
-                                            </div>
+                                        <div class="col-sm-12">
+                                            <hr>
+                                            @if($form->id_status_checks !=2 )
+                                                <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired" value="Отправить">
+                                            @else
+                                                <p class="text-center">Пожалуйста подождите администратор проверяет форму!</p>
+                                            @endif
                                         </div>
                                     </form>
 

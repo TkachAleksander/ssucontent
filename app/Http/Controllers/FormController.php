@@ -45,12 +45,12 @@ class FormController extends Controller
                     ->where('fd.id_status_checks', '=', 2)
                     ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'f.name_forms')
                     ->get();
-                
+
                 foreach ($forms as $key => $form) {
                     $forms[$key]->info = DB::table('fields_forms as ff')->where('ff.id_forms', '=', $form->id_forms)
                         ->join('fields as f', 'f.id_fields', '=', 'ff.id_fields_forms')
                         ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
-                        ->select('f.label_fields','e.name_elements')
+                        ->select('f.label_fields', 'e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }
@@ -71,7 +71,7 @@ class FormController extends Controller
                     $forms[$key]->info = DB::table('fields_forms as ff')->where('ff.id_forms', '=', $form->id_forms)
                         ->join('fields as f', 'f.id_fields', '=', 'ff.id_fields_forms')
                         ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
-                        ->select('f.label_fields','e.name_elements')
+                        ->select('f.label_fields', 'e.name_elements')
                         ->get();
                     $forms[$key]->generateString = $this->generateString();
                 }
@@ -83,18 +83,17 @@ class FormController extends Controller
     }
 
 
-
     // UserHome кнопка отправить форму на проверку
     public function submitFillForm(Request $request)
     {
-//        dd($request->all());
+//dd($request->all());
 
-        $arrValues = 0;
-
+        // Удаляем старіе значения current
         DB::table('values_fields_current')
-            ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
             ->delete();
 
+        $arrValues = 0;
         // Получаем: $id_fields_forms с ключей, $values с значений
         foreach ($request->all() as $id_fields_forms => $values) {
 
@@ -109,11 +108,11 @@ class FormController extends Controller
                         ->insert([
                             'id_fields_forms' => $id_fields_forms,
                             'id_forms_departments' => $request->input('id_forms_departments'),
-                            'values_fields_current' => (!empty($values)) ? $values : 0 ,
+                            'values_fields_current' => (!empty($values)) ? $values : 0,
                             'enum_sub_elements_current' => 0
                         ]);
 
-                // Если новые значения пришли массивом
+                    // Если новые значения пришли массивом
                 } else {
                     foreach ($values as $value) {
                         // запись перебором, id_sub_elements в enum_sub_elements_current
@@ -121,7 +120,7 @@ class FormController extends Controller
                             ->insert([
                                 'id_fields_forms' => $id_fields_forms,
                                 'id_forms_departments' => $request->input('id_forms_departments'),
-                                'values_fields_current' => 0 ,
+                                'values_fields_current' => 0,
                                 'enum_sub_elements_current' => $value
                             ]);
 
@@ -129,16 +128,13 @@ class FormController extends Controller
                 }
             }
         }
-
         // Ставим статус формы - праверяется администратором
         DB::table('forms_departments')
-            ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
             ->update(['id_status_checks' => 2]);
 
-//        dd($request->all(),$id_set_forms_elements);
         return redirect('/');
     }
-
 
 
     // adminHome Принять/Отклонить форму
@@ -159,142 +155,144 @@ class FormController extends Controller
     public function acceptForm(Request $request)
     {
 //        dd($request->all());
-        // Изменяем статус формы для данного отдела на принята
-//        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
-//            $bool = true;
-//            $message = "Форма успешно принята !";
-//        } else {
-//            $bool = false;
-//            $message = "Форма не найдена !";
-//        }
 
-        foreach ($request->all() as $key => $arr){
-            if ($key != 0){
-                foreach ($arr as $value) {
-                    var_dump($value);
-                    DB::table('sub_elements_current')
-                        ->where('id_sub_elements_current', '=', $value)
-                    ->value('id_sub_elements_field');
+        // Изменяем статус формы для данного отдела на принята
+        if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
+
+        } else {
+            return redirect('/');
+        }
+
+        $id_forms = $request->input('id_forms');
+        $id_forms_departments = $request->input('id_forms_departments');
+
+        // Узнаем все id_fields_forms для принятой формы
+        $id_fields_forms = DB::table('fields_forms as ff')
+            ->where('ff.id_forms', '=', $id_forms)
+            ->join('fields_forms_current as ffc', 'ffc.id_fields_forms', '=', 'ff.id_fields_forms')
+            ->orderBy('ffc.id_fields_forms_current', 'asc')
+            ->pluck('ff.id_fields_forms');
+
+        // Удаляем старые значения с таблиц fields_forms_old, value_fields_current, sub_elements_old
+        foreach ($id_fields_forms as $id_field_form) {
+            DB::table('fields_forms_old')
+                ->where('id_fields_forms', '=', $id_field_form)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->delete();
+            DB::table('values_fields_old')
+                ->where('id_fields_forms', '=', $id_field_form)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->delete();
+            DB::table('sub_elements_old')
+                ->where('id_fields_forms', '=', $id_field_form)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->delete();
+            DB::table('values_fields_current')
+                ->where('id_fields_forms', '=', $id_field_form)
+                ->delete();
+        }
+
+        $arrValues = 0;
+        // Получаем: $id_fields_forms с ключей, $values с значений
+        foreach ($request->all() as $key_id_fields_forms => $values) {
+
+            // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
+            if ($arrValues++ >= 3) {
+
+                // Если новые значения пришли строкой
+                if (!is_array($values)) {
+
+                    // запись значений в values_fields_current
+                    DB::table('values_fields_current')
+                        ->insert([
+                            'id_fields_forms' => $key_id_fields_forms,
+                            'id_forms_departments' => $request->input('id_forms_departments'),
+                            'values_fields_current' => (!empty($values)) ? $values : 0,
+                            'enum_sub_elements_current' => 0
+                        ]);
+
+                    // Если новые значения пришли массивом
+                } else {
+                    foreach ($values as $value) {
+                        // запись перебором, id_sub_elements в enum_sub_elements_current
+                        DB::table('values_fields_current')
+                            ->insert([
+                                'id_fields_forms' => $key_id_fields_forms,
+                                'id_forms_departments' => $request->input('id_forms_departments'),
+                                'values_fields_current' => 0,
+                                'enum_sub_elements_current' => $value
+                            ]);
+//var_dump($value);
+                    }
                 }
             }
         }
-die();
-        // Узнаем label_fields, id_fields_forms, id_fields
-        $fields_info = DB::table('values_fields_current as vfc')
-            ->where('vfc.id_forms_departments', '=', $request->input('id_forms_departments'))
-            ->join('fields_forms as ff', 'ff.id_fields_forms','=','vfc.id_fields_forms')
-            ->join('fields as f', 'f.id_fields','=','ff.id_fields')
-            ->orderBy('ff.id_fields_forms','asc')
-            ->select('f.label_fields', 'ff.id_fields_forms','ff.id_fields')
-            ->distinct()
-            ->get();
-//dd($fields_info);
-        foreach ($fields_info as  $field_info) {
-            // Удаляем поля старой формы
-            DB::table('fields_forms_old')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                ->delete();
 
-            // Удаляем значения для полей старой формы
-            DB::table('values_fields_old')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                ->delete();
+        foreach ($id_fields_forms as $id_field_form) {
 
-            // Удаляем значения sub_elements для полей старой формы
-            DB::table('sub_elements_old')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                ->delete();
-
-        }
-//var_dump($fields_info);
-        foreach ($fields_info as  $field_info) {
-
-            // Узнаем все sub_elements_current
-            $sub_elements_current_all = DB::table('sub_elements_fields as sef')
-                ->where('sef.id_fields','=',$field_info->id_fields)
-                ->join('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
-                ->select('sec.id_sub_elements_field','sec.label_sub_elements_current')
+            // Переносим данные из таблицы fields_forms_current в таблицу fields_forms_old
+            $fields_forms_current = DB::table('fields_forms_current as ffc')
+                ->where('ffc.id_fields_forms', '=', $id_field_form)
+                ->join('fields_forms as ff', 'ff.id_fields_forms', '=', 'ffc.id_fields_forms')
+                ->join('fields as f', 'f.id_fields', '=', 'ff.id_fields')
+                ->select('f.label_fields', 'ffc.required_fields_current', 'f.id_fields')
                 ->get();
-//var_dump($sub_elements_current_all);
-            // Узнаем required
-            $required = DB::table('fields_forms_current')
-                ->where('id_fields_forms','=', $field_info->id_fields_forms)
-                ->value('required_fields_current');
-
-            // Вставляем новые поля для старой формы
             DB::table('fields_forms_old')
                 ->insert([
-                    'id_fields_forms' => $field_info->id_fields_forms,
-                    'id_forms_departments' => $request->input('id_forms_departments'),
-                    'required_fields_old' => $required,
-                    'label_fields_old' => $field_info->label_fields
+                    'id_fields_forms' => $id_field_form,
+                    'id_forms_departments' => $id_forms_departments,
+                    'required_fields_old' => $fields_forms_current[0]->required_fields_current,
+                    'label_fields_old' => $fields_forms_current[0]->label_fields
                 ]);
 
-            // Удаляем sub_elements для старой формы
-                DB::table('sub_elements_old')
-                    ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                    ->where('id_forms_departments','=',$request->input('id_forms_departments'))
-                    ->delete();
+            // Переносим данные из таблицы values_fields_current в таблицу values_fields_old
+            $values_fields_current = DB::table('values_fields_current as vfc')
+                ->where('vfc.id_fields_forms', '=', $id_field_form)
+                ->where('vfc.id_forms_departments', '=', $id_forms_departments)
+                ->select('vfc.values_fields_current', 'vfc.enum_sub_elements_current', 'vfc.id_fields_forms')
+                ->get();
 
-            // Узнаем values_fields_current, enum_sub_elements_current из таблицы values_fields_current
-            $values_fields_current = DB::table('values_fields_current')
-                ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                ->value('values_fields_current');
-
-            $sub_elements_current = DB::table('values_fields_current as vfc')
-                ->where('id_fields_forms','=',$field_info->id_fields_forms)
-                ->join('sub_elements_current as sec', 'sec.id_sub_elements_current','=','vfc.enum_sub_elements_current')
-                ->pluck('sec.id_sub_elements_field');
-
-//var_dump(array_values($sub_elements_current));
-            if (!empty($sub_elements_current_all)){
-
-                // Вставляем новые sub_elements для старой формы
-                foreach ($sub_elements_current_all as $sub_element) {
-//var_dump($label_sub_elements_current,$sub_element);
-                    $id_sub_elements_old = DB::table('sub_elements_old')
-                        ->insertGetID([
-                            'id_sub_elements_field' => $sub_element->id_sub_elements_field,
-                            'id_fields_forms' => $field_info->id_fields_forms,
-                            'id_forms_departments' => $request->input('id_forms_departments'),
-                            'label_sub_elements_old' => $sub_element->label_sub_elements_current
-                        ]);
-var_dump($sub_element->id_sub_elements_field, $sub_elements_current, in_array($sub_element->id_sub_elements_field, $sub_elements_current) );
-                        if (in_array($sub_element->id_sub_elements_field, $sub_elements_current)) {
-
-                            // Вставляем новые значения для полей старой формы
-                            DB::table('values_fields_old')
-                                ->insert([
-                                    'id_fields_forms' => $field_info->id_fields_forms,
-                                    'id_forms_departments' => $request->input('id_forms_departments'),
-                                    'values_fields_old' => 0,
-                                    'enum_sub_elements_old' => $id_sub_elements_old
-                                ]);
-                        }
-                }
-            } else {
-                if (!empty($values_fields_current)) {
-                    // Вставляем новые значения для полей старой формы
+            if (is_array($values_fields_current)){
+                foreach ($values_fields_current as $value_field_current) {
                     DB::table('values_fields_old')
                         ->insert([
-                            'id_fields_forms' => $field_info->id_fields_forms,
-                            'id_forms_departments' => $request->input('id_forms_departments'),
-                            'values_fields_old' => $values_fields_current,
-                            'enum_sub_elements_old' => 0
+                            'id_fields_forms' => $id_field_form,
+                            'id_forms_departments' => $id_forms_departments,
+                            'values_fields_old' => $value_field_current->values_fields_current,
+                            'enum_sub_elements_old' => $value_field_current->enum_sub_elements_current
+                        ]);
+                }
+            } else {
+                DB::table('values_fields_old')
+                    ->insert([
+                        'id_fields_forms' => $id_field_form,
+                        'id_forms_departments' => $id_forms_departments,
+                        'values_fields_old' => $values_fields_current[0]->values_fields_current,
+                        'enum_sub_elements_old' => $values_fields_current[0]->enum_sub_elements_current
+                    ]);
+            }
+
+            // Переносим данные из таблицы sub_elements_current в таблицу sub_elements_old
+            $sub_elements_info = DB::table('fields_forms as ff')
+                ->where('ff.id_fields_forms', '=', $id_field_form)
+                ->join('sub_elements_fields as sef', 'sef.id_fields', '=', 'ff.id_fields')
+                ->join('sub_elements_current as sec', 'sec.id_sub_elements_field', '=', 'sef.id_sub_elements_field')
+                ->select('sec.id_sub_elements_field', 'sec.label_sub_elements_current', 'ff.id_fields_forms')
+                ->get();
+            if (!empty($sub_elements_info)) {
+                foreach ($sub_elements_info as $sub_element) {
+                    DB::table('sub_elements_old')
+                        ->insert([
+                            'id_sub_elements_field' => $sub_element->id_sub_elements_field,
+                            'id_fields_forms' => $sub_element->id_fields_forms,
+                            'id_forms_departments' => $id_forms_departments,
+                            'label_sub_elements_old' => $sub_element->label_sub_elements_current
                         ]);
                 }
             }
-
-
-
-
-
         }
-
-//        return response()->json(['message' => $message, 'bool' => $bool]);
+//        die();
+        return redirect('/');
     }
 
 
