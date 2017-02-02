@@ -2,8 +2,8 @@ body{ background-color: #edeef0;}
 
 body,
 .panel-title{
-	font-family: 'Open Sans','Roboto', serif;
-	font-size: 14px;
+	font-family: 'PT Sans','Open Sans','Roboto', Arial, sans-serif;
+	font-size: 15px;
 }
 
 label{

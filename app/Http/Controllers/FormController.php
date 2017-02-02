@@ -43,7 +43,7 @@ class FormController extends Controller
                     ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
                     ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
                     ->where('fd.id_status_checks', '=', 2)
-                    ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'f.name_forms')
+                    ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'f.name_forms', 'fd.updated_at')
                     ->get();
 
                 foreach ($forms as $key => $form) {
@@ -62,7 +62,6 @@ class FormController extends Controller
                     ->join('departments as d', 'd.id_departments', '=', 'fd.id_departments')
                     ->join('forms as f', 'f.id_forms', '=', 'fd.id_forms')
                     ->join('status_checks as sc', 'sc.id_status_checks', '=', 'fd.id_status_checks')
-                    ->where('fd.id_status_checks', '!=', 2)
                     ->select('d.name_departments', 'fd.id_forms_departments', 'fd.id_departments', 'fd.id_forms', 'sc.name_status_checks', 'sc.id_status_checks', 'sc.status_color', 'f.name_forms')
                     ->orderBy('fd.id_departments', 'asc')
                     ->get();
@@ -112,6 +111,7 @@ class FormController extends Controller
                             'enum_sub_elements_current' => 0
                         ]);
 
+
                     // Если новые значения пришли массивом
                 } else {
                     foreach ($values as $value) {
@@ -128,7 +128,11 @@ class FormController extends Controller
                 }
             }
         }
-        // Ставим статус формы - праверяется администратором
+
+        // Ставим статус формы - праверяется
+        DB::table('forms_departments')
+            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->update(['id_status_checks' => 1]);
         DB::table('forms_departments')
             ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
             ->update(['id_status_checks' => 2]);
@@ -155,7 +159,17 @@ class FormController extends Controller
     public function acceptForm(Request $request)
     {
 //        dd($request->all());
+//        return redirect('/')->withErrors(array('message' => 'Login field is required.'));
+        return view('homeAdmin', ['message' => 'Login field is required.']);
+        $updated_at = DB::table('forms_departments')
+            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->value('updated_at');
 
+        if ($updated_at == $request->input('updated_at')){
+          return redirect('/')->withErrors(array('message' => 'Login field is required.'));
+        }
+
+        dd($updated_at , $request->input('updated_at'),$updated_at == $request->input('updated_at'), 'b');
         // Изменяем статус формы для данного отдела на принята
         if (DB::table('forms_departments')->where('id_forms_departments', '=', $request->input('id_forms_departments'))->update(['id_status_checks' => self::SUCCESS_FORM])) {
 
@@ -197,7 +211,7 @@ class FormController extends Controller
         foreach ($request->all() as $key_id_fields_forms => $values) {
 
             // Пропускаем (1)_token (2)id_forms (3)id_forms_departments
-            if ($arrValues++ >= 3) {
+            if ($arrValues++ >= 4) {
 
                 // Если новые значения пришли строкой
                 if (!is_array($values)) {
@@ -222,7 +236,6 @@ class FormController extends Controller
                                 'values_fields_current' => 0,
                                 'enum_sub_elements_current' => $value
                             ]);
-//var_dump($value);
                     }
                 }
             }
@@ -291,7 +304,6 @@ class FormController extends Controller
                 }
             }
         }
-//        die();
         return redirect('/');
     }
 

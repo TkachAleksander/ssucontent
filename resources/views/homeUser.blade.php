@@ -45,7 +45,8 @@
                                             @if($form->id_status_checks !=2 )
                                                 <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired" value="Отправить">
                                             @else
-                                                <p class="text-center">Пожалуйста подождите администратор проверяет форму!</p>
+                                                <span class="pull-left"> Нашли ошибку ? - Отправте повторно ! </span>
+                                                <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired" value="Отправить повторно">
                                             @endif
                                         </div>
                                     </form>
