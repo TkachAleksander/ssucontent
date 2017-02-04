@@ -22,7 +22,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-sm-6">
+                                <div class="col-sm-5">
                                     <select id="id_departments" class="multiselect" name="id_departments">
                                         <option value="*"> Все отделы </option>
                                         @foreach($departments as $department)
@@ -33,7 +33,7 @@
                                     </select>
                                 </div>
                                 <div class="row">
-                                <div class="col-sm-2">
+                                <div class="col-sm-3">
                                     <button id="btn-forms-connect-users" type="button" class="btn btn-sm btn-primary" disabled> Связать </button>
                                     <button id="btn-forms-disconnect-users" type="button" class="btn btn-sm btn-danger" disabled> Удалить связь </button>
                                 </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -73,7 +73,6 @@
     @yield('content')
 
     <!-- JavaScripts -->
-
     <script type="text/javascript" src="{{ url('js/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url('js/jquery-ui.js') }}"></script>
     <script type="text/javascript" src="{{ url('js/tcal.js') }}"></script>

@@ -4,7 +4,7 @@ Route::auth();
 
 // Вывод статей
 Route::get('/', 'FormController@index');
-Route::get('/showArticle/{id}', 'ArticleController@showArticle');
+Route::get('/viewForm/{id_forms_departments}', 'FormController@viewForm');
 
 
 // Проверяет авторизован ли пользователь
@@ -17,12 +17,12 @@ Route::group(['middleware' => 'auth'], function(){
 
 
     // Управление формамии homeUser
-    Route::post('/getFormInfo', 'ConstructorFormController@getFormInfo');
+    Route::post('/viewForm/getFormInfo', 'ConstructorFormController@getFormInfo');
     Route::post('/submitFillForm', 'FormController@submitFillForm');
 
 
     // Управление формами homeAdmin
-    Route::post('/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
+    Route::post('/viewForm/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
     Route::post('/rejectForm', 'FormController@rejectForm');
     Route::post('/acceptForm', 'FormController@acceptForm');
     
@@ -67,4 +67,8 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/constructor/setDepartments', 'ConstructorFormController@setDepartments');
     Route::post('/constructor/removeDepartments', 'ConstructorFormController@removeDepartments');
     Route::post('/constructor/editDepartments', 'ConstructorFormController@editDepartments');
+
+
+    Route::post('/sendMessage', 'MessageController@sendMessage');
+    Route::post('/sendMessage2', 'MessageController@sendMessage2');
 });

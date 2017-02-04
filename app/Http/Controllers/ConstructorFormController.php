@@ -769,5 +769,6 @@ class ConstructorFormController extends Controller
 
         return redirect('/constructor/departments');
     }
+    
 }
 
