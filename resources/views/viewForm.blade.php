@@ -2,8 +2,6 @@
 
 @section('content')
 
-    <script type="text/javascript" src="{{ url('js/switchForm.js') }}"></script>
-
     <div class="container">
         <div class="row">
             <div class="col-sm-12 ">
@@ -24,7 +22,10 @@
                     </div>
 
                     <div class="panel-body">
-                        <div id="content-form-old" class="col-sm-6"></div>
+                        <div id="content-form-old" class="col-sm-6">
+                            <?php $ver = "old"; $forms_info = $forms_info_old ?>
+                            @include('gatherForm')
+                        </div>
 
                         <form action={{$action}} method="POST">
                             {{ csrf_field() }}
@@ -33,7 +34,10 @@
                             <input type="hidden" name="id_forms" value="{{$id_forms}}">
                             <input type="hidden" name="updated_at" value="{{$updated_at}}">
 
-                            <div id="content-form-current" class="col-sm-6" style="border-left: 1px solid #eee;"></div>
+                            <div id="content-form-current" class="col-sm-6" style="border-left: 1px solid #eee;">
+                                <?php $ver = "new"; $forms_info = $forms_info_new;?>
+                                @include('gatherForm')
+                            </div>
 
                             <div class="row">
                                 <div class="col-sm-12">
@@ -127,8 +131,4 @@
 
         </div>
     </div>
-    <script>
-        formsInfo({{$id_forms .",".$id_forms_departments}});
-        formsInfoOld({{$id_forms .",".$id_forms_departments}});
-    </script>
 @endsection

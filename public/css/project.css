@@ -23,14 +23,13 @@ body {
     background-color: #ffb226;
 }
 
-/*.read-message {*/
-    /*background-color: #12bc0e;*/
-/*}*/
-
-/*.read-message-text,*/
 .new-message-text {
     vertical-align: middle;
 
+}
+
+.group {
+    margin-bottom: 10px;
 }
 
 .card {
@@ -41,8 +40,12 @@ body {
     margin-bottom: 20px;
 }
 
-.message-textarea {
+.textarea-resize-none{
     resize: none;
+}
+
+.message-textarea {
+
     margin-bottom: 10px;
 }
 

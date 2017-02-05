@@ -17,9 +17,7 @@ class MessageController extends Controller
                 'id_forms_departments' => $request->input('id_forms_departments'),
                 'message' => $request->input('message')
             ]);
-
-
-
+        
         return redirect('/viewForm/'.$request->input('id_forms_departments'));
     }
 

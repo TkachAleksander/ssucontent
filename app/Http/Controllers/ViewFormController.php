@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests;
-use App\Message;
 use Auth;
 use DB;
-use Data;
 
 class ViewFormController extends Controller
 {
@@ -68,6 +66,116 @@ class ViewFormController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+
+
+
+
+        // Проверяем есть ли поля в sub_elements_old
+        $forms_info_old = DB::table('fields as f')
+            ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
+            ->where('ff.id_forms','=',$forms_departments[0]->id_forms)
+            ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+            ->leftJoin('fields_forms_old as ffo', 'ffo.id_fields_forms','=','ff.id_fields_forms')
+            ->where('ffo.id_forms_departments','=', $id_forms_departments)
+            ->leftJoin('sub_elements_old as seo' ,'seo.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBy('ffo.id_fields_forms_old', 'asc')
+            ->groupBy('ff.id_fields_forms')
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'seo.id_forms_departments', 'ffo.required_fields_old as required',
+                DB::raw('group_concat(seo.label_sub_elements_old ORDER BY seo.label_sub_elements_old ASC separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(seo.id_sub_elements_field separator " | ") as id_sub_elements'))
+            ->get();
+
+        if (!empty($forms_info_old)){
+            // Для каждого поля и массива $form_infos ищем значения
+            foreach ($forms_info_old as $key => $form_info) {
+
+                // Выбираем значения из таблицы values_fields_old
+                $values = DB::table('values_fields_old')
+                    ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                    ->where('id_forms_departments', '=', $id_forms_departments)
+                    ->select('values_fields_old', 'enum_sub_elements_old', 'id_forms_departments')
+                    ->get();
+                // Если значения есть
+                if (!empty($values)) {
+                    // Добавляем в массив $form_infos values_fields_current
+                    $forms_info_old[$key]->values_fields = $values[0]->values_fields_old;
+
+                    // enum_sub_elements_current добавляем массивом
+                    foreach ($values as $key_value => $value) {
+                        if ($values[$key_value]->enum_sub_elements_old != 0) {
+                            $forms_info_old[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                        }
+                    }
+                }
+            }
+        } else {
+            $form_infos = null;
+        }
+
+
+
+
+
+        $forms_info_new = DB::table('fields as f')
+            ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
+            ->where('ff.id_forms','=',$forms_departments[0]->id_forms)
+            ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+            ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBy('ffc.id_fields_forms_current','asc')
+            ->groupBy('ff.id_fields_forms')
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field','ffc.required_fields_current as required',
+                DB::raw('group_concat(sec.label_sub_elements_current ORDER BY sec.label_sub_elements_current ASC separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(sef.id_sub_elements_field separator " | ") as id_sub_elements'))
+            ->get();
+
+        // Для каждого поля и массива $forms_info ищем значения
+        foreach ($forms_info_new as $key => $form_info) {
+
+            // Выбираем значения (values_fields_current,enum_sub_elements_current) из таблицы values_fields_current
+            $values = DB::table('values_fields_current')
+                ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->select('values_fields_current', 'enum_sub_elements_current','id_forms_departments')
+                ->get();
+
+            // Если значения есть
+            if(!empty($values)) {
+                // Добавляем в массив $forms_info values_fields_current
+                $forms_info_new[$key]->values_fields = $values[0]->values_fields_current;
+
+                // enum_sub_elements_current добавляем массивом
+                foreach ($values as $key_value => $value) {
+                    if ($values[$key_value]->enum_sub_elements_current != 0) {
+                        $forms_info_new[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_current;
+                    }
+                }
+                // Если значений нет
+            } else {
+                // Выбираем значения (values_fields_old,enum_sub_elements_old) из таблицы values_fields_old
+                $values = DB::table('values_fields_old')
+                    ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                    ->where('id_forms_departments', '=', $id_forms_departments)
+                    ->select('values_fields_old', 'enum_sub_elements_old')
+                    ->get();
+
+                // Если значения есть
+                if(!empty($values)) {
+                    // Добавляем в массив $forms_info values_fields_current
+                    $forms_info_new[$key]->values_fields = $values[0]->values_fields_old;
+
+                    // enum_sub_elements_current добавляем массивом
+                    foreach ($values as $key_value => $value) {
+                       if ($values[$key_value]->enum_sub_elements_old != 0) {
+                           $forms_info_new[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                       }
+                    }
+                }
+            }
+        }
+
+
         return view('viewForm', [
             'id_forms' => $forms_departments[0]->id_forms,
             'id_forms_departments' => $id_forms_departments,
@@ -77,7 +185,9 @@ class ViewFormController extends Controller
             'action' => $action,
             'admin' => $admin,
             'required' => $required,
-            'messages' => $messages
+            'messages' => $messages,
+            'forms_info_new' => $forms_info_new,
+            'forms_info_old' => $forms_info_old
         ]);
 
     }
@@ -207,17 +317,12 @@ class ViewFormController extends Controller
                     'id_users' => Auth::user()->id
                 ]);
 
-//            $message = new Message;
-//            $message->timestamps = false;
-
+            // Помечаем все сообщения для id_forms_departments как прочитанные
             DB::table('messages')
                 ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                 ->update(['is_read' => 1]);
 
-//            $message = new Message;
-//            $message->timestamps = true;
-
-            // Записываем сообщение
+            // Записываем новое сообщение
             DB::table('messages')
                 ->insert([
                     'id' => Auth::user()->id,
@@ -251,16 +356,12 @@ class ViewFormController extends Controller
             return redirect('/viewForm/'.$request->input('id_forms_departments'))->with("status", $status);
         } else {
 
-            $message = new Message;
-            $message->timestamps = false;
-
-            Message::where('id_forms_departments','=',$request->input('id_forms_departments'))
+            // Помечаем все сообщения для id_forms_departments как прочитанные
+            DB::table('messages')
+                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
                 ->update(['is_read' => 1]);
 
-            $message = new Message;
-            $message->timestamps = true;
-
-            // Записываем сообщение
+            // Записываем новое сообщение
             DB::table('messages')
                 ->insert([
                     'id' => Auth::user()->id,
@@ -275,13 +376,6 @@ class ViewFormController extends Controller
                 ->update([
                     'id_status_checks' => self::REJECT_FORM
                 ]);
-
-            // Отмечаем сообщения для данной формы-депарьамента прочитанными
-//            DB::table('messages')
-//                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
-//                ->where('id','!=',Auth::user()->id)
-//                ->update(['is_read' => 1]);
-
 
             $status = [
                 "class" => "success",
