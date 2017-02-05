@@ -3,8 +3,8 @@
 Route::auth();
 
 // Вывод статей
-Route::get('/', 'FormController@index');
-Route::get('/viewForm/{id_forms_departments}', 'FormController@viewForm');
+Route::get('/', 'HomeController@index');
+Route::get('/viewForm/{id_forms_departments}', 'ViewFormController@viewForm');
 
 
 // Проверяет авторизован ли пользователь
@@ -18,13 +18,14 @@ Route::group(['middleware' => 'auth'], function(){
 
     // Управление формамии homeUser
     Route::post('/viewForm/getFormInfo', 'ConstructorFormController@getFormInfo');
-    Route::post('/submitFillForm', 'FormController@submitFillForm');
+    Route::post('/submitFillForm', 'viewFormController@submitFillForm');
+    Route::post('/submitFillFormRepeatedly', 'ViewFormController@submitFillFormRepeatedly');
 
 
     // Управление формами homeAdmin
     Route::post('/viewForm/getFormInfoOld', 'ConstructorFormController@getFormInfoOld');
-    Route::post('/rejectForm', 'FormController@rejectForm');
-    Route::post('/acceptForm', 'FormController@acceptForm');
+    Route::post('/rejectForm', 'viewFormController@rejectForm');
+    Route::post('/acceptForm', 'viewFormController@acceptForm');
     
     
     // Получение value_sub_elements

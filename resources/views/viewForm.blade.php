@@ -20,7 +20,7 @@
                 <div class="panel panel-default shadow">
                     <div class="panel-heading">
                         {{$name_forms}}
-                        <span class="pull-right"><a href="{{url('/')}}">Вернуться к списку </a></span>
+                        <span class="pull-right"><a href="{{url('/')}}"> Вернуться к списку </a></span>
                     </div>
 
                     <div class="panel-body">
@@ -41,7 +41,7 @@
                                 </div>
                             </div>
 
-                            @if ($admin)
+                        @if ($admin)
                                 <input type="submit"
                                        class="btn btn-sm btn-success btn-accept-form pull-right confirmRequired"
                                        value="Притнять">
@@ -60,10 +60,12 @@
                                 <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired"
                                        value="Отправить на проверку">
                             @else
-                                <span class="pull-left"> Нашли ошибку ? - Отправте повторно ! </span>
+                                <span class="pull-left"> Нашли ошибку ? - Отправте повторно !  (В поле текст сообщения укажите изменения внесенные в форму) </span>
+                                <input type="hidden" class="duplicate-message" name="message">
                                 <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired"
                                        value="Отправить повторно">
                             @endif
+                        </form>
                         @endif
 
                     </div>
@@ -71,46 +73,28 @@
 
             </div>
 
+            @if ($id_status_checks == 2)
             <div class="col-sm-12">
-                <div class="thumbnail shadow">
-                    <div class="caption">
-                        <div class="form-group">
+                <form action="/sendMessage" method="POST">
+                    {{ csrf_field() }}
+                    <div class="thumbnail shadow">
+                        <div class="caption">
+                            <div class="form-group">
 
-                            <label for="comment">Сообщение:</label>
-                            <form action="/sendMessage" method="POST">
-                                {{ csrf_field() }}
+                                <label for="comment">Текст сообщения:</label>
                                 <textarea class="form-control message-textarea model-text" name="message"
-                                          rows="3" {{$required}}> </textarea>
+                                          rows="3" {{$required}}></textarea>
                                 <input type="hidden" name="id_forms_departments" value="{{$id_forms_departments}}">
-                                <button type="submit" class="btn btn-sm btn-primary"> Отправить</button>
-                            </form>
+                                @if ($admin)
+                                    <button type="submit" class="btn btn-sm btn-primary"> Отправить</button>
+                                @endif
 
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
-
-
-            {{--@if (!empty($messages))--}}
-            {{--@foreach($messages as $message)--}}
-            {{--<div class="col-sm-12">--}}
-            {{--<div class="thumbnail shadow">--}}
-            {{--<div class="caption">--}}
-            {{--@if(!$message->is_read && Auth::user()->id != $message->id)--}}
-            {{--<div class="new-message">--}}
-            {{--<div class="new-message-text"> new </div>--}}
-            {{--</div>--}}
-            {{--@endif--}}
-
-            {{--<b style="text-align: right;">{{$message->surname." ".$message->name." ".$message->middle_name}}</b>--}}
-            {{--<p>{{$message->message}}</p>--}}
-            {{--{{$message->created_at}}--}}
-            {{--</div>--}}
-
-            {{--</div>--}}
-            {{--</div>--}}
-            {{--@endforeach--}}
-            {{--@endif--}}
+            @endif
 
             @if (!empty($messages))
                 @foreach($messages as $message)
@@ -120,7 +104,7 @@
                                 <div class="col-sm-12">
                                     @if(!$message->is_read && Auth::user()->id != $message->id)
                                         <div class="new-message pull-right">
-                                            <div class="new-message-text"> new</div>
+                                            <div class="new-message-text"> new </div>
                                         </div>
                                     @endif
 
@@ -131,7 +115,7 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <hr>
-                                    <p>{{$message->message}}</p>
+                                    <p>{!! $message->message  !!}</p>
                                     {{$message->created_at}}
                                 </div>
                             </div>

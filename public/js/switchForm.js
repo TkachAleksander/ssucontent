@@ -3,6 +3,32 @@ function getSubElementsInArray(str) {
     return sub_elements;
 }
 
+// Предпросмотр пустых форм
+$('.forms-info-all').on('click', function () {
+    var id_forms = $(this).data("id");
+    var contentForm = $('#content-form-current' + id_forms);
+    contentForm.empty();
+
+    if ($(this).hasClass("collapsed")) {
+        $.ajax({
+            type: "POST",
+            url: "getFormInfoAll",
+            data: {id_forms: id_forms},
+            dataType: "JSON",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+            },
+            success: function (formsInfo) {
+// console.log(data);
+                formsInfo.forEach(function (value, key, formsInfo) {
+                    switchElements(contentForm, formsInfo, key, "");
+                });
+            }
+
+        });
+    }
+});
+
 function formsInfo(id_forms ,id_forms_departments){
     var contentForm = $('#content-form-current');
     contentForm.empty();
@@ -26,7 +52,6 @@ function formsInfo(id_forms ,id_forms_departments){
         });
 
 }
-
 
 function formsInfoOld(id_forms ,id_forms_departments){
     var contentForm = $('#content-form-old');

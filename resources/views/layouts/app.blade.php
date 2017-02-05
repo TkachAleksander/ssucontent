@@ -22,6 +22,7 @@
     <!-- MULTISELECT -->
     <link rel="stylesheet" type="text/css" href="{{ url('css/bootstrap-multiselect.css') }}">
     <script type="text/javascript" src="{{ url('js/jquery-3.1.1.min.js') }}"></script>
+
 </head>
 
 <body id="app-layout">
@@ -53,11 +54,11 @@
                             </a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url('/contactsMessages') }}"><i class="fa fa-btn fa-envelope-o"></i>Сообщения</a></li>
+                                {{--<li><a href="{{ url('/contactsMessages') }}"><i class="fa fa-btn fa-envelope-o"></i>Сообщения</a></li>--}}
                                 @if (Auth::user()->id_roles != 1)
                                     <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список доступных форм</a></li>
                                 @else
-                                    <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список форм на проверку</a></li>
+                                    {{--<li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список форм на проверку</a></li>--}}
                                     <li><a href="{{ url('/constructor/addForm') }}"><i class="fa fa-btn fa-file-text-o"></i> Конструктор форм </a></li>
                                     <li><a href="{{ url('/registration') }}"><i class="fa fa-btn fa-user"></i> Управление пользователями </a></li>
                                 @endif
@@ -74,12 +75,9 @@
 
     <!-- JavaScripts -->
     <script type="text/javascript" src="{{ url('js/bootstrap.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url('js/jquery-ui.js') }}"></script>
-    <script type="text/javascript" src="{{ url('js/tcal.js') }}"></script>
-
-    <!-- MULTISELECT -->
     <script type="text/javascript" src="{{ url('js/bootstrap-multiselect.js') }}"></script>
-    <script src="{{ url('js/project.js') }}"></script>
+    <script type="text/javascript" src="{{ url('js/jquery-ui.js') }}" ></script>
+    <script type="text/javascript" src="{{ url('js/project.js') }}"></script>
 
 </body>
 </html>

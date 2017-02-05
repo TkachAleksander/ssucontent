@@ -551,31 +551,31 @@ function removeSetElement(id_fields) {
 // showForms //
 
 
-// Предпросмотр пустых форм
-$('.forms-info-all').on('click', function () {
-    var id_forms = $(this).data("id");
-    var contentForm = $('#content-form-current' + id_forms);
-    contentForm.empty();
-
-    if ($(this).hasClass("collapsed")) {
-        $.ajax({
-            type: "POST",
-            url: "getFormInfoAll",
-            data: {id_forms: id_forms},
-            dataType: "JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (formsInfo) {
-// console.log(data);
-                formsInfo.forEach(function (value, key, formsInfo) {
-                    switchElements(contentForm, formsInfo, key, "");
-                });
-            }
-
-        });
-    }
-});
+// // Предпросмотр пустых форм
+// $('.forms-info-all').on('click', function () {
+//     var id_forms = $(this).data("id");
+//     var contentForm = $('#content-form-current' + id_forms);
+//     contentForm.empty();
+//
+//     if ($(this).hasClass("collapsed")) {
+//         $.ajax({
+//             type: "POST",
+//             url: "getFormInfoAll",
+//             data: {id_forms: id_forms},
+//             dataType: "JSON",
+//             beforeSend: function (xhr) {
+//                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//             },
+//             success: function (formsInfo) {
+// // console.log(data);
+//                 formsInfo.forEach(function (value, key, formsInfo) {
+//                     switchElements(contentForm, formsInfo, key, "");
+//                 });
+//             }
+//
+//         });
+//     }
+// });
 
 // function switchElements(contentForm, formsInfo, key, disabled) {
 //
@@ -869,6 +869,8 @@ $('.btn-reject-form').on('click', function () {
     })
 });
 
+
+// Прикрепляем textarea сообщения в кнопкам
 $('body').on('keyup','.model-text',function () {
    $('.duplicate-message').val($(this).val()); 
 });

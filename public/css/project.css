@@ -6,6 +6,7 @@ body {
     box-shadow: 1px 4px 6px 0 rgba(0, 0, 0, .15);
 }
 
+/*.read-message,*/
 .new-message {
     display: table;
     padding: 0px 4px 0px 6px;
@@ -13,8 +14,22 @@ body {
     color: white;
     font-size: 11px ;
     font-weight: bold;
-    background-color: #ffb226;
     float: left;
+    border-radius: 1px;
+
+}
+
+.new-message {
+    background-color: #ffb226;
+}
+
+/*.read-message {*/
+    /*background-color: #12bc0e;*/
+/*}*/
+
+/*.read-message-text,*/
+.new-message-text {
+    vertical-align: middle;
 
 }
 
@@ -24,10 +39,6 @@ body {
     border-radius: 4px;
     padding: 15px;
     margin-bottom: 20px;
-}
-
-.new-message-text {
-    vertical-align: middle;
 }
 
 .message-textarea {
@@ -46,11 +57,11 @@ body,
 }
 
 .dl-horizontal dt {
-    width: 100px;
+    width: 125px;
 }
 
 .dl-horizontal dd {
-    margin-left: 120px;
+    margin-left: 145px;
 }
 
 hr {

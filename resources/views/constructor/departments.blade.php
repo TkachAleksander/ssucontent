@@ -5,9 +5,9 @@
         <div class="row">
 
             <div class="col-md-12">
-                <div class="panel panel-default">
+                <div class="panel panel-default shadow">
 
-                    @include('constructor.constructorTabs')
+                    @include('constructor.constructorTabs ')
                     <script defer> $('ul[role=tablist]').removeClass('active');$('#tab5').addClass('active') </script>
 
                     <div class="panel-body">

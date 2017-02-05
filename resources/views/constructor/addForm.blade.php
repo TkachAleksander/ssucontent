@@ -5,7 +5,7 @@
         <div class="row">
 
             <div class="col-md-12">
-                <div class="panel panel-default">
+                <div class="panel panel-default shadow">
 
                     {{--Вывод меню вкладок--}}
                     @include('constructor.constructorTabs')
@@ -124,5 +124,8 @@
 
         </div>
     </div>
+
+
+    <script type="text/javascript" src="{{ url('js/tcal.js') }}"></script>
 
 @endsection

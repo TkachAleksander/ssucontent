@@ -6,7 +6,7 @@
 
 
         <div class="col-md-12">
-            <div class="panel panel-default">
+            <div class="panel panel-default shadow">
 
                 <div class="panel-heading panel-heading-constructorForm">
                     <ul class="nav nav-tabs nav-tabs-constructorForm" role="tablist">
