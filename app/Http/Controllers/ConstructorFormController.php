@@ -498,21 +498,24 @@ class ConstructorFormController extends Controller
     }
 
     // Вывод содержимого формы без значений
-    public function getFormInfoAll(Request $request)
+    public function viewFormEmpty($id_forms)
     {
-        $form_info = DB::table('fields as f')
+        $forms_info_empty = DB::table('fields as f')
             ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
-            ->where('ff.id_forms','=',$request->input('id_forms'))
+            ->where('ff.id_forms','=',$id_forms)
+            ->join('forms', 'forms.id_forms','=','ff.id_forms')
             ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
-            ->leftJoin('elements as e', 'e.id_elements', '=', 'f.id_elements')
-            ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
+            ->leftJoin('elements as e', 'e.id_elements','=','f.id_elements')
+            ->leftJoin('sub_elements_fields as sef', 'sef.id_fields','=','f.id_fields')
             ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
             ->orderBy('ffc.id_fields_forms_current')
             ->groupBy('f.id_fields')
-            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field', 'ffc.required_fields_current as required', DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'), DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
+            ->select('forms.name_forms','f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field', 'ffc.required_fields_current as required',
+                DB::raw('group_concat(sec.label_sub_elements_current ORDER BY sec.label_sub_elements_current ASC separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(sec.id_sub_elements_current separator " | ") as id_sub_elements'))
             ->get();
 
-        return response()->json($form_info);
+        return view('viewFormEmpty', ['forms_info_empty' => $forms_info_empty]);
     }
 
 
