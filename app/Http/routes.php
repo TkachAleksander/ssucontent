@@ -18,12 +18,12 @@ Route::group(['middleware' => 'auth'], function(){
     Route::get('/removeUser/{id}', 'UserControlController@removeUser');
 
     // Управление формамии homeUser
-    Route::post('/submitFillForm', 'viewFormController@submitFillForm');
+    Route::post('/submitFillForm', 'ViewFormController@submitFillForm');
     Route::post('/submitFillFormRepeatedly', 'ViewFormController@submitFillFormRepeatedly');
 
     // Управление формами homeAdmin
-    Route::post('/rejectForm', 'viewFormController@rejectForm');
-    Route::post('/acceptForm', 'viewFormController@acceptForm');
+    Route::post('/rejectForm', 'ViewFormController@rejectForm');
+    Route::post('/acceptForm', 'ViewFormController@acceptForm');
 
 
     // Конструктор форм
