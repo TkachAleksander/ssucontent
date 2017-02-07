@@ -195,9 +195,16 @@ class ViewFormController extends Controller
     // UserHome кнопка отправить форму на проверку
     public function submitFillForm(Request $request)
     {
+
+        $id_forms_departments = $request->input('id_forms_departments');
+        $id_user = Auth::user()->id;
+        $id_forms = DB::table('forms_departments')
+            ->where('id_forms_departments','=',$id_forms_departments)
+            ->value('id_forms');
+
         // Удаляем старые значения current
         DB::table('values_fields_current')
-            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $id_forms_departments)
             ->delete();
 
         // Получаем: $id_fields_forms с ключей, $values с значений
@@ -213,7 +220,7 @@ class ViewFormController extends Controller
                     DB::table('values_fields_current')
                         ->insert([
                             'id_fields_forms' => $id_fields_forms,
-                            'id_forms_departments' => $request->input('id_forms_departments'),
+                            'id_forms_departments' => $id_forms_departments,
                             'values_fields_current' => (!empty($values)) ? $values : 0,
                             'enum_sub_elements_current' => 0
                         ]);
@@ -226,7 +233,7 @@ class ViewFormController extends Controller
                         DB::table('values_fields_current')
                             ->insert([
                                 'id_fields_forms' => $id_fields_forms,
-                                'id_forms_departments' => $request->input('id_forms_departments'),
+                                'id_forms_departments' => $id_forms_departments,
                                 'values_fields_current' => 0,
                                 'enum_sub_elements_current' => $value
                             ]);
@@ -238,20 +245,22 @@ class ViewFormController extends Controller
 
         // Ставим статус формы - праверяется
         DB::table('forms_departments')
-            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $id_forms_departments)
             ->update(['id_status_checks' => 1]);
         DB::table('forms_departments')
-            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $id_forms_departments)
             ->update([
                 'id_status_checks' => self::CHECKOUT_FORM,
-                'id_users' => Auth::user()->id
+                'id_users' => $id_user
             ]);
 
         // Отмечаем сообщения для данной формы-депарьамента прочитанными
         DB::table('messages')
-            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
-            ->where('id','!=',Auth::user()->id)
+            ->where('id_forms_departments', '=', $id_forms_departments)
+            ->where('id','!=',$id_user)
             ->update(['is_read' => 1]);
+
+        $this->writeLog($id_user ,$id_forms, 1);
 
         $status = [
             'class' => 'success',
@@ -263,12 +272,18 @@ class ViewFormController extends Controller
 
     public function submitFillFormRepeatedly(Request $request) {
 
+        $id_forms_departments = $request->input('id_forms_departments');
+        $id_user = Auth::user()->id;
+        $id_forms = DB::table('forms_departments')
+            ->where('id_forms_departments','=',$id_forms_departments)
+            ->value('id_forms');
+
         // Если сообщение не пустое
         if (!empty($request->input('message'))) {
 
             // Удаляем старые значения current
             DB::table('values_fields_current')
-                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->where('id_forms_departments', '=', $id_forms_departments)
                 ->delete();
 
             // Получаем: $id_fields_forms с ключей, $values с значений
@@ -284,7 +299,7 @@ class ViewFormController extends Controller
                         DB::table('values_fields_current')
                             ->insert([
                                 'id_fields_forms' => $id_fields_forms,
-                                'id_forms_departments' => $request->input('id_forms_departments'),
+                                'id_forms_departments' => $id_forms_departments,
                                 'values_fields_current' => (!empty($values)) ? $values : 0,
                                 'enum_sub_elements_current' => 0
                             ]);
@@ -297,7 +312,7 @@ class ViewFormController extends Controller
                             DB::table('values_fields_current')
                                 ->insert([
                                     'id_fields_forms' => $id_fields_forms,
-                                    'id_forms_departments' => $request->input('id_forms_departments'),
+                                    'id_forms_departments' => $id_forms_departments,
                                     'values_fields_current' => 0,
                                     'enum_sub_elements_current' => $value
                                 ]);
@@ -308,25 +323,25 @@ class ViewFormController extends Controller
 
             // Ставим статус формы - праверяется
             DB::table('forms_departments')
-                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->where('id_forms_departments', '=', $id_forms_departments)
                 ->update(['id_status_checks' => 1]);
             DB::table('forms_departments')
-                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->where('id_forms_departments', '=', $id_forms_departments)
                 ->update([
                     'id_status_checks' => self::CHECKOUT_FORM,
-                    'id_users' => Auth::user()->id
+                    'id_users' => $id_user
                 ]);
 
             // Помечаем все сообщения для id_forms_departments как прочитанные
             DB::table('messages')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                ->where('id_forms_departments','=',$id_forms_departments)
                 ->update(['is_read' => 1]);
 
             // Записываем новое сообщение
             DB::table('messages')
                 ->insert([
                     'id' => Auth::user()->id,
-                    'id_forms_departments' => $request->input('id_forms_departments'),
+                    'id_forms_departments' => $id_forms_departments,
                     'message' => '<b><i>Форма была отправлена повторно:</i></b><br>'.$request->input('message')
                 ]);
 
@@ -334,7 +349,10 @@ class ViewFormController extends Controller
                 'class' => 'success',
                 'message' => 'Данные в форме успешно обновлены'
             ];
-            return redirect('/viewForm/'.$request->input('id_forms_departments'))->with('status', $status);
+
+            $this->writeLog($id_user ,$id_forms, 2);
+
+            return redirect('/viewForm/'.$id_forms_departments)->with('status', $status);
 
         } else {
 
@@ -342,37 +360,44 @@ class ViewFormController extends Controller
                 'class' => 'danger',
                 'message' => 'Поле "Текст сообщения" должно содержать описание изменений внесенных в форму !'
             ];
-            return redirect('/viewForm/'.$request->input('id_forms_departments'))->with('status', $status);
+            return redirect('/viewForm/'.$id_forms_departments)->with('status', $status);
         }
     }
 
     public function rejectForm(Request $request)
     {
+
+        $id_forms_departments = $request->input('id_forms_departments');
+        $id_user = Auth::user()->id;
+        $id_forms = DB::table('forms_departments')
+            ->where('id_forms_departments','=',$id_forms_departments)
+            ->value('id_forms');
+
         if(empty($request->input('message'))) {
             $status = [
                 "class" => "danger",
                 "message" => "Причина отклонения формы должна быть указана в сообщении !"
             ];
-            return redirect('/viewForm/'.$request->input('id_forms_departments'))->with("status", $status);
+            return redirect('/viewForm/'.$id_forms_departments)->with("status", $status);
         } else {
 
             // Помечаем все сообщения для id_forms_departments как прочитанные
             DB::table('messages')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                ->where('id_forms_departments','=',$id_forms_departments)
                 ->update(['is_read' => 1]);
 
             // Записываем новое сообщение
             DB::table('messages')
                 ->insert([
-                    'id' => Auth::user()->id,
-                    'id_forms_departments' => $request->input('id_forms_departments'),
+                    'id' => $id_user,
+                    'id_forms_departments' => $id_forms_departments,
                     'message' => $request->input('message')
                 ]);
 
 
             // Ставим статус формы - отменена
             DB::table('forms_departments')
-                ->where('id_forms_departments','=',$request->input('id_forms_departments'))
+                ->where('id_forms_departments','=',$id_forms_departments)
                 ->update([
                     'id_status_checks' => self::REJECT_FORM
                 ]);
@@ -381,6 +406,9 @@ class ViewFormController extends Controller
                 "class" => "success",
                 "message" => "Форма отклонена"
             ];
+
+            $this->writeLog($id_user ,$id_forms, 4);
+
             return redirect('/')->with("status", $status);
         }
 
@@ -391,8 +419,13 @@ class ViewFormController extends Controller
     public function acceptForm(Request $request)
     {
 //      dd($request->all());
+
+        $id_forms = $request->input('id_forms');
+        $id_forms_departments = $request->input('id_forms_departments');
+        $id_user = Auth::user()->id;
+
         $updated_at = DB::table('forms_departments')
-            ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+            ->where('id_forms_departments', '=', $id_forms_departments)
             ->value('updated_at');
 
         if ($updated_at != $request->input('updated_at')) {
@@ -400,16 +433,13 @@ class ViewFormController extends Controller
                 "class" => "danger",
                 "message" => "Загружена более новая версия формы"
             ];
-            return redirect('viewForm/' . $request->input('id_forms_departments'))->with("status", $status);
+            return redirect('viewForm/' . $id_forms_departments)->with("status", $status);
         } else {
 
             // Изменяем статус формы для данного отдела на принята
             DB::table('forms_departments')
-                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
+                ->where('id_forms_departments', '=', $id_forms_departments)
                 ->update(['id_status_checks' => self::SUCCESS_FORM]);
-
-            $id_forms = $request->input('id_forms');
-            $id_forms_departments = $request->input('id_forms_departments');
 
             // Узнаем все id_fields_forms для принятой формы
             $id_fields_forms = DB::table('fields_forms as ff')
@@ -450,7 +480,7 @@ class ViewFormController extends Controller
                         DB::table('values_fields_current')
                             ->insert([
                                 'id_fields_forms' => $key_id_fields_forms,
-                                'id_forms_departments' => $request->input('id_forms_departments'),
+                                'id_forms_departments' => $id_forms_departments,
                                 'values_fields_current' => (!empty($values)) ? $values : 0,
                                 'enum_sub_elements_current' => 0
                             ]);
@@ -462,7 +492,7 @@ class ViewFormController extends Controller
                             DB::table('values_fields_current')
                                 ->insert([
                                     'id_fields_forms' => $key_id_fields_forms,
-                                    'id_forms_departments' => $request->input('id_forms_departments'),
+                                    'id_forms_departments' => $id_forms_departments,
                                     'values_fields_current' => 0,
                                     'enum_sub_elements_current' => $value
                                 ]);
@@ -537,9 +567,11 @@ class ViewFormController extends Controller
 
             // Отмечаем сообщения для данной формы-депарьамента прочитанными
             DB::table('messages')
-                ->where('id_forms_departments', '=', $request->input('id_forms_departments'))
-                ->where('id','!=',Auth::user()->id)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->where('id','!=',$id_user)
                 ->update(['is_read' => 1]);
+
+            $this->writeLog($id_user ,$id_forms, 3);
 
             $status = [
                 "class" => "success",
@@ -547,5 +579,14 @@ class ViewFormController extends Controller
             ];
             return redirect('/')->with("status", $status);
         }
+    }
+
+    public function writeLog($id_users, $id_forms, $id_log_action){
+        DB::table('log')
+            ->insert([
+                'id_users' => $id_users,
+                'id_forms' => $id_forms,
+                'id_log_action' => $id_log_action
+            ]);
     }
 }

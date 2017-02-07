@@ -9,6 +9,7 @@ use App\Field;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class ConstructorFormController extends Controller
 {
@@ -126,6 +127,9 @@ class ConstructorFormController extends Controller
 
             }
         }
+
+        $this->writeLog(0,$id_form, 5);
+
         return redirect('/constructor/addForm');
     }
 
@@ -157,8 +161,14 @@ class ConstructorFormController extends Controller
     // Кнопка удаления формы
     public function removeFormsToServer(Request $request){
 
-        DB::table('forms')->where('id_forms','=',$request->input('id_forms'))->delete();
+        $id_forms = $request->input('id_forms');
+        $id_user = Auth::user()->id;
 
+        DB::table('forms')
+            ->where('id_forms','=',$id_forms)
+            ->update(['deleted_forms' => 1]);
+
+        $this->writeLog($id_user, $id_forms, 5);
         return response()->json();
     }
 
@@ -168,6 +178,7 @@ class ConstructorFormController extends Controller
 //dd($request->all());
 
         $id_form = $request->input('id_forms');
+        $id_users = Auth::user()->id;
 
         $this->validate($request, [
             'name_forms' => 'required|max:255|unique:forms,name_forms,'.$id_form.',id_forms',
@@ -272,15 +283,10 @@ class ConstructorFormController extends Controller
                     ->where('id_fields_forms','=',$id_field_form)
                     ->delete();
             }
-
-//            // Если отсутствует fields_forms_current удаляем id_fields_forms из таблицы id_values_fields_current
-//            if(!$isset_field_current){
-//                DB::table('values_fields_current')
-//                    ->where('id_fields_forms','=',$id_field_form)
-//                    ->delete();
-//            }
-
         }
+
+
+        $this->writeLog($id_users, $id_form, 6);
 
         return redirect('/constructor/addForm');
     }
@@ -334,7 +340,6 @@ class ConstructorFormController extends Controller
                 DB::raw('group_concat(sec.id_sub_elements_field separator " | ") as id_sub_elements_from_fields'))
             ->get();
 
-//dd($fields);
         return response()->json(['fields' => $fields]);
     }
 
@@ -379,8 +384,6 @@ class ConstructorFormController extends Controller
     // Запись отредактированного fields
     public function addEditedNewSetElement(Request $request)
     {
-//dd($request->all());
-
         // Ни одна форма в составе которой есть редактируемое поле не должна иметь статус 2 (проверяется администратором)
         $list_forms = DB::table('fields as f')
             ->where('f.id_fields','=',$request->input('id_edit_fields'))
@@ -408,8 +411,6 @@ class ConstructorFormController extends Controller
                 ]);
             return redirect('/constructor/newElement');
         } else {
-
-
 
             // Получаем массив id_sub_elements_fields которые уже есть в таблице sub_elements_fields
             $id_sub_elements_from_fields = explode(" | ", $request->input('id_sub_elements_from_fields'));
@@ -492,8 +493,7 @@ class ConstructorFormController extends Controller
     // Вывод списка форм на страницу
     public function showForms()
     {
-        $forms = DB::table('forms')->get();
-        
+        $forms = DB::table('forms')->where('deleted_forms','=',0)->get();
         return view('constructor.showForms', ['forms' => $forms]);
     }
 
@@ -571,17 +571,23 @@ class ConstructorFormController extends Controller
 
     public function setTableConnectUsers(Request $request)
     {
+        $id_departments = $request->input('id_departments');
+        $id_forms = $request->input('id_forms');
+        $id_user = Auth::user()->id;
+
         $value = DB::table('forms_departments as fd')
-            ->where('fd.id_forms', '=', $request->input('id_forms'))
-            ->where('fd.id_departments', '=', $request->input('id_departments'))
+            ->where('fd.id_forms', '=', $id_forms)
+            ->where('fd.id_departments', '=', $id_departments)
             ->get();
 
         if ($value == null) {
             DB::table('forms_departments')
                 ->insert([
-                    'id_forms' => $request->input('id_forms'),
-                    'id_departments' => $request->input('id_departments')
+                    'id_forms' => $id_forms,
+                    'id_departments' => $id_departments
                 ]);
+
+            $this->writeLog($id_user,$id_forms,7);
             return response()->json(['message' => 'Связь успешно добавлена.', 'bool' => true]);
         } else {
             return response()->json(['message' => 'Такая связь уже существует!', 'bool' => false]);
@@ -665,6 +671,14 @@ class ConstructorFormController extends Controller
 
         return redirect('/constructor/departments');
     }
-    
+
+    public function writeLog($id_users, $id_forms, $id_log_action){
+        DB::table('log')
+            ->insert([
+                'id_users' => $id_users,
+                'id_forms' => $id_forms,
+                'id_log_action' => $id_log_action
+            ]);
+    }
 }
 

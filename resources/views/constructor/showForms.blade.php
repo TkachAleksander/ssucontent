@@ -14,24 +14,6 @@
                     <div class="panel-body">
                         <div class="col-sm-12">
 
-                            {{--@foreach($forms as $form)--}}
-                                {{--<div class="panel panel-default shadow">--}}
-                                    {{--<div class="panel-heading">--}}
-                                        {{--<h4 class="panel-title">--}}
-                                            {{--<a data-toggle="collapse" data-parent="#accordion" href="#accordion{{$form->id_forms}}" class="forms-info-all collapsed" data-id="{{$form->id_forms}}">--}}
-                                                {{--{{ $form->name_forms }}--}}
-                                            {{--</a>--}}
-                                        {{--</h4>--}}
-                                    {{--</div>--}}
-                                    {{--<div id="accordion{{$form->id_forms}}" class="panel-collapse collapse ">--}}
-                                        {{--<div class="panel-body">--}}
-                                            {{--<div id="content-form-current{{$form->id_forms}}" class="col-sm-6">--}}
-
-                                            {{--</div>--}}
-                                        {{--</div>--}}
-                                    {{--</div>--}}
-                                {{--</div>--}}
-                            {{--@endforeach--}}
                             <div class="row">
                                 @if (!empty($forms))
                                     @foreach($forms as $form)
