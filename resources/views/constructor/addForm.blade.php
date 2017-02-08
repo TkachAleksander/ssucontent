@@ -5,6 +5,15 @@
         <div class="row">
 
             <div class="col-md-12">
+                @if (session()->has('status'))
+                    <div class="alert alert-{{ session('status.class') }} text-center">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ session('status.message') }}
+                    </div>
+                @endif
+
                 <div class="panel panel-default shadow">
 
                     {{--Вывод меню вкладок--}}
@@ -33,7 +42,19 @@
                                                  {{$form->name_forms}}
                                                   <span class="pull-right">
                                                       <button type="button" class="btn btn-sm btn-success btn-padding-0 editForms"  data-id-form="{{$form->id_forms}}" data-status-checks="{{$form->id_status_checks}}"> Редактировать </button>
-                                                      <button type="button" class="btn btn-sm btn-danger btn-padding-0 removeForms confirmDelete" data-id-form="{{$form->id_forms}}"> Удалить </button>
+                                                      @if ($form->deleted_forms == 1)
+                                                        <form action="reestablishForm" method="POST" class="display-inline-block">
+                                                            {{ csrf_field() }}
+                                                            <input type="hidden" name="id_forms" value="{{$form->id_forms}}">
+                                                            <button type="submit" class="btn btn-sm btn-warning btn-padding-0"> Вернуть </button>
+                                                        </form>
+                                                      @else
+                                                          <form action="removeForms" method="POST" class="display-inline-block">
+                                                              {{ csrf_field() }}
+                                                              <input type="hidden" name="id_forms" value="{{$form->id_forms}}">
+                                                              <button type="submit" class="btn btn-sm btn-danger btn-padding-0 confirmDelete"> Удалить </button>
+                                                          </form>
+                                                      @endif
                                                   </span>
                                              </td>
                                          </tr>

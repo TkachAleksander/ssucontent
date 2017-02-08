@@ -32,14 +32,14 @@ class ConstructorFormController extends Controller
             ->leftJoin('elements as e', 'e.id_elements', '=', 'f.id_elements')
             ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
             ->leftJoin('sub_elements_current as sec' ,'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
-            ->groupBy('f.id_fields'/*,'sef.id_sub_elements_field'*/)
+            ->groupBy('f.id_fields')
             ->select(DB::raw('group_concat(sec.label_sub_elements_current separator " | ") as labels_sub_elements'),'f.id_fields', 'f.label_fields', 'e.name_elements', 'sef.id_sub_elements_field')
             ->get();
 
-        $forms = DB::table('forms_departments as fd')
-            ->leftJoin('forms', 'forms.id_forms', '=', 'fd.id_forms')
-            ->groupBy('fd.id_forms')
-            ->select(DB::raw('group_concat(fd.id_status_checks separator " | ") as id_status_checks'), 'forms.id_forms', 'forms.name_forms', 'fd.id_forms_departments')
+        $forms = DB::table('forms')
+            ->leftJoin('forms_departments as fd', 'fd.id_forms', '=', 'forms.id_forms')
+            ->groupBy('forms.id_forms')
+            ->select(DB::raw('group_concat(fd.id_status_checks separator " | ") as id_status_checks'), 'forms.*', 'fd.id_forms_departments')
             ->get();
 
         foreach ($forms as $key=>$form){
@@ -50,7 +50,7 @@ class ConstructorFormController extends Controller
                 }
             }
         }
-
+//dd($fields, $forms);
         return view('constructor.addForm', ['fields' => $fields, 'forms' => $forms]);
     }
 
@@ -82,8 +82,6 @@ class ConstructorFormController extends Controller
     // Кнопка добавления новой формы
     public function addNewForm(Request $request)
     {
-//        dd($request->all());
-
         $this->validate($request, [
             'name_forms' => 'required|max:255|unique:forms',
             'date_update_forms' => 'required',
@@ -100,6 +98,7 @@ class ConstructorFormController extends Controller
                 'name_forms' => $request->input('name_forms'),
                 'date_update_forms' => $request->input('date_update_forms')
             ]);
+        $id_user = Auth::user()->id;
 
         $info_new_fields_form = $request->input('info_new_form');
 
@@ -128,9 +127,13 @@ class ConstructorFormController extends Controller
             }
         }
 
-        $this->writeLog(0,$id_form, 5);
+        $status = [
+            'class' => 'success',
+            'message' => 'Форма успешно добавлена'
+        ];
 
-        return redirect('/constructor/addForm');
+        $this->writeLog($id_user, $id_form, $id_departments = 0, $id_forms_departments = 0, $id_log_action = 5);
+        return redirect('/constructor/addForm')->with('status', $status);
     }
 
     // Кнопка добавления формы на редактирование
@@ -161,15 +164,38 @@ class ConstructorFormController extends Controller
     // Кнопка удаления формы
     public function removeFormsToServer(Request $request){
 
-        $id_forms = $request->input('id_forms');
+        $id_form = $request->input('id_forms');
         $id_user = Auth::user()->id;
 
         DB::table('forms')
-            ->where('id_forms','=',$id_forms)
+            ->where('id_forms','=',$id_form)
             ->update(['deleted_forms' => 1]);
 
-        $this->writeLog($id_user, $id_forms, 5);
-        return response()->json();
+        $status = [
+            'class' => 'success',
+            'message' => 'Форма успешно удалена.'
+        ];
+
+        $this->writeLog($id_user, $id_form, $id_departments = 0, $id_forms_departments = 0, $id_log_action = 7);
+        return redirect('/constructor/addForm')->with('status', $status);
+    }
+
+    public function reestablishForm(Request $request){
+
+        $id_form = $request->input('id_forms');
+        $id_user = Auth::user()->id;
+
+        DB::table('forms')
+            ->where('id_forms','=',$id_form)
+            ->update(['deleted_forms' => 0]);
+
+        $status = [
+            'class' => 'success',
+            'message' => 'Форма успешно восствновлена.'
+        ];
+
+        $this->writeLog($id_user, $id_form, $id_departments = 0, $id_forms_departments = 0, $id_log_action = 10);
+        return redirect('/constructor/addForm')->with('status', $status);
     }
 
     // Кнопка редактирования уже сужествуещей формы
@@ -178,7 +204,7 @@ class ConstructorFormController extends Controller
 //dd($request->all());
 
         $id_form = $request->input('id_forms');
-        $id_users = Auth::user()->id;
+        $id_user = Auth::user()->id;
 
         $this->validate($request, [
             'name_forms' => 'required|max:255|unique:forms,name_forms,'.$id_form.',id_forms',
@@ -285,10 +311,13 @@ class ConstructorFormController extends Controller
             }
         }
 
+        $status = [
+            'class' => 'success',
+            'message' => 'Форма успешно отредактирована'
+        ];
 
-        $this->writeLog($id_users, $id_form, 6);
-
-        return redirect('/constructor/addForm');
+        $this->writeLog($id_user, $id_form, $id_department = 0, $id_forms_departments = 0, $id_log_action = 6);
+        return redirect('/constructor/addForm')->with('status', $status);
     }
 
 
@@ -587,7 +616,8 @@ class ConstructorFormController extends Controller
                     'id_departments' => $id_departments
                 ]);
 
-            $this->writeLog($id_user,$id_forms,7);
+
+            $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments = 0, $id_log_action = 8);
             return response()->json(['message' => 'Связь успешно добавлена.', 'bool' => true]);
         } else {
             return response()->json(['message' => 'Такая связь уже существует!', 'bool' => false]);
@@ -597,13 +627,19 @@ class ConstructorFormController extends Controller
 
     public function setTableDisconnectUsers(Request $request)
     {
+        $id_departments = $request->input('id_departments');
+        $id_forms = $request->input('id_forms');
+        $id_user = Auth::user()->id;
+
         $value = DB::table('forms_departments as fd')
-            ->where('id_forms', '=', $request->input('id_forms'))
-            ->where('id_departments', '=', $request->input('id_departments'))
+            ->where('id_forms', '=', $id_forms)
+            ->where('id_departments', '=', $id_departments)
             ->pluck('id_forms_departments');
 
         if ($value != null) {
             DB::table('forms_departments')->where('id_forms_departments', '=', $value)->delete();
+
+            $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments = 0, $id_log_action = 9);
             return response()->json(['message' => 'Связь успешно разорвана.', 'bool' => true]);
         } else {
             return response()->json(['message' => 'Такой связи не существует!', 'bool' => false]);
@@ -672,11 +708,13 @@ class ConstructorFormController extends Controller
         return redirect('/constructor/departments');
     }
 
-    public function writeLog($id_users, $id_forms, $id_log_action){
+    public function writeLog($id_users, $id_forms, $id_departments, $id_forms_departments, $id_log_action){
         DB::table('log')
             ->insert([
                 'id_users' => $id_users,
                 'id_forms' => $id_forms,
+                'id_departments' => $id_departments,
+                'id_forms_departments' => $id_forms_departments,
                 'id_log_action' => $id_log_action
             ]);
     }

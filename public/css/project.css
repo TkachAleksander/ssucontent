@@ -28,6 +28,10 @@ body {
 
 }
 
+.display-inline-block{
+    display: inline-block;
+}
+
 .group {
     margin-bottom: 10px;
 }

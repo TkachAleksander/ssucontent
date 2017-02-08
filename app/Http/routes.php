@@ -33,6 +33,8 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/constructor/addNewForm', 'ConstructorFormController@addNewForm');
     Route::post('/constructor/editForm', 'ConstructorFormController@editForm');
     Route::post('/constructor/addEditedNewForm', 'ConstructorFormController@addEditedNewForm');
+    Route::post('/constructor/reestablishForm', 'ConstructorFormController@reestablishForm');
+    Route::post('/constructor/removeForms', 'ConstructorFormController@removeFormsToServer');
     //> Вкладка Добавить элемент
     Route::get('/constructor/newElement', 'ConstructorFormController@newElement');
     Route::post('/constructor/addNewElement', 'ConstructorFormController@addNewElementToServer');
@@ -43,7 +45,6 @@ Route::group(['middleware' => 'auth'], function(){
     //> Вкладка Просмотр списка форм
     Route::get('/constructor/showForms', 'ConstructorFormController@showForms');
     Route::get('/viewFormEmpty/{id_forms}', 'ConstructorFormController@viewFormEmpty');
-    Route::post('/constructor/removeForms', 'ConstructorFormController@removeFormsToServer');
     //> Вкладка Связи
     Route::get('/constructor/formsConnectUsers', 'ConstructorFormController@formsConnectUsers');
     Route::post('/constructor/getTableConnectUsers', 'ConstructorFormController@getTableConnectUsers');

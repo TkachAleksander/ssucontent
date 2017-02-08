@@ -204,22 +204,22 @@ $(document).ready(function () {
     }).disableSelection();
 });
 
-// Удалить форму(скрыть) constructorForm
-$('.removeForms').on('click', function () {
-    var id_forms = $(this).data("idForm");
-    $.ajax({
-        type: "POST",
-        url: "/constructor/removeForms",
-        data: {id_forms: id_forms},
-        dataType: "JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function () {
-            location.reload();
-        }
-    })
-});
+// // Удалить форму(скрыть) constructorForm
+// $('.removeForms').on('click', function () {
+//     var id_forms = $(this).data("idForm");
+//     $.ajax({
+//         type: "POST",
+//         url: "/constructor/removeForms",
+//         data: {id_forms: id_forms},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function () {
+//             location.reload();
+//         }
+//     })
+// });
 
 // Выбрать форму для редактирования
 $('.editForms').on('click', function () {
@@ -689,14 +689,8 @@ function removeSetElement(id_fields) {
 //             break;
 //     }
 // }
-// $('.confirmRequired').on('click', function () {
-//     alert();
-//     if($('.required').hasClass('error')){
-//         alert(1);
-//     } else {
-//         alert(0);
-//     }
-//
+
+
 // });
 
 
@@ -848,29 +842,41 @@ $('.btn-edit-departments').on('click', function () {
 //     })
 // });
 
-// Кнопка отклонить
-$('.btn-reject-form').on('click', function () {
-    var id_forms_departments = $(this).data('idFormsDepartments');
-
-    $.ajax({
-        type: "POST",
-        url: "rejectForm",
-        data: {id_forms_departments: id_forms_departments},
-        dataType: "JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if (data.bool) {
-                window.location.href('http://ssucontent/');
-            }
-        }
-    })
-});
+// // Кнопка отклонить
+// $('.btn-reject-form').on('click', function () {
+//     var id_forms_departments = $(this).data('idFormsDepartments');
+//
+//     $.ajax({
+//         type: "POST",
+//         url: "rejectForm",
+//         data: {id_forms_departments: id_forms_departments},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if (data.bool) {
+//                 window.location.href('http://ssucontent/');
+//             }
+//         }
+//     })
+// });
 
 
 // Прикрепляем textarea сообщения в кнопкам
 $('body').on('keyup','.model-text',function () {
    $('.duplicate-message').val($(this).val()); 
 });
+
+// $('.confirmRequired').on('click', function () {
+//     if ($('.group.required :checked').length > 0) {
+//     // if ($('.group').hasClass('required') == null) {
+//     //     if ($('.group').children('input').text() == "") {
+//             alert(1);
+//         // }
+//     } else {
+//         alert(0);
+//     }
+//     return false;
+// });
