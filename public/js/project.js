@@ -355,7 +355,7 @@ function cleanTableNewForm() {
     $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
-    $('#name_forms,#update_date').val("");
+    $('#name_forms,#date_update_forms').val("");
     $('#old_name_forms').remove();
 }
 
@@ -782,25 +782,26 @@ $('#btn-forms-disconnect-users').on('click', function () {
 // departments //
 
 
-$('.btn-remove-departments').on('click', function () {
-    var id_departments = $(this).data('idDepartments');
+// $('.btn-remove-departments').on('click', function () {
+//     var id_departments = $(this).data('idDepartments');
+//
+//     $.ajax({
+//         type: "POST",
+//         url: "removeDepartments",
+//         data: {id_departments: id_departments},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if (data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     });
+// });
 
-    $.ajax({
-        type: "POST",
-        url: "removeDepartments",
-        data: {id_departments: id_departments},
-        dataType: "JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if (data.bool) {
-                location.reload();
-            }
-        }
-    });
-});
 
 $('.btn-edit-departments').on('click', function () {
     var id_departments = $(this).data('idDepartments');

@@ -33,17 +33,17 @@ class ViewFormController extends Controller
         }
 
         if (Auth::user()->id_roles == self::ADMINISTRATOR) {
-            if ($forms_departments[0]->id_status_checks != self::CHECKOUT_FORM){
-                $status = [
-                    "class" => "danger",
-                    "message" => "Форма не стоит на проверке"
-                ];
-                return redirect('/')->with("status", $status);
-            } else {
+//            if ($forms_departments[0]->id_status_checks != self::CHECKOUT_FORM){
+//                $status = [
+//                    "class" => "danger",
+//                    "message" => "Форма не стоит на проверке"
+//                ];
+//                return redirect('/')->with("status", $status);
+//            } else {
                 $action = "/acceptForm";
                 $admin = true;
                 $required = "required";
-            }
+//            }
         } else {
             if ($forms_departments[0]->id_status_checks != 2 ){
                 $action = "/submitFillForm";
@@ -192,11 +192,191 @@ class ViewFormController extends Controller
 
     }
 
+    public function doneForm(){
+
+        $reject_forms = DB::table('forms_departments as fd')
+            ->where('fd.id_status_checks','=',4)
+            ->join('forms', 'forms.id_forms','=','fd.id_forms')
+            ->join('status_checks as sc', 'sc.id_status_checks','=','fd.id_status_checks')
+            ->join('departments as d', 'd.id_departments','=','fd.id_departments')
+            ->join('users as u', 'u.id','=', 'fd.id_users')
+            ->select('fd.*','sc.*','d.*','u.*','forms.*','fd.updated_at')
+            ->get();
+
+        $accept_forms = DB::table('forms_departments as fd')
+            ->where('fd.id_status_checks','=',3)
+            ->join('forms', 'forms.id_forms','=','fd.id_forms')
+            ->join('status_checks as sc', 'sc.id_status_checks','=','fd.id_status_checks')
+            ->join('departments as d', 'd.id_departments','=','fd.id_departments')
+            ->join('users as u', 'u.id','=', 'fd.id_users')
+            ->select('fd.*','sc.*','d.*','u.*','forms.*','fd.updated_at')
+            ->get();
+//dd($reject_forms, $accept_forms);
+        return view('doneForm',['reject_forms' => $reject_forms, 'accept_forms' => $accept_forms]);
+    }
+
+    public function viewDoneForm($id_forms_departments) {
+
+        $forms_departments = DB::table('forms_departments')
+            ->where('id_forms_departments', '=', $id_forms_departments)
+            ->select('updated_at', 'id_forms', 'id_status_checks')
+            ->get();
+
+        if (empty($forms_departments)){
+            $status = [
+                "class" => "danger",
+                "message" => "Форма не стоит на проверке"
+            ];
+            return redirect('/')->with("status", $status);
+        }
+
+
+        $action = "/acceptForm";
+        $admin = true;
+        $required = "required";
+
+        $name_forms = DB::table('forms')
+            ->where('id_forms', '=', $forms_departments[0]->id_forms)
+            ->value('name_forms');
+
+        $messages = DB::table('messages as m')
+            ->where('m.id_forms_departments', '=', $id_forms_departments)
+            ->join('users as u', 'u.id', '=', 'm.id')
+            ->select('m.*', 'u.surname', 'u.name', 'u.middle_name')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+
+
+
+
+        // Проверяем есть ли поля в sub_elements_old
+        $forms_info_old = DB::table('fields as f')
+            ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
+            ->where('ff.id_forms','=',$forms_departments[0]->id_forms)
+            ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+            ->leftJoin('fields_forms_old as ffo', 'ffo.id_fields_forms','=','ff.id_fields_forms')
+            ->where('ffo.id_forms_departments','=', $id_forms_departments)
+            ->leftJoin('sub_elements_old as seo' ,'seo.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBy('ffo.id_fields_forms_old', 'asc')
+            ->groupBy('ff.id_fields_forms')
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'seo.id_forms_departments', 'ffo.required_fields_old as required',
+                DB::raw('group_concat(seo.label_sub_elements_old ORDER BY seo.label_sub_elements_old ASC separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(seo.id_sub_elements_field separator " | ") as id_sub_elements'))
+            ->get();
+
+        if (!empty($forms_info_old)){
+            // Для каждого поля и массива $form_infos ищем значения
+            foreach ($forms_info_old as $key => $form_info) {
+
+                // Выбираем значения из таблицы values_fields_old
+                $values = DB::table('values_fields_old')
+                    ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                    ->where('id_forms_departments', '=', $id_forms_departments)
+                    ->select('values_fields_old', 'enum_sub_elements_old', 'id_forms_departments')
+                    ->get();
+                // Если значения есть
+                if (!empty($values)) {
+                    // Добавляем в массив $form_infos values_fields_current
+                    $forms_info_old[$key]->values_fields = $values[0]->values_fields_old;
+
+                    // enum_sub_elements_current добавляем массивом
+                    foreach ($values as $key_value => $value) {
+                        if ($values[$key_value]->enum_sub_elements_old != 0) {
+                            $forms_info_old[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                        }
+                    }
+                }
+            }
+        } else {
+            $form_infos = null;
+        }
+
+
+
+
+
+        $forms_info_new = DB::table('fields as f')
+            ->join('fields_forms as ff', 'ff.id_fields','=','f.id_fields')
+            ->where('ff.id_forms','=',$forms_departments[0]->id_forms)
+            ->join('elements as e', 'e.id_elements', '=', 'f.id_elements')
+            ->leftJoin('sub_elements_fields as sef', 'sef.id_fields', '=', 'f.id_fields')
+            ->leftJoin('sub_elements_current as sec', 'sec.id_sub_elements_field','=','sef.id_sub_elements_field')
+            ->join('fields_forms_current as ffc', 'ffc.id_fields_forms','=','ff.id_fields_forms')
+            ->orderBy('ffc.id_fields_forms_current','asc')
+            ->groupBy('ff.id_fields_forms')
+            ->select('f.id_fields', 'f.label_fields', 'ff.id_fields_forms', 'e.name_elements', 'sef.id_sub_elements_field','ffc.required_fields_current as required',
+                DB::raw('group_concat(sec.label_sub_elements_current ORDER BY sec.label_sub_elements_current ASC separator " | ") as labels_sub_elements'),
+                DB::raw('group_concat(sef.id_sub_elements_field separator " | ") as id_sub_elements'))
+            ->get();
+
+        // Для каждого поля и массива $forms_info ищем значения
+        foreach ($forms_info_new as $key => $form_info) {
+
+            // Выбираем значения (values_fields_current,enum_sub_elements_current) из таблицы values_fields_current
+            $values = DB::table('values_fields_current')
+                ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                ->where('id_forms_departments', '=', $id_forms_departments)
+                ->select('values_fields_current', 'enum_sub_elements_current','id_forms_departments')
+                ->get();
+
+            // Если значения есть
+            if(!empty($values)) {
+                // Добавляем в массив $forms_info values_fields_current
+                $forms_info_new[$key]->values_fields = $values[0]->values_fields_current;
+
+                // enum_sub_elements_current добавляем массивом
+                foreach ($values as $key_value => $value) {
+                    if ($values[$key_value]->enum_sub_elements_current != 0) {
+                        $forms_info_new[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_current;
+                    }
+                }
+                // Если значений нет
+            } else {
+                // Выбираем значения (values_fields_old,enum_sub_elements_old) из таблицы values_fields_old
+                $values = DB::table('values_fields_old')
+                    ->where('id_fields_forms', '=', $form_info->id_fields_forms)
+                    ->where('id_forms_departments', '=', $id_forms_departments)
+                    ->select('values_fields_old', 'enum_sub_elements_old')
+                    ->get();
+
+                // Если значения есть
+                if(!empty($values)) {
+                    // Добавляем в массив $forms_info values_fields_current
+                    $forms_info_new[$key]->values_fields = $values[0]->values_fields_old;
+
+                    // enum_sub_elements_current добавляем массивом
+                    foreach ($values as $key_value => $value) {
+                        if ($values[$key_value]->enum_sub_elements_old != 0) {
+                            $forms_info_new[$key]->enum_sub_elements[$key_value] = $values[$key_value]->enum_sub_elements_old;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return view('viewDoneForm', [
+            'id_forms' => $forms_departments[0]->id_forms,
+            'id_forms_departments' => $id_forms_departments,
+            'id_status_checks' => $forms_departments[0]->id_status_checks,
+            'name_forms' => $name_forms,
+            'updated_at' => $forms_departments[0]->updated_at,
+            'action' => $action,
+            'admin' => $admin,
+            'required' => $required,
+            'messages' => $messages,
+            'forms_info_new' => $forms_info_new,
+            'forms_info_old' => $forms_info_old
+        ]);
+
+    }
+
     // UserHome кнопка отправить форму на проверку
     public function submitFillForm(Request $request)
     {
 
         $id_forms_departments = $request->input('id_forms_departments');
+        $id_departments = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_departments');
         $id_user = Auth::user()->id;
         $id_forms = DB::table('forms_departments')
             ->where('id_forms_departments','=',$id_forms_departments)
@@ -260,19 +440,20 @@ class ViewFormController extends Controller
             ->where('id','!=',$id_user)
             ->update(['is_read' => 1]);
 
-        $this->writeLog($id_user ,$id_forms, 1);
 
         $status = [
             'class' => 'success',
             'message' => 'Форма успешно отправлена на проверку'
         ];
 
+        $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments, 1);
         return redirect('/')->with('status', $status);
     }
 
     public function submitFillFormRepeatedly(Request $request) {
 
         $id_forms_departments = $request->input('id_forms_departments');
+        $id_departments = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_departments');
         $id_user = Auth::user()->id;
         $id_forms = DB::table('forms_departments')
             ->where('id_forms_departments','=',$id_forms_departments)
@@ -350,8 +531,7 @@ class ViewFormController extends Controller
                 'message' => 'Данные в форме успешно обновлены'
             ];
 
-            $this->writeLog($id_user ,$id_forms, 2);
-
+            $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments, 2);
             return redirect('/viewForm/'.$id_forms_departments)->with('status', $status);
 
         } else {
@@ -369,9 +549,8 @@ class ViewFormController extends Controller
 
         $id_forms_departments = $request->input('id_forms_departments');
         $id_user = Auth::user()->id;
-        $id_forms = DB::table('forms_departments')
-            ->where('id_forms_departments','=',$id_forms_departments)
-            ->value('id_forms');
+        $id_forms = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_forms');
+        $id_departments = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_departments');
 
         if(empty($request->input('message'))) {
             $status = [
@@ -407,8 +586,7 @@ class ViewFormController extends Controller
                 "message" => "Форма отклонена"
             ];
 
-            $this->writeLog($id_user ,$id_forms, 4);
-
+            $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments, 4);
             return redirect('/')->with("status", $status);
         }
 
@@ -422,6 +600,7 @@ class ViewFormController extends Controller
 
         $id_forms = $request->input('id_forms');
         $id_forms_departments = $request->input('id_forms_departments');
+        $id_departments = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_departments');
         $id_user = Auth::user()->id;
 
         $updated_at = DB::table('forms_departments')
@@ -571,21 +750,23 @@ class ViewFormController extends Controller
                 ->where('id','!=',$id_user)
                 ->update(['is_read' => 1]);
 
-            $this->writeLog($id_user ,$id_forms, 3);
-
             $status = [
                 "class" => "success",
                 "message" => "Форма успешно принятя"
             ];
+
+            $this->writeLog($id_user, $id_forms, $id_departments, $id_forms_departments, $id_log_action = 3);
             return redirect('/')->with("status", $status);
         }
     }
 
-    public function writeLog($id_users, $id_forms, $id_log_action){
+    public function writeLog($id_users, $id_forms, $id_departments, $id_forms_departments, $id_log_action){
         DB::table('log')
             ->insert([
                 'id_users' => $id_users,
                 'id_forms' => $id_forms,
+                'id_departments' => $id_departments,
+                'id_forms_departments' => $id_forms_departments,
                 'id_log_action' => $id_log_action
             ]);
     }

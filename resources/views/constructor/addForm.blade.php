@@ -46,7 +46,7 @@
                                                         <form action="reestablishForm" method="POST" class="display-inline-block">
                                                             {{ csrf_field() }}
                                                             <input type="hidden" name="id_forms" value="{{$form->id_forms}}">
-                                                            <button type="submit" class="btn btn-sm btn-warning btn-padding-0"> Вернуть </button>
+                                                            <button type="submit" class="btn btn-sm btn-warning btn-padding-0" style="width: 63px;"> Вернуть </button>
                                                         </form>
                                                       @else
                                                           <form action="removeForms" method="POST" class="display-inline-block">

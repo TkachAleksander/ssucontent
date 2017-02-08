@@ -44,12 +44,8 @@ body {
     margin-bottom: 20px;
 }
 
-.textarea-resize-none{
-    resize: none;
-}
-
 .message-textarea {
-
+    resize: none;
     margin-bottom: 10px;
 }
 

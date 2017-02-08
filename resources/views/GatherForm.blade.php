@@ -1,7 +1,7 @@
 @foreach($forms_info as $key_fi => $form_info)
 <?php
-        $required = ($form_info->required) ? '* ' : '';
-        $label = '<strong><span class="red">'.$required.'</span>'.$form_info->label_fields.'</strong><br>';
+        $star = ($form_info->required) ? '* ' : '';
+        $label = '<strong><span class="red">'.$star.'</span>'.$form_info->label_fields.'</strong><br>';
 
         $id_fields_forms = $form_info->id_fields_forms;
         $value = (!empty($form_info->values_fields)) ? $form_info->values_fields : '';
@@ -15,7 +15,8 @@
             }
         }
 
-        $group = '<div class="'.$ver.'_group'.$id_fields_forms.' group">';
+        $required = ($form_info->required) ? 'required' : '';
+        $group = '<div class="'.$ver.'_group'.$id_fields_forms.' group '.$required.'">';
         $groupend = '</div>';
 
         $disabled = ($ver == 'old') ? 'disabled' : '';
@@ -24,21 +25,21 @@
             case 'input(text)':
                 echo $group;
                 echo $label;
-                echo '<input type="text" class="form-control" name="'.$id_fields_forms.'" value="'.$value.'" '.$disabled.'></input>';
+                echo '<input type="text" class="form-control" name="'.$id_fields_forms.'" value="'.$value.'" '.$disabled.' '.$required.'></input>';
                 echo $groupend;
                 break;
 
             case 'input(email)':
                 echo $group;
                 echo $label;
-                echo '<input type="email" class="form-control" name="'.$id_fields_forms.'" value="'.$value.'" '.$disabled.'></input>';
+                echo '<input type="email" class="form-control" name="'.$id_fields_forms.'" value="'.$value.'" '.$disabled.' '.$required.'></input>';
                 echo $groupend;
                 break;
 
             case 'textarea':
                 echo $group;
                 echo $label;
-                echo '<textarea class="form-control textarea-resize-none" name="'.$id_fields_forms.'" '.$disabled.'>'.$value.'</textarea>';
+                echo '<textarea class="form-control textarea-resize-none" name="'.$id_fields_forms.'" '.$disabled.' '.$required.'>'.$value.'</textarea>';
                 echo $groupend;
                 break;
 

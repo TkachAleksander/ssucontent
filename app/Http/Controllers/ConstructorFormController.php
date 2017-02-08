@@ -672,21 +672,44 @@ class ConstructorFormController extends Controller
         Department::create([
             'name_departments' => $request->input('name_departments')
         ]);
-        return redirect('/constructor/departments');
+        $status = [
+            'class' => 'success',
+            'message' => 'Отдел успешно добавлен !'
+        ];
+        return redirect('/constructor/departments')->with('status',$status);
     }
 
     public function removeDepartments(Request $request){
         $bool = DB::table('forms_departments')->where('id_departments','=',$request->input('id_departments'))->get();
 
         if($bool == null){
-            DB::table('departments')->where('id_departments','=',$request->input('id_departments'))->delete();
-            $message = "Отдел успешно удален !";
-            $bool = true;
+            DB::table('departments')
+                ->where('id_departments','=',$request->input('id_departments'))
+                ->update(['deleted_departments' => 1]);
+            $status = [
+                'class' => 'success',
+                'message' => 'Отдел успешно удален'
+            ];
         } else {
-            $message = "Сначала отвяжите все формы от отдела !";
-            $bool = false;
+            $status = [
+                'class' => 'danger',
+                'message' => 'Сначала отвяжите все формы от отдела !'
+            ];
         }
-        return response()->json(['message'=>$message,'bool'=>$bool]);
+        return redirect('/constructor/departments')->with('status',$status);
+    }
+
+    public function reestablishDepartments(Request $request){
+
+            DB::table('departments')
+                ->where('id_departments','=',$request->input('id_departments'))
+                ->update(['deleted_departments' => 0]);
+        $status = [
+            'class' => 'success',
+            'message' => 'Отдел успешно востановлен !'
+        ];
+
+        return redirect('/constructor/departments')->with('status',$status);
     }
 
     public function editDepartments(Request $request){

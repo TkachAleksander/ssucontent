@@ -25,6 +25,10 @@ Route::group(['middleware' => 'auth'], function(){
     Route::post('/rejectForm', 'ViewFormController@rejectForm');
     Route::post('/acceptForm', 'ViewFormController@acceptForm');
 
+    // Управление завершенными формами
+    Route::get('/doneForm', 'ViewFormController@doneForm');
+    Route::get('/viewDoneForm/{id_forms_departments}', 'ViewFormController@viewDoneForm');
+
 
     // Конструктор форм
     //> Вкладка Собрать форму
@@ -54,6 +58,7 @@ Route::group(['middleware' => 'auth'], function(){
     Route::get('/constructor/departments', 'ConstructorFormController@getAllDepartments');
     Route::post('/constructor/setDepartments', 'ConstructorFormController@setDepartments');
     Route::post('/constructor/removeDepartments', 'ConstructorFormController@removeDepartments');
+    Route::post('/constructor/reestablishDepartments', 'ConstructorFormController@reestablishDepartments');
     Route::post('/constructor/editDepartments', 'ConstructorFormController@editDepartments');
 
 });

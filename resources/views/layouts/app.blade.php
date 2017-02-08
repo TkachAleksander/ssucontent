@@ -54,9 +54,10 @@
                             </a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file-o"></i>Список форм </a></li>
+                                <li><a href="{{ url('/') }}"><i class="fa fa-btn fa-file "></i> Список форм </a></li>
                                 @if (Auth::user()->id_roles == 1)
-                                    <li><a href="{{ url('/constructor/addForm') }}"><i class="fa fa-btn fa-file-text-o"></i> Конструктор форм </a></li>
+                                    <li><a href="{{ url('/doneForm') }}"><i class="fa fa-btn fa-chevron-down"></i> Обработанные формы </a></li>
+                                    <li><a href="{{ url('/constructor/addForm') }}"><i class="fa fa-btn fa-cog"></i> Конструктор форм </a></li>
                                     <li><a href="{{ url('/registration') }}"><i class="fa fa-btn fa-user"></i> Управление пользователями </a></li>
                                 @endif
                                 <li><a href="{{ url('/logout') }}"><i class="fa fa-btn fa-sign-out"></i> Выйти </a></li>
