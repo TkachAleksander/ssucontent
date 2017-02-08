@@ -4,6 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12 ">
+                <div class="row">
 
                     @if (Auth::guest())
                         <div class="row">
@@ -28,7 +29,7 @@
                     @endif
 
 
-                <div class="row">
+
                     @if (!empty($forms))
                         @foreach($forms as $form)
                             <div class="col-sm-offset-1 col-sm-10">
@@ -66,8 +67,8 @@
                             </div>
                         @endif
                     @endif
-                </div>
 
+                </div>
             </div>
         </div>
     </div>
