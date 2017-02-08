@@ -5,12 +5,17 @@
         <div class="row">
 
             <div class="col-md-12">
-                <div class="panel panel-default">
+                <div class="panel panel-default shadow">
 
                     @include('constructor.constructorTabs')
                     <script defer> $('ul[role=tablist]').removeClass('active'); $('#tab2').addClass('active') </script>
 
                     <div class="panel-body">
+                        @if ($errors->has('list_forms_departments'))
+                            <span class="help-block">
+                                <strong>{{ $errors->first('list_forms_departments') }}</strong>
+                            </span>
+                        @endif
 
                         <form action="/constructor/addNewElement" method="POST">
                             <div class="row">
@@ -21,7 +26,12 @@
                                         <tr>
                                             <td> Заголовок (lable) </td>
                                             <td>
-                                                <input id="label_set_elements" class="form-control" type="text" name="label_set_elements" required>
+                                                <input id="label_fields" class="form-control" type="text" name="label_fields" required>
+                                                @if ($errors->has('label_fields'))
+                                                    <span class="help-block">
+                                                        <strong>{{ $errors->first('label_fields') }}</strong>
+                                                    </span>
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
@@ -29,7 +39,7 @@
                                             <td>
                                                 <select id="select_labels" class="multiselect" name="id_elements">
                                                     @foreach($elements as $element)
-                                                        <option value="{{ $element->id }}">{{ $element->name_elements }}</option>
+                                                        <option value="{{ $element->id_elements }}">{{ $element->name_elements }}</option>
                                                     @endforeach
                                                 </select>
                                             </td>
@@ -41,7 +51,7 @@
                                                     <div class="controls">
                                                         <div class="controls-form" role="form" autocomplete="off">
                                                             <div class="entry input-group col-xs-12">
-                                                                <input class="form-control sub_elements" name="value_sub_elements[]" type="text" required disabled/><span class="input-group-btn"><button class="btn btn-success btn-add btn-success-last" type="button"><span class="glyphicon glyphicon-plus"></span></button></span>
+                                                                <input class="form-control sub_elements" name="label_sub_elements[]" type="text" required disabled/><span class="input-group-btn"><button class="btn btn-success btn-add btn-success-last" type="button"><span class="glyphicon glyphicon-plus"></span></button></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -61,12 +71,19 @@
                                     <p><div class="text-center">Список элементов</div></p>
                                     <table class="table table-striped table-bordered table-constructorForm table-padding">
 
-                                        @foreach($set_elements as $set_element)
+                                        @foreach($fields as $field)
                                             <tr>
-                                                <td>{{ $set_element->label_set_elements }}</td>
-                                                <td>{{ $set_element->name_elements }}</td>
-                                                <td>{{ ($set_element->value_sub_elements != null) ? $set_element->value_sub_elements : "---" }}</td>
-                                                <td><button type="button" id="{{ $set_element->id_set_elements }}" class="editElementFromForm btn btn-sm btn-default btn-padding-0 pull-right"> Редактировать </button></td>
+                                                <td>{{ $field->label_fields }}</td>
+                                                <td>{{ $field->name_elements }}</td>
+                                                {{--<td {{(empty($field->labels_sub_elements)) ? "class=text-center" : ""}}>--}}
+                                                <td class="text-center">
+                                                    @if(!empty($field->labels_sub_elements))
+                                                        {{$field->labels_sub_elements}}
+                                                    @else
+                                                        {{"---"}}
+                                                    @endif
+                                                </td>
+                                                <td><button type="button" id="{{ $field->id_fields }}" class="editElementFromForm btn btn-sm btn-default btn-padding-0 pull-right"> Редактировать </button></td>
                                             </tr>
                                         @endforeach
                                     </table>

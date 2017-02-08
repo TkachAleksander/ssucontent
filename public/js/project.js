@@ -44,7 +44,8 @@
             // If we can't parse the cookie, ignore it, it's unusable.
             s = decodeURIComponent(s.replace(pluses, ' '));
             return config.json ? JSON.parse(s) : s;
-        } catch(e) {}
+        } catch (e) {
+        }
     }
 
     function read(s, converter) {
@@ -67,9 +68,9 @@
             return (document.cookie = [
                 encode(key), '=', stringifyCookieValue(value),
                 options.expires ? '; expires=' + options.expires.toUTCString() : '', // use expires attribute, max-age is not supported by IE
-                options.path    ? '; path=' + options.path : '',
-                options.domain  ? '; domain=' + options.domain : '',
-                options.secure  ? '; secure' : ''
+                options.path ? '; path=' + options.path : '',
+                options.domain ? '; domain=' + options.domain : '',
+                options.secure ? '; secure' : ''
             ].join(''));
         }
 
@@ -110,12 +111,30 @@
         }
 
         // Must not alter options, thus extending a fresh object...
-        $.cookie(key, '', $.extend({}, options, { expires: -1 }));
+        $.cookie(key, '', $.extend({}, options, {expires: -1}));
         return !$.cookie(key);
     };
 
 }));
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// рандомная строка
+function str_rand(size) {
+    var result = '';
+    var words = '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+    var max_position = words.length - 1;
+    for (i = 0; i < size; ++i) {
+        position = Math.floor(Math.random() * max_position);
+        result = result + words.substring(position, position + 1);
+    }
+    return result;
+}
+
+// Из строки в массив
+function getSubElementsInArray(str) {
+    var sub_elements = str.split(' | ');
+    return sub_elements;
+}
 
 
 // addForm //
@@ -126,8 +145,8 @@
 
 
 // Подтверждение нажатия на кнопку
-$('.confirmDelete').on('click', function() {
-    return (confirm("Вы подтверждаете удаление?")) ? true : false ;
+$('.confirmDelete').on('click', function () {
+    return (confirm("Вы подтверждаете удаление?")) ? true : false;
 });
 
 //  Страница newElement проверка активное/неактивное поле после выбора select
@@ -146,9 +165,9 @@ function select_labels() {
     }
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
 
-	// MULTISELECT
+    // MULTISELECT
     $('.multiselect').multiselect();
 
     // Страница newElement проверка активное/неактивное поле после выбора select
@@ -169,8 +188,8 @@ $(document).ready(function() {
 
     // Перетаскивание элементов
     // Не дает элементам внутри tr съехать
-    var fixHelper = function(e, ui) {
-        ui.children().each(function() {
+    var fixHelper = function (e, ui) {
+        ui.children().each(function () {
             $(this).width($(this).width());
         });
         return ui;
@@ -185,179 +204,195 @@ $(document).ready(function() {
     }).disableSelection();
 });
 
-    // Удалить форму(скрыть) constructorForm
-    $('.removeForms').on('click', function() {
-        var id_forms = $(this).data("idForm");
+// // Удалить форму(скрыть) constructorForm
+// $('.removeForms').on('click', function () {
+//     var id_forms = $(this).data("idForm");
+//     $.ajax({
+//         type: "POST",
+//         url: "/constructor/removeForms",
+//         data: {id_forms: id_forms},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function () {
+//             location.reload();
+//         }
+//     })
+// });
+
+// Выбрать форму для редактирования
+$('.editForms').on('click', function () {
+    var id_form = $(this).data("idForm");
+    var status_checks = $(this).data("statusChecks");
+//alert(id_form);
+    if (status_checks == '2') {
+        alert("Сначала примите или откланите форму !");
+    } else {
         $.ajax({
-            type:"POST",
-            url:"/constructor/removeForms",
-            data:{id_forms:id_forms},
-            dataType:"JSON",
+            type: "POST",
+            url: "/constructor/editForm",
+            data: {id_form: id_form},
+            dataType: "JSON",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
             },
-            success: function () {
-                location.reload();
+            success: function (fields) {
+//console.log(fields);
+                var sortContainer = $('#sortContainer');
+                sortContainer.empty();
+                $('form').attr('action', 'addEditedNewForm');
+                $('#old_name_forms').remove();
+                $('#name_forms').after('<input type="hidden" name="id_forms" value="' + fields[0].id_forms + '">')
+                    .empty().val(fields[0].name_forms);
+                $('#date_update_forms').empty().val(fields[0].date_update_forms);
+
+                $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>' +
+                        '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" style="margin-left:10px"> Редактировать </button>')
+                    .remove();
+                $('#btn-edit-form').attr("data-id-this-form", id_form);
+
+                fields.forEach(function (field, key, fields) {
+                    var checked = (field.required_fields_current == 1) ? "checked=true" : "";
+                    setFields(field, checked, "[" + str_rand(3) + "]", "[exists_id_fields_forms]")
+
+                });
+
             }
         })
-    });
+    }
 
-    // Выбрать форму для редактирования
-    $('.editForms').on('click', function () {
-        var id_form = $(this).data("idForm");
-        var status_checks = $(this).data("statusChecks");
+});
 
-        if (status_checks == '2'){
-            alert("Сначала примите или откланите форму !");
-        } else {
-            $.ajax({
-                type: "POST",
-                url: "/constructor/editForm",
-                data: {id_form: id_form},
-                dataType: "JSON",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (set_elements) {
-                    var sortContainer = $('#sortContainer');
-                    sortContainer.empty();
-                    $('#name_forms').after('<input type="hidden" id="old_name_forms" name="old_name_forms" value="' + set_elements[0].name_forms + '" required>')
-                        .empty().val(set_elements[0].name_forms);
-                    $('#update_date').empty().val(set_elements[0].update_date);
+// // Кнопка добавления формы на сервер
+// $('#container').on('click','#addNewForm', function() {
+//     var name_forms = $('#name_forms').val();
+//     var id_fields = $('#sortContainer').sortable("toArray");
+//     var date_update_forms = $('#date_update_forms').val();
+//
+//     var required = [];
+//     var i = 0;
+//     $('#sortContainer input:checkbox:checked').each(function(){
+//             required[i++] = $(this).val();
+//     });
+//
+//     $.ajax({
+//         type: "POST",
+//         url: "addSetFormsElements",
+//         data: { name_forms:name_forms, id_fields:id_fields, required:required, date_update_forms:date_update_forms },
+//         dataType:"JSON",
+//         beforeSend: function (xhr){
+//             xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
+//         },
+//         success: function(data){
+//             alert(data.message);
+//             if(data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     });
+//
+// });
 
-                    $('#addNewForm').after('<button type="button" id="btn-cancel-form" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewForm();" style="margin-left:10px"> Отмена </button>' +
-                            '<button type="submit" id="btn-edit-form" class="btn btn-sm btn-success btn-padding-0 pull-right" data-id-form="' + id_form + '" style="margin-left:10px"> Редактировать </button>')
-                        .remove();
-
-                    set_elements.forEach(function (set_element, key, set_elements) {
-
-                        set_element.value_sub_elements = (set_element.value_sub_elements == "") ? "---" : set_element.value_sub_elements;
-                        var checked = (set_element.required == 1) ? "checked=true" : "";
-                        sortContainer.append('<tr id="' + set_element.id + '" >' +
-                            '<td>' + set_element.label_set_elements + '</td>' +
-                            '<td>' + set_element.value_sub_elements + '</td>' +
-                            '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="' + set_element.id + '" ' + checked + ' ></td>' +
-                            '<td class="text-center"><button id="' + set_element.id + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + set_element.id + '"> X </button></td>' +
-                            '<td class="id-set-elements" style="display: none;">'+set_element.id_set_elements+'</td>'+
-                            '</tr>'
-                        );
-
-                    });
-
-                }
-            })
+// Добаление элементов в область перетаскивания
+$('.table-constructorForm').on('click', '.addElementInForm', function () {
+    var id_fields = $(this).attr('id');
+    $('#help-block').remove();
+    $.ajax({
+        url: 'getSetElements',
+        data: {id_fields: id_fields},
+        type: 'POST',
+        dataType: 'JSON',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function (field) {
+            setFields(field[0], "", "[" + str_rand(3) + "]", "[new_id_fields_forms]");
         }
-
     });
+});
 
-    // Кнопка добавления формы на сервер
-    $('#container').on('click','#addNewForm', function() {
-        var name_forms = $('#name_forms').val();
-        var queue = $('#sortContainer').sortable("toArray");
-        var update_date = $('#update_date').val();
 
-        var required = [];
-        var i = 0;
-        $('#sortContainer input:checkbox:checked').each(function(){
-                required[i++] = $(this).val();
-        });
+function setFields(field, checked, arr, name_input) {
+    field.id_fields_forms = (field.id_fields_forms === undefined) ? "new" : field.id_fields_forms;
+    field.labels_sub_elements = (field.labels_sub_elements == null) ? "---" : field.labels_sub_elements;
+    $('#sortContainer').append(
+        '<tr id="' + field.id_fields + '" >' +
+        '<td>' +
+        field.label_fields +
+        // '<input type="hidden" name="label_fields'+arr+'" value="' + field.label_fields + '">' +
+        '</td>' +
 
-        $.ajax({
-            type: "POST",
-            url: "addSetFormsElements",
-            data: { name_forms:name_forms, queue:queue, required:required, update_date:update_date },
-            dataType:"JSON",
-            beforeSend: function (xhr){
-                xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
-            },
-            success: function(data){
-                alert(data.message);
-                if(data.bool) {
-                    location.reload();
-                }
-            }
-        });
+        '<td class="text-center">' +
+        field.labels_sub_elements +
+        // '<input type="hidden" name="id_fields'+arr+'" value="' + field.id_fields + '">' +
+        '</td>' +
 
-    });
+        '<td class="text-center">' +
+        '<input type="checkbox" class="required" name="info_new_form' + arr + '[required]" value="' + field.id_fields + '"' + checked + ' >' +
+        '<input type="hidden"   class="required" name="info_new_form' + arr + '[id_fields]" value="' + field.id_fields + '"' + checked + ' >' +
+        '<input type="hidden"   class="required" name="info_new_form' + arr + name_input + '" value="' + field.id_fields_forms + '"' + checked + ' >' +
+        '</td>' +
 
-    // Добаление элементов в область перетаскивания
-    $('.table-constructorForm').on('click','.addElementInForm', function(){
-            var idSetElement = $(this).attr('id');
+        '<td class="text-center">' +
+        '<button id="' + field.id_fields + '" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="' + field.id_fields + '"> X </button>' +
+        '</td>' +
 
-            $.ajax({
-                url: 'getSetElements',
-                data: {idSetElement:idSetElement},
-                type: 'POST',
-                dataType: 'JSON',
-                beforeSend: function(xhr)
-                {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (data)
-                {
-                    data[0].value_sub_elements =(data[0].value_sub_elements == "") ? "---" : data[0].value_sub_elements;
-                    $('#sortContainer').append( '<tr id="' +data[0].id+ '">'+
-                        '<td>' +data[0].label_set_elements+ '</td>'+
-                        '<td>' +data[0].value_sub_elements+ '</td>'+
-                        '<td class="text-center"><input type="checkbox" class="required" name="required[]" value="'+data[0].id+'"></td>'+
-                        '<td class="text-center"><button id="'+data[0].id+'" class="btn btn-sm btn-danger btn-padding-0 dellElementFromForm" data-id="0"> X </button></td>'+
-                        '<td class="id-set-elements" style="display: none;">'+data[0].id+'</td>'+
-                        '</tr>');
-                }
-            });
-    });
-
+        '</tr>'
+    );
+}
 
 
 // Стереть элементы с таблицы сбора формы
-$('#sortContainer').on('click','.dellElementFromForm', function(){
+$('#sortContainer').on('click', '.dellElementFromForm', function () {
     var id = $(this).attr('id');
     $(this).parents('tr').remove();
 });
 
 // Кнопка отмены редактируемой формы
 function cleanTableNewForm() {
+    $('form').attr('action', 'addNewForm');
     $('#btn-edit-form').after('<button id="addNewForm" class="btn btn-sm btn-primary btn-padding-0 pull-right"> Добавить </button>');
     $('#btn-edit-form, #btn-cancel-form').remove();
     $('#sortContainer').empty();
-    $('#name_form,#update_date').val("");
+    $('#name_forms,#date_update_forms').val("");
     $('#old_name_forms').remove();
 }
 
-// Кнопка отправки отредактированной формы
-$('#container').on('click','#btn-edit-form',function () {
-    var id_form = $(this).data('idForm');
-    var name_forms = $('#name_forms').val();
-    var old_name_forms = $('#old_name_forms').val();
-    var queue = $('#sortContainer').sortable("toArray");
-    var update_date = $('#update_date').val();
-    
-    var id_set_elements = [];
-    var required = [];
-    $.each($('#sortContainer tr td:last-child'),function(i){
-        id_set_elements[i] = $(this).html();
-
-    });
-    $.each($('#sortContainer input:checkbox:checked'),function(i){
-        required[i] = $(this).val();
-    });
-console.log('queue: '+queue+' required: '+required+' set: '+id_set_elements);
-    $.ajax({
-        type:"POST",
-        url:"/constructor/addEditedNewForm",
-        data:{name_forms:name_forms, old_name_forms:old_name_forms, queue:queue, required:required, id_form:id_form, update_date:update_date, id_set_elements:id_set_elements},
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if(data.bool) {
-                location.reload();
-            }
-        }
-    })
-});
+// // Кнопка отправки отредактированной формы
+// $('#container').on('click','#btn-edit-form',function () {
+//
+//     var id_form = $('#btn-edit-form').data('idThisForm');
+//     var name_forms = $('#name_forms').val();
+//     var old_name_forms = $('#old_name_forms').val();
+//     var date_update_forms = $('#date_update_forms').val();
+//    
+//     var id_fields = [];
+//     var required = [];
+//     $.each($('#sortContainer tr td:last-child'),function(i){
+//         id_fields[i] = $(this).html();
+//
+//     });
+//     $.each($('#sortContainer input:checkbox:checked'),function(i){
+//         required[i] = $(this).val();
+//     });
+//
+//     $.ajax({
+//         type:"POST",
+//         url:"/constructor/addEditedNewForm",
+//         data:{name_forms:name_forms, old_name_forms:old_name_forms, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
+//         dataType:"JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {console.log(data);
+//             alert(data.message);
+//             if(data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     })
+// });
 
 
 // newElement //
@@ -368,22 +403,20 @@ console.log('queue: '+queue+' required: '+required+' set: '+id_set_elements);
 
 
 // Добавление строки для подэлементов вкладка Добавить элемент
-$(document).on('click', '.btn-add', function(e)
-{
+$(document).on('click', '.btn-add', function (e) {
     e.preventDefault();
 
     var controlForm = $('.controls div:first'),
         currentEntry = $(this).parents('.entry:first'),
         newEntry = $(currentEntry.clone()).appendTo(controlForm);
-
+//console.log(currentEntry);
     newEntry.find('input').val('');
     controlForm.find('.entry:not(:last) .btn-add')
         .removeClass('btn-add').addClass('btn-remove')
-        .removeClass('btn-success','btn-success-last').addClass('btn-danger','btn-danger-last')
+        .removeClass('btn-success', 'btn-success-last').addClass('btn-danger', 'btn-danger-last')
         .attr('data-id', 0) // для элементов которые добавил пользователь и удаляет
         .html('<span class="glyphicon glyphicon-minus"></span>');
-}).on('click', '.btn-remove', function(e)
-{
+}).on('click', '.btn-remove', function (e) {
     $(this).parents('.entry:first').remove();
     // записываем элементы которые скроются
     var id = $(this).attr('data-id');
@@ -392,450 +425,390 @@ $(document).on('click', '.btn-add', function(e)
         if ($.cookie('uninstalled_sub_elements') != Array()) {
             id += "," + $.cookie('uninstalled_sub_elements');
         }
-        $.cookie('uninstalled_sub_elements', id, {expires: 1, path:'/'});
     }
     e.preventDefault();
     return false;
 });
 
 // Редактирование элементов
-$('.editElementFromForm').on('click',function() {
-    var id_set_elements = $(this).attr('id');
+$('.editElementFromForm').on('click', function () {
+    var id_fields = $(this).attr('id');
     $.ajax({
-        type:"POST",
-        url :"/editSetElementFromForm",
-        data:{id_set_elements:id_set_elements},
-        dataType:"JSON",
+        type: "POST",
+        url: "/editSetElementFromForm",
+        data: {id_fields: id_fields},
+        dataType: "JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
-        success: function (value) {
-            console.log(value);
+        success: function (data) {
+// console.log(data);
+            var label_fields = $('#label_fields');
 
-            var name_set_elements = $('#name_set_elements');
-            var label_set_elements = $('#label_set_elements');
+            // Удаляем hidden поля
+            $('.old-value-hidden').remove();
+            // Вставка Label
+            label_fields.val(data.fields[0].label_fields);
 
-            // Очищаем hidden поля
-            $('#old_name_set_elements').remove();
-            $('#old_label_set_elements').remove();
-
-            // Вставка Имени и Label
-            name_set_elements.val(value.set_elements[0].name_set_elements);
-            label_set_elements.val(value.set_elements[0].label_set_elements);
-
-            // Вставка Имени и Label в hidden поля
-            name_set_elements.after('<input class="old-value-hidden" type="hidden" name="old_name_set_elements" value="'+value.set_elements[0].name_set_elements+'" required>'+
-                '<input class="old-value-hidden" type="hidden" name="id_set_elements" value="'+value.set_elements[0].id+'" required>');
-            label_set_elements.after('<input class="old-value-hidden" type="hidden" name="old_label_set_elements" value="'+value.set_elements[0].label_set_elements+'" required>'+
-                '<input class="old-value-hidden" type="hidden" name="old_id_elements" value="'+value.set_elements[0].id_elements+'" required>');
+            // Вставка hidden поля с id_fields
+            label_fields.after(
+                '<input class="old-value-hidden" type="hidden" name="id_sub_elements_from_fields" value="' + data.fields[0].id_sub_elements_from_fields + '" required>' +
+                '<input class="old-value-hidden" type="hidden" name="id_fields" value="' + data.fields[0].id_fields + '" required>'
+            );
 
             // Вставка значения в multiselect
             $('#select_labels option').removeAttr('selected');
-            $('#select_labels [value="'+value.set_elements[0].id_elements+'"]').prop("selected", true);
+            $('#select_labels [value="' + data.fields[0].id_elements + '"]').prop("selected", true);
             var name = $('#select_labels :selected').text();
-            $('.multiselect-selected-text').html(name).parent().attr('title',name);
+            $('.multiselect-selected-text').html(name).parent().attr('title', name);
 
             // Удаляем старые danger поля
             $('.btn-danger-last').parents('.entry').remove();
-            $('#btn-edit','#btn-cancel').remove();
+            $('#btn-edit', '#btn-cancel').remove();
 
             // Заполняем поля под элементами
-            var controlsForm = $('.controls-form');
-            for(var i=0; i<value.sub_elements.length; i++) {
-                controlsForm.prepend(
-                    '<div class="entry input-group col-xs-12">'+
-                    '<input class="form-control sub_elements" name="value_sub_elements['+value.sub_elements[i].id+']" type="text" value="'+value.sub_elements[i].value_sub_elements+'">'+
-                    '<span class="input-group-btn">'+
-                    '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="'+value.sub_elements[i].id+'"><span class="glyphicon glyphicon-minus"></span></button>'+
-                    '</span>'+
-                    '</div>');
+            if (data.fields[0].labels_sub_elements) {
+                var labels_sub_elements = getSubElementsInArray(data.fields[0].labels_sub_elements);
+                var id_sub_elements_from_field = getSubElementsInArray(data.fields[0].id_sub_elements_from_fields);
+
+                var controlsForm = $('.controls-form');
+                for (var i = labels_sub_elements.length; i >= 0; i--) {
+                    if (labels_sub_elements[i] != null) {
+                        controlsForm.prepend(
+                            '<div class="entry input-group col-xs-12">' +
+                            '<input class="form-control sub_elements" name="label_sub_elements[][' + id_sub_elements_from_field[i] + ']" type="text" value="' + labels_sub_elements[i] + '">' +
+                            '<span class="input-group-btn">' +
+                            '<button class="btn btn-remove btn-danger btn-danger-last" type="button" data-id="' + labels_sub_elements[i] + '"><span class="glyphicon glyphicon-minus"></span></button>' +
+                            '</span>' +
+                            '</div>');
+                    }
+                }
             }
             // Отключаем у success поля проверку на заполнение и неактивность
-            $('.sub_elements').attr({'disabled':false, 'required':false});
+            $('.sub_elements').attr({'disabled': false, 'required': false});
 
             // Вставляем кнопку редактировать / отменить
-            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right" onclick="removeSetElement('+id_set_elements+');" style="margin-left:10px" class="confirmDelete"> Удаить </button>'+
-                                 '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>'+
-                                 '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement('+id_set_elements+');" style="margin-left:10px"> Редактировать </button>');
+            $('#btn-add').before('<button type="button" id="btn-remove" class="btn btn-sm btn-danger btn-padding-0 pull-right confirmDelete" onclick="removeSetElement(' + id_fields + ');" style="margin-left:10px" class="confirmDelete"> Удаить </button>' +
+                '<button type="button" id="btn-cancel" class="btn btn-sm btn-default btn-padding-0 pull-right" onclick="cleanTableNewSetElement();" style="margin-left:10px"> Отмена </button>' +
+                '<button type="submit" id="btn-edit" class="btn btn-sm btn-success btn-padding-0 pull-right" onclick="editNewSetElement();" style="margin-left:10px"> Редактировать </button>');
             $('#btn-add').remove();
             // Проверяем на активность поля Список выбора
             select_labels();
-            // создаем куки для элементов которые будут скрыты в бд после редактирования
-            $.cookie('uninstalled_sub_elements', new Array(), {expires: 1, path:'/'});
 
         }
 
     });
 });
 
-    // Кнопка отмены редактируемого элемента
-    function cleanTableNewSetElement(){
-        // Очистка Имени и Label
-        $('#name_set_elements, #label_set_elements').val('');
-        // Очищаем hidden поля
-        $('.old-value-hidden').remove();
-        // Очистка значения в multiselect
-        $('#select_labels option').removeAttr('selected');
-        $('#select_labels [value="1"]').prop("selected", true);
-        $('.multiselect-selected-text').html('input(text)').parent().attr('title','input(text)');
-        // Удаляем старые danger поля
-        $('.btn-danger-last').parents('.entry').remove();
-        // Включаем у success поля проверку на заполнение и неактивность
-        $('.sub_elements').attr({'disabled':true, 'required':true});
-        // Вставляем кнопку добавить, удаляем кнопки редактировать и отменить
-        $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>').remove();
-        $('#btn-edit, #btn-remove').remove();
-        // удаляем куки
-        $.cookie('uninstalled_sub_elements', new Array(), {expires: -1, path:'/'});
-    }
+// Кнопка отмены редактируемого элемента
+function cleanTableNewSetElement() {
+    // Очистка Имени и Label
+    $('#label_fields').val('');
+    // Очищаем hidden поля
+    $('.old-value-hidden').remove();
+    // Очистка значения в multiselect
+    $('#select_labels option').removeAttr('selected');
+    $('#select_labels [value="1"]').prop("selected", true);
+    $('.multiselect-selected-text').html('input(text)').parent().attr('title', 'input(text)');
+    // Удаляем старые danger поля
+    $('.btn-danger-last').parents('.entry').remove();
+    // Включаем у success поля проверку на заполнение и неактивность
+    $('.sub_elements').attr({'disabled': true, 'required': true});
+    // Вставляем кнопку добавить, удаляем кнопки редактировать и отменить
+    $('#btn-cancel').before('<button type="submit" id="btn-add" class="btn btn-sm btn-primary btn-padding-0 pull-right" style="margin-left:15px"> Добавить </button>').remove();
+    $('#btn-edit, #btn-remove').remove();
+    // удаляем куки
+    $.cookie('uninstalled_sub_elements', new Array(), {expires: -1, path: '/'});
+}
 
-    // Кнопка отправки отредактираванного элемента
-    function editNewSetElement(id_set_elements) {
-        $('#label_set_elements').after('<input type="hidden" name="id_set_elements" value="'+ id_set_elements +'">');
-        $('form').attr('action', '/addEditedNewSetElement');
-    }
+// Кнопка отправки отредактираванного элемента
+function editNewSetElement() {
+    $('form').attr('action', '/addEditedNewSetElement');
+}
 
-    // Удалить элемент
-    function removeSetElement(id_set_element) {
-        console.log(id_set_element);
-        $.ajax({
-            type: "POST",
-            url: "/removeSetElement",
-            data: {id_set_elements: id_set_element},
-            dataType: "JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function () {
-                location.reload();
-            }
-        });
-    }
-
-
-// showForms //
-// showForms //
-// showForms //
-// showForms //
-// showForms //
-
-
-    // Отображение содержимого формы (Просмотр списка форм) constructorForm
-    $('.forms-info').on('click', function(){
-        var id_forms = $(this).data("id");
-        var id_departments = $(this).data("idDepartments");
-        var generateString = $(this).data("generatestring")
-        var contentForm = $('#content-form'+generateString);
-        contentForm.empty();
-
-        if ($(this).hasClass("collapsed")) {
-            $.ajax({
-                type: "POST",
-                url: "getFormInfo",
-                data: {id_forms: id_forms, id_departments:id_departments},
-                dataType: "JSON",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (formsInfo) {
-
-                    formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
-                    });
-                }
-
-            });
-        }
-    });
-
-    // Отображение старого содержимого формы homeAdmin
-    $('.forms-info-old').on('click', function() {
-        var id_forms = $(this).data("id");
-        var id_departments = $(this).data("idDepartments");
-        var generateString = $(this).data("generatestring")
-        var contentForm = $('#content-form-old'+generateString);
-        contentForm.empty();
-
-        if ($(this).hasClass("collapsed")) {
-            $.ajax({
-                type: "POST",
-                url: "getFormInfoOld",
-                data: {id_forms: id_forms, id_departments:id_departments},
-                dataType: "JSON",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (formsInfo) {
-
-                    if (formsInfo.length == 0){
-                        contentForm.append('<p class="text-center">Форма подана первый раз</p>');
-                    }
-
-                    formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
-                    });
-                }
-            });
-        }
-    });
-
-    // Предпросмотр пустых форм
-    $('.forms-info-all').on('click', function(){
-        var id_forms = $(this).data("id");
-        var contentForm = $('#content-form'+id_forms);
-        contentForm.empty();
-
-        if ($(this).hasClass("collapsed")) {
-            $.ajax({
-                type: "POST",
-                url: "getFormInfoAll",
-                data: {id_forms: id_forms},
-                dataType: "JSON",
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-                },
-                success: function (formsInfo) {
-                    $('.input-id-form').val(formsInfo[0].id_forms);
-
-                    formsInfo.forEach(function (value, key, formsInfo) {
-                        switchElements(contentForm, formsInfo, key);
-                    });
-                }
-
-            });
-        }
-    });
-
-    function switchElements(contentForm, formsInfo, key) {
-        var required;
-        if(formsInfo[key].required == true) {
-            formsInfo[key].required = "*";
-            required = "required";
-        } else {
-            formsInfo[key].required = "";
-            required = "";
-        }
-
-        formsInfo[key].values_forms = (formsInfo[key].values_forms == null) ? "" : formsInfo[key].values_forms;
-        // console.log(formsInfo[key]);
-        switch (formsInfo[key].name_elements) {
-
-            case "input(text)":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_set_forms_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
-                break;
-
-            case "input(email)":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_set_forms_elements + '"' + required + ' value="'+formsInfo[key].values_forms+'"><p></p>');
-                break;
-
-            case "textarea":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_set_forms_elements + '" style="resize: none;"' + required + '>'+formsInfo[key].values_forms+'</textarea><p></p>');
-                break;
-
-            case "radiobutton":
-                // console.log(formsInfo[key].values_forms);
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
-                                    show_empty_checkbox = false;
-                                }
-                                // console.log(value_sub + checked_sub + show_empty_checkbox);
-                            });
-                        }
-                        if (show_empty_checkbox){
-                            contentForm.append('<input type="radio" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
-                        }
-                    });
-
-                contentForm.append('<p></p>');
-                break;
-
-            case "checkbox":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b><br>');
-                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + 'checked > ' + label_sub_elements[key_value] + '</br>');
-                                    show_empty_checkbox = false;
-                                }
-                                // console.log(value_sub + checked_sub + show_empty_checkbox);
-                            });
-                        }
-                        if (show_empty_checkbox){
-                            contentForm.append('<input type="checkbox" name="' + formsInfo[key].id_set_forms_elements + "[]" + '" value="' + formsInfo[key].id_sub_elements[key_value] + '"' + required + '> ' + label_sub_elements[key_value] + '</br>');
-                        }
-                    });
-
-                contentForm.append('<p></p>');
-                break;
-
-            case "option":
-                contentForm.append('<b>' + formsInfo[key].required + '' + formsInfo[key].label_set_elements + '</b>');
-                var label_sub_elements = getSubElementsInArray(formsInfo[key].value_sub_elements);
-
-                    contentForm.append('<input type="hidden" name="' + formsInfo[key].id_set_forms_elements + '" value="">');
-                    contentForm.append('<select id="select' +key+ '" class="multiselect" name="' + formsInfo[key].id_set_forms_elements +"[]" + '" style="margin-left: 10px;" ' + required + '>');
-
-                    label_sub_elements.forEach(function (value_sub, key_value, label_sub_elements) {
-                        var show_empty_checkbox = true;
-                        if (formsInfo[key].checked_sub_elements != null) {
-                            var checked_sub_elements = getSubElementsInArray(formsInfo[key].checked_sub_elements);
-                            checked_sub_elements.forEach(function (checked_sub, key_checked, checked_sub_elements) {
-                                if (label_sub_elements[key_value] == checked_sub_elements[key_checked]) {
-                                    $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
-                                    show_empty_checkbox = false;
-                                }
-                                console.log(value_sub + checked_sub + show_empty_checkbox);
-                            });
-                        }
-                        if (show_empty_checkbox){
-                            $('#select' + key).append('<option value="' + formsInfo[key].id_sub_elements[key_value] + '">' + label_sub_elements[key_value] + '</option>');
-                        }
-                    });
-                contentForm.append('<p></p>');
-                break;
-        }
-    }
-
-    // Из строки в массив
-    function getSubElementsInArray (str){
-        var sub_elements = str.split(' | ');
-        return sub_elements;
-    }
-
-
-// formsConnectUsers //
-// formsConnectUsers //
-// formsConnectUsers //
-// formsConnectUsers //
-// formsConnectUsers //
-
-
-    // Вкладка Форма/Пользователь отображение уже существующих связей
-    $("#id_forms, #id_departments").change(function(){
-        var id_forms = $('#id_forms option:selected').val();
-        var id_departments = $('#id_departments option:selected').val();
-        
-        (id_forms == '*' || id_departments == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled','true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
-
-        $.ajax({
-            type:"POST",
-            url:"getTableConnectUsers",
-            data:{ id_forms:id_forms, id_departments:id_departments },
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (departments) {
-                console.log(departments);
-                var table = $('#table-forms-connect-users tr:first');
-                $('.new_tr').empty();
-                departments.forEach( function(department, key, departments){
-                    table.after('<tr class="new_tr">'+
-                                    '<td>'+department.name_forms+'</td>'+
-                                    '<td>'+department.name_departments+'</td>'+
-                                '</tr>');
-                });
-            }
-        });
-    });
-
-    // Кнопка добаления связей
-    $('#btn-forms-connect-users').on('click', function(){
-        var id_forms = $('#id_forms option:selected').val();
-        var id_departments = $('#id_departments option:selected').val();
-
-        $.ajax({
-            type:"POST",
-            url:"setTableConnectUsers",
-            data:{ id_forms:id_forms, id_departments:id_departments },
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (data) {
-                alert(data.message);
-                if(data.bool) {
-                    location.reload();
-                }
-            }
-        });
-    });
-
-    // Кнопка удаления связей
-    $('#btn-forms-disconnect-users').on('click', function(){
-        var id_forms = $('#id_forms option:selected').val();
-        var id_departments = $('#id_departments option:selected').val();
-        // alert (id_forms+id_users);
-        $.ajax({
-            type:"POST",
-            url:"setTableDisconnectUsers",
-            data:{ id_forms:id_forms, id_departments:id_departments },
-            dataType:"JSON",
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-            },
-            success: function (data) {
-                alert(data.message);
-                if(data.bool) {
-                    location.reload();
-                }
-            }
-        });
-    });
-
-
-// departments //
-// departments //
-// departments //
-// departments //
-// departments //
-
-
-$('.btn-remove-departments').on('click', function () {
-    var id_departments = $(this).data('idDepartments');
+// Удалить элемент
+function removeSetElement(id_fields) {
 
     $.ajax({
-        type:"POST",
-        url:"removeDepartments",
-        data:{ id_departments:id_departments },
-        dataType:"JSON",
+        type: "POST",
+        url: "/removeSetElement",
+        data: {id_fields: id_fields},
+        dataType: "JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function () {
+            location.reload();
+        }
+    });
+}
+
+
+// showForms //
+// showForms //
+// showForms //
+// showForms //
+// showForms //
+
+
+// // Предпросмотр пустых форм
+// $('.forms-info-all').on('click', function () {
+//     var id_forms = $(this).data("id");
+//     var contentForm = $('#content-form-current' + id_forms);
+//     contentForm.empty();
+//
+//     if ($(this).hasClass("collapsed")) {
+//         $.ajax({
+//             type: "POST",
+//             url: "getFormInfoAll",
+//             data: {id_forms: id_forms},
+//             dataType: "JSON",
+//             beforeSend: function (xhr) {
+//                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//             },
+//             success: function (formsInfo) {
+// // console.log(data);
+//                 formsInfo.forEach(function (value, key, formsInfo) {
+//                     switchElements(contentForm, formsInfo, key, "");
+//                 });
+//             }
+//
+//         });
+//     }
+// });
+
+// function switchElements(contentForm, formsInfo, key, disabled) {
+//
+//     var required;
+//     if (formsInfo[key].required) {
+//         formsInfo[key].required = "* ";
+//         required = "required";
+//     } else {
+//         formsInfo[key].required = "";
+//         required = "";
+//     }
+//
+//     var old = (disabled == 'disabled') ? "old" : "";
+//     formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
+//
+//     var label = '<b><span class="red">' + formsInfo[key].required + '</span>' + formsInfo[key].label_fields + '</b>';
+//
+//     switch (formsInfo[key].name_elements) {
+//
+//         case "input(text)":
+//             contentForm.append(label);
+//             contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="' + formsInfo[key].values_fields_current + '"' + disabled + '><p></p>');
+//             break;
+//         case "input(email)":
+//             contentForm.append(label);
+//             contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="' + formsInfo[key].values_fields_current + '"' + disabled + '><p></p>');
+//             break;
+//         case "textarea":
+//             contentForm.append(label);
+//             contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required + disabled + '>' + formsInfo[key].values_fields_current + '</textarea><p></p>');
+//             break;
+//
+//         case "radiobutton":
+//             contentForm.append(label);
+//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
+//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
+//
+//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
+//
+//                 var show_empty_checkbox = true;
+//                 if (formsInfo[key].enum_sub_elements_current != 0) {
+//                     if (value_sub == formsInfo[key].enum_sub_elements_current) {
+//                         // вывод отмеченого radio
+//                         contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + old + formsInfo[key].id_fields_forms + "[]" + '" value="' + old + id_sub_element[key_value] + '"' + disabled + ' checked > ' + label_sub_elements[key_value] + '</label>');
+//                         show_empty_checkbox = false;
+//                     }
+//                 }
+//                 // Вывод неактивных radio
+//                 if (show_empty_checkbox) {
+//                     contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + old + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + '> ' + label_sub_elements[key_value] + '</label>');
+//                 }
+//             });
+//             contentForm.append('<p></p>');
+//             break;
+//
+//         case "checkbox":
+//             contentForm.append(label);
+//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
+//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
+//
+//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
+//
+//                 var show_empty_checkbox = true;
+//                 if (formsInfo[key].enum_sub_elements_current != 0) {
+//                     if ($.isArray(formsInfo[key].enum_sub_elements_current)) {
+//                         var arr = formsInfo[key].enum_sub_elements_current;
+//
+//                         arr.forEach(function (enum_sub_element, key_enum_sub_element, arr) {
+//                             if (id_sub_element[key_value] == enum_sub_element) {
+//                                 contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox"  name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + ' checked="checked" > ' + label_sub_elements[key_value] + '</label>');
+//                                 show_empty_checkbox = false;
+//                             }
+//                         });
+//
+//                     } else {
+//                         if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
+//                             contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + ' checked="checked" > ' + label_sub_elements[key_value] + '</label>');
+//                             show_empty_checkbox = false;
+//                         }
+//                     }
+//                 }
+//                 if (show_empty_checkbox) {
+//                     contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + '> ' + label_sub_elements[key_value] + '</label>');
+//                 }
+//             });
+//             contentForm.append('<p></p>');
+//             break;
+//
+//         case "select":
+//             contentForm.append(label);
+//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
+//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
+//
+//             contentForm.append('<select id="select' + key + '" class="multiselect" name="' + formsInfo[key].id_fields_forms + "[]" + '" style="margin-left: 10px;" ' + required + disabled + '>');
+//
+//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
+//
+//                 var show_empty_checkbox = true;
+//                 if (formsInfo[key].enum_sub_elements_current != 0) {
+//                     if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
+//                         $('#select' + key).append('<option value="'+old + id_sub_element[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
+//                         show_empty_checkbox = false;
+//                     }
+//                 }
+//                 if (show_empty_checkbox) {
+//                     $('#select' + key).append('<option value="'+old + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');
+//                 }
+//             });
+//
+//             contentForm.append('<p></p>');
+//             break;
+//     }
+// }
+
+
+// });
+
+
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
+// formsConnectUsers //
+
+
+// Вкладка Форма/Пользователь отображение уже существующих связей
+$("#id_forms, #id_departments").change(function () {
+    var id_forms = $('#id_forms option:selected').val();
+    var id_departments = $('#id_departments option:selected').val();
+
+    (id_forms == '*' || id_departments == '*') ? $('#btn-forms-connect-users, #btn-forms-disconnect-users').attr('disabled', 'true') : $('#btn-forms-connect-users, #btn-forms-disconnect-users').removeAttr('disabled');
+
+    $.ajax({
+        type: "POST",
+        url: "getTableConnectUsers",
+        data: {id_forms: id_forms, id_departments: id_departments},
+        dataType: "JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function (departments) {
+// console.log(departments);
+            var table = $('#table-forms-connect-users tr:first');
+            $('.new_tr').empty();
+            departments.forEach(function (department, key, departments) {
+                table.after('<tr class="new_tr">' +
+                    '<td>' + department.name_forms + '</td>' +
+                    '<td>' + department.name_departments + '</td>' +
+                    '</tr>');
+            });
+        }
+    });
+});
+
+// Кнопка добаления связей
+$('#btn-forms-connect-users').on('click', function () {
+    var id_forms = $('#id_forms option:selected').val();
+    var id_departments = $('#id_departments option:selected').val();
+
+    $.ajax({
+        type: "POST",
+        url: "setTableConnectUsers",
+        data: {id_forms: id_forms, id_departments: id_departments},
+        dataType: "JSON",
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
         },
         success: function (data) {
             alert(data.message);
-            if(data.bool) {
+            if (data.bool) {
                 location.reload();
             }
         }
     });
 });
 
+// Кнопка удаления связей
+$('#btn-forms-disconnect-users').on('click', function () {
+    var id_forms = $('#id_forms option:selected').val();
+    var id_departments = $('#id_departments option:selected').val();
+
+    $.ajax({
+        type: "POST",
+        url: "setTableDisconnectUsers",
+        data: {id_forms: id_forms, id_departments: id_departments},
+        dataType: "JSON",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+        },
+        success: function (data) {
+            alert(data.message);
+            if (data.bool) {
+                location.reload();
+            }
+        }
+    });
+});
+
+
+// departments //
+// departments //
+// departments //
+// departments //
+// departments //
+
+
+// $('.btn-remove-departments').on('click', function () {
+//     var id_departments = $(this).data('idDepartments');
+//
+//     $.ajax({
+//         type: "POST",
+//         url: "removeDepartments",
+//         data: {id_departments: id_departments},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if (data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     });
+// });
+
+
 $('.btn-edit-departments').on('click', function () {
     var id_departments = $(this).data('idDepartments');
     var name_departments = $(this).data('nameDepartments');
 
-    $('#btn-add-departments').removeClass('btn-primary').addClass('btn-success').attr('value','Редактировать');
-    $('#name_departments').attr('value',$(this).data('nameDepartments')).after('<input type="hidden" name="id_departments" value="'+id_departments+'">');
+    $('#btn-add-departments').removeClass('btn-primary').addClass('btn-success').attr('value', 'Редактировать');
+    $('#name_departments').attr('value', $(this).data('nameDepartments')).after('<input type="hidden" name="id_departments" value="' + id_departments + '">');
     $('form').attr('action', '/constructor/editDepartments');
 });
 
@@ -847,44 +820,64 @@ $('.btn-edit-departments').on('click', function () {
 // homeAdmin //
 
 
-// Список форм на проверку 
-// Кнопка принять 
+// Список форм на проверку
 
-$('.btn-accept-form').on('click', function () {
-    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
-    $.ajax({
-        type:"POST",
-        url:"acceptForm",
-        data:{ id_set_forms_departments:id_set_forms_departments },
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if(data.bool) {
-                location.reload();
-            }
-        }
-    })
+// // Кнопка принять
+// $('.btn-accept-form').on('click', function () {
+//     var id_forms_departments = $(this).data('idFormsDepartments');
+//
+//     $.ajax({
+//         type:"POST",
+//         url:"acceptForm",
+//         data:{ id_forms_departments:id_forms_departments },
+//         dataType:"JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if(data.bool) {
+//                 location.reload();
+//             }
+//         }
+//     })
+// });
+
+// // Кнопка отклонить
+// $('.btn-reject-form').on('click', function () {
+//     var id_forms_departments = $(this).data('idFormsDepartments');
+//
+//     $.ajax({
+//         type: "POST",
+//         url: "rejectForm",
+//         data: {id_forms_departments: id_forms_departments},
+//         dataType: "JSON",
+//         beforeSend: function (xhr) {
+//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
+//         },
+//         success: function (data) {
+//             alert(data.message);
+//             if (data.bool) {
+//                 window.location.href('http://ssucontent/');
+//             }
+//         }
+//     })
+// });
+
+
+// Прикрепляем textarea сообщения в кнопкам
+$('body').on('keyup','.model-text',function () {
+   $('.duplicate-message').val($(this).val()); 
 });
 
-// Кнопка отклонить
-$('.btn-reject-form').on('click', function () {
-    var id_set_forms_departments = $(this).data('idSetFormsDepartments');
-    $.ajax({
-        type:"POST",
-        url:"rejectForm",
-        data:{ id_set_forms_departments:id_set_forms_departments },
-        dataType:"JSON",
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-        },
-        success: function (data) {
-            alert(data.message);
-            if(data.bool) {
-                location.reload();
-            }
-        }
-    })
-});
+// $('.confirmRequired').on('click', function () {
+//     if ($('.group.required :checked').length > 0) {
+//     // if ($('.group').hasClass('required') == null) {
+//     //     if ($('.group').children('input').text() == "") {
+//             alert(1);
+//         // }
+//     } else {
+//         alert(0);
+//     }
+//     return false;
+// });
