@@ -1,6 +1,7 @@
 @extends('layouts.app')
-
 @section('content')
+    <script src="{{url('js/jqBootstrapValidation.js')}}"></script>
+    <script> $(function () { $("input,select,textarea").not("[type=submit]").jqBootstrapValidation(); } ); </script>
 
     <div class="container">
         <div class="row">
