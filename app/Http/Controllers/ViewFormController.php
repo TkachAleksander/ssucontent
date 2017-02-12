@@ -33,17 +33,9 @@ class ViewFormController extends Controller
         }
 
         if (Auth::user()->id_roles == self::ADMINISTRATOR) {
-//            if ($forms_departments[0]->id_status_checks != self::CHECKOUT_FORM){
-//                $status = [
-//                    "class" => "danger",
-//                    "message" => "Форма не стоит на проверке"
-//                ];
-//                return redirect('/')->with("status", $status);
-//            } else {
-                $action = "/acceptForm";
-                $admin = true;
-                $required = "required";
-//            }
+            $action = "/acceptForm";
+            $admin = true;
+            $required = "required";
         } else {
             if ($forms_departments[0]->id_status_checks != 2 ){
                 $action = "/submitFillForm";
@@ -65,9 +57,6 @@ class ViewFormController extends Controller
             ->select('m.*', 'u.surname', 'u.name', 'u.middle_name')
             ->orderBy('created_at', 'desc')
             ->get();
-
-
-
 
 
         // Проверяем есть ли поля в sub_elements_old
@@ -374,7 +363,6 @@ class ViewFormController extends Controller
     // UserHome кнопка отправить форму на проверку
     public function submitFillForm(Request $request)
     {
-
         $id_forms_departments = $request->input('id_forms_departments');
         $id_departments = DB::table('forms_departments')->where('id_forms_departments','=',$id_forms_departments)->value('id_departments');
         $id_user = Auth::user()->id;
