@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
 
     <div class="container">
@@ -23,11 +22,11 @@
 
                     <div class="panel-body">
                         <div id="content-form-old" class="col-sm-6">
-                            <?php $ver = "old"; $forms_info = $forms_info_old ?>
+                            <?php $ver = "old"; $forms_info = $forms_info_old; ?>
                             @include('gatherForm')
                         </div>
 
-                        <form action={{$action}} method="POST">
+                        <form action={{$action}} method="POST" class="form-horizontal">
                             {{ csrf_field() }}
 
                             <input type="hidden" name="id_forms_departments" value="{{$id_forms_departments}}">
@@ -35,7 +34,7 @@
                             <input type="hidden" name="updated_at" value="{{$updated_at}}">
 
                             <div id="content-form-current" class="col-sm-6" style="border-left: 1px solid #eee;">
-                                <?php $ver = "new"; $forms_info = $forms_info_new;?>
+                                <?php $ver = ""; $forms_info = $forms_info_new; ?>
                                 @include('gatherForm')
                             </div>
 
@@ -47,7 +46,7 @@
 
                         @if ($admin)
                                 <input type="submit"
-                                       class="btn btn-sm btn-success btn-accept-form pull-right confirmRequired"
+                                       class="btn btn-sm btn-success btn-accept-form pull-right"
                                        value="Притнять">
                         </form>
 
@@ -66,11 +65,12 @@
                             @else
                                 <span class="pull-left"> Нашли ошибку ? - Отправте повторно !  (В поле текст сообщения укажите изменения внесенные в форму) </span>
                                 <input type="hidden" class="duplicate-message" name="message">
-                                <input type="submit" class="btn btn-sm btn-primary pull-right confirmRequired"
+                                <input type="submit" class="btn btn-sm btn-primary pull-right"
                                        value="Отправить повторно">
                             @endif
-                        </form>
+                        <?php echo'</form>'; ?>
                         @endif
+
 
                     </div>
                 </div>
@@ -131,4 +131,5 @@
 
         </div>
     </div>
+
 @endsection

@@ -44,6 +44,10 @@ body {
     margin-bottom: 20px;
 }
 
+.textarea-resize-none {
+    resize: none;
+}
+
 .message-textarea {
     resize: none;
     margin-bottom: 10px;
@@ -223,4 +227,12 @@ label {
 
 .red {
     color: red;
+}
+
+.radio input[type="radio"],
+.radio-inline input[type="radio"],
+.checkbox input[type="checkbox"],
+.checkbox-inline input[type="checkbox"] {
+    position: inherit;
+    margin-left: 0px;
 }
