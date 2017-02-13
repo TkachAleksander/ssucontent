@@ -1,6 +1,6 @@
 @extends('layouts.app')
-
 @section('content')
+
 <div class="container">
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
@@ -145,7 +145,8 @@
                                         <td>
                                             {{$administrator->surname." ".$administrator->name." ".$administrator->middle_name}}
                                             <span class="pull-right">
-                                                <a href="removeUser/{{$administrator->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
+                                                <a href="/editUsers/{{$administrator->id}}" type="submit" class="btn btn-sm btn-default forms-btn"> Edit </a>
+                                                <a href="/removeUser/{{$administrator->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
                                             </span>
                                         </td>
                                     </tr>
@@ -163,10 +164,8 @@
                                     <td>
                                         {{$user->surname." ".$user->name." ".$user->middle_name}}
                                         <span class="pull-right">
-                                            <form action="/editUsers" method="POST" class="display-inline-block">
-                                                <button type="submit" class="btn btn-sm btn-default forms-btn"> Edit </button>
-                                            </form>
-                                            <a href="removeUser/{{$user->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
+                                            <a href="/editUsers/{{$user->id}}" type="submit" class="btn btn-sm btn-default forms-btn"> Edit </a>
+                                            <a href="/removeUser/{{$user->id}}" type="submit" class="btn btn-sm btn-danger forms-btn confirmDelete"> Del </a>
                                         </span>
                                     </td>
                                 </tr>
