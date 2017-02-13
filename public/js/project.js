@@ -166,7 +166,6 @@ function select_labels() {
 }
 
 $(document).ready(function () {
-
     // MULTISELECT
     $('.multiselect').multiselect();
 
@@ -203,23 +202,6 @@ $(document).ready(function () {
         containment: ".table-sort"
     }).disableSelection();
 });
-
-// // Удалить форму(скрыть) constructorForm
-// $('.removeForms').on('click', function () {
-//     var id_forms = $(this).data("idForm");
-//     $.ajax({
-//         type: "POST",
-//         url: "/constructor/removeForms",
-//         data: {id_forms: id_forms},
-//         dataType: "JSON",
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//         },
-//         success: function () {
-//             location.reload();
-//         }
-//     })
-// });
 
 // Выбрать форму для редактирования
 $('.editForms').on('click', function () {
@@ -263,36 +245,6 @@ $('.editForms').on('click', function () {
     }
 
 });
-
-// // Кнопка добавления формы на сервер
-// $('#container').on('click','#addNewForm', function() {
-//     var name_forms = $('#name_forms').val();
-//     var id_fields = $('#sortContainer').sortable("toArray");
-//     var date_update_forms = $('#date_update_forms').val();
-//
-//     var required = [];
-//     var i = 0;
-//     $('#sortContainer input:checkbox:checked').each(function(){
-//             required[i++] = $(this).val();
-//     });
-//
-//     $.ajax({
-//         type: "POST",
-//         url: "addSetFormsElements",
-//         data: { name_forms:name_forms, id_fields:id_fields, required:required, date_update_forms:date_update_forms },
-//         dataType:"JSON",
-//         beforeSend: function (xhr){
-//             xhr.setRequestHeader( 'X-CSRF-TOKEN', $('#token').attr('content'));
-//         },
-//         success: function(data){
-//             alert(data.message);
-//             if(data.bool) {
-//                 location.reload();
-//             }
-//         }
-//     });
-//
-// });
 
 // Добаление элементов в область перетаскивания
 $('.table-constructorForm').on('click', '.addElementInForm', function () {
@@ -359,40 +311,6 @@ function cleanTableNewForm() {
     $('#old_name_forms').remove();
 }
 
-// // Кнопка отправки отредактированной формы
-// $('#container').on('click','#btn-edit-form',function () {
-//
-//     var id_form = $('#btn-edit-form').data('idThisForm');
-//     var name_forms = $('#name_forms').val();
-//     var old_name_forms = $('#old_name_forms').val();
-//     var date_update_forms = $('#date_update_forms').val();
-//    
-//     var id_fields = [];
-//     var required = [];
-//     $.each($('#sortContainer tr td:last-child'),function(i){
-//         id_fields[i] = $(this).html();
-//
-//     });
-//     $.each($('#sortContainer input:checkbox:checked'),function(i){
-//         required[i] = $(this).val();
-//     });
-//
-//     $.ajax({
-//         type:"POST",
-//         url:"/constructor/addEditedNewForm",
-//         data:{name_forms:name_forms, old_name_forms:old_name_forms, required:required, id_form:id_form, date_update_forms:date_update_forms, id_fields:id_fields},
-//         dataType:"JSON",
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//         },
-//         success: function (data) {console.log(data);
-//             alert(data.message);
-//             if(data.bool) {
-//                 location.reload();
-//             }
-//         }
-//     })
-// });
 
 
 // newElement //
@@ -551,147 +469,6 @@ function removeSetElement(id_fields) {
 // showForms //
 
 
-// // Предпросмотр пустых форм
-// $('.forms-info-all').on('click', function () {
-//     var id_forms = $(this).data("id");
-//     var contentForm = $('#content-form-current' + id_forms);
-//     contentForm.empty();
-//
-//     if ($(this).hasClass("collapsed")) {
-//         $.ajax({
-//             type: "POST",
-//             url: "getFormInfoAll",
-//             data: {id_forms: id_forms},
-//             dataType: "JSON",
-//             beforeSend: function (xhr) {
-//                 xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//             },
-//             success: function (formsInfo) {
-// // console.log(data);
-//                 formsInfo.forEach(function (value, key, formsInfo) {
-//                     switchElements(contentForm, formsInfo, key, "");
-//                 });
-//             }
-//
-//         });
-//     }
-// });
-
-// function switchElements(contentForm, formsInfo, key, disabled) {
-//
-//     var required;
-//     if (formsInfo[key].required) {
-//         formsInfo[key].required = "* ";
-//         required = "required";
-//     } else {
-//         formsInfo[key].required = "";
-//         required = "";
-//     }
-//
-//     var old = (disabled == 'disabled') ? "old" : "";
-//     formsInfo[key].values_fields_current = (formsInfo[key].values_fields_current == null ) ? "" : formsInfo[key].values_fields_current;
-//
-//     var label = '<b><span class="red">' + formsInfo[key].required + '</span>' + formsInfo[key].label_fields + '</b>';
-//
-//     switch (formsInfo[key].name_elements) {
-//
-//         case "input(text)":
-//             contentForm.append(label);
-//             contentForm.append('<input type="text" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="' + formsInfo[key].values_fields_current + '"' + disabled + '><p></p>');
-//             break;
-//         case "input(email)":
-//             contentForm.append(label);
-//             contentForm.append('<input type="email" class="form-control" name="' + formsInfo[key].id_fields_forms + '"' + required + ' value="' + formsInfo[key].values_fields_current + '"' + disabled + '><p></p>');
-//             break;
-//         case "textarea":
-//             contentForm.append(label);
-//             contentForm.append('<textarea rows="3" class="form-control" name="' + formsInfo[key].id_fields_forms + '" style="resize: none;"' + required + disabled + '>' + formsInfo[key].values_fields_current + '</textarea><p></p>');
-//             break;
-//
-//         case "radiobutton":
-//             contentForm.append(label);
-//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
-//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
-//
-//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
-//
-//                 var show_empty_checkbox = true;
-//                 if (formsInfo[key].enum_sub_elements_current != 0) {
-//                     if (value_sub == formsInfo[key].enum_sub_elements_current) {
-//                         // вывод отмеченого radio
-//                         contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + old + formsInfo[key].id_fields_forms + "[]" + '" value="' + old + id_sub_element[key_value] + '"' + disabled + ' checked > ' + label_sub_elements[key_value] + '</label>');
-//                         show_empty_checkbox = false;
-//                     }
-//                 }
-//                 // Вывод неактивных radio
-//                 if (show_empty_checkbox) {
-//                     contentForm.append('<label class="group' + formsInfo[key].id_fields_forms + ' block"><input type="radio" name="' + old + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + '> ' + label_sub_elements[key_value] + '</label>');
-//                 }
-//             });
-//             contentForm.append('<p></p>');
-//             break;
-//
-//         case "checkbox":
-//             contentForm.append(label);
-//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
-//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
-//
-//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
-//
-//                 var show_empty_checkbox = true;
-//                 if (formsInfo[key].enum_sub_elements_current != 0) {
-//                     if ($.isArray(formsInfo[key].enum_sub_elements_current)) {
-//                         var arr = formsInfo[key].enum_sub_elements_current;
-//
-//                         arr.forEach(function (enum_sub_element, key_enum_sub_element, arr) {
-//                             if (id_sub_element[key_value] == enum_sub_element) {
-//                                 contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox"  name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + ' checked="checked" > ' + label_sub_elements[key_value] + '</label>');
-//                                 show_empty_checkbox = false;
-//                             }
-//                         });
-//
-//                     } else {
-//                         if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
-//                             contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + ' checked="checked" > ' + label_sub_elements[key_value] + '</label>');
-//                             show_empty_checkbox = false;
-//                         }
-//                     }
-//                 }
-//                 if (show_empty_checkbox) {
-//                     contentForm.append('<label class="group'+old + formsInfo[key].id_fields_forms + ' block"><input type="checkbox" name="' + formsInfo[key].id_fields_forms + "[]" + '" value="' + id_sub_element[key_value] + '"' + disabled + '> ' + label_sub_elements[key_value] + '</label>');
-//                 }
-//             });
-//             contentForm.append('<p></p>');
-//             break;
-//
-//         case "select":
-//             contentForm.append(label);
-//             var label_sub_elements = getSubElementsInArray(formsInfo[key].labels_sub_elements);
-//             var id_sub_element = getSubElementsInArray(formsInfo[key].id_sub_elements);
-//
-//             contentForm.append('<select id="select' + key + '" class="multiselect" name="' + formsInfo[key].id_fields_forms + "[]" + '" style="margin-left: 10px;" ' + required + disabled + '>');
-//
-//             id_sub_element.forEach(function (value_sub, key_value, id_sub_element) {
-//
-//                 var show_empty_checkbox = true;
-//                 if (formsInfo[key].enum_sub_elements_current != 0) {
-//                     if (id_sub_element[key_value] == formsInfo[key].enum_sub_elements_current) {
-//                         $('#select' + key).append('<option value="'+old + id_sub_element[key_value] + '" selected>' + label_sub_elements[key_value] + '</option>');
-//                         show_empty_checkbox = false;
-//                     }
-//                 }
-//                 if (show_empty_checkbox) {
-//                     $('#select' + key).append('<option value="'+old + id_sub_element[key_value] + '">' + label_sub_elements[key_value] + '</option>');
-//                 }
-//             });
-//
-//             contentForm.append('<p></p>');
-//             break;
-//     }
-// }
-
-
-// });
 
 
 // formsConnectUsers //
@@ -782,26 +559,6 @@ $('#btn-forms-disconnect-users').on('click', function () {
 // departments //
 
 
-// $('.btn-remove-departments').on('click', function () {
-//     var id_departments = $(this).data('idDepartments');
-//
-//     $.ajax({
-//         type: "POST",
-//         url: "removeDepartments",
-//         data: {id_departments: id_departments},
-//         dataType: "JSON",
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//         },
-//         success: function (data) {
-//             alert(data.message);
-//             if (data.bool) {
-//                 location.reload();
-//             }
-//         }
-//     });
-// });
-
 
 $('.btn-edit-departments').on('click', function () {
     var id_departments = $(this).data('idDepartments');
@@ -820,64 +577,9 @@ $('.btn-edit-departments').on('click', function () {
 // homeAdmin //
 
 
-// Список форм на проверку
-
-// // Кнопка принять
-// $('.btn-accept-form').on('click', function () {
-//     var id_forms_departments = $(this).data('idFormsDepartments');
-//
-//     $.ajax({
-//         type:"POST",
-//         url:"acceptForm",
-//         data:{ id_forms_departments:id_forms_departments },
-//         dataType:"JSON",
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//         },
-//         success: function (data) {
-//             alert(data.message);
-//             if(data.bool) {
-//                 location.reload();
-//             }
-//         }
-//     })
-// });
-
-// // Кнопка отклонить
-// $('.btn-reject-form').on('click', function () {
-//     var id_forms_departments = $(this).data('idFormsDepartments');
-//
-//     $.ajax({
-//         type: "POST",
-//         url: "rejectForm",
-//         data: {id_forms_departments: id_forms_departments},
-//         dataType: "JSON",
-//         beforeSend: function (xhr) {
-//             xhr.setRequestHeader('X-CSRF-TOKEN', $("#token").attr('content'));
-//         },
-//         success: function (data) {
-//             alert(data.message);
-//             if (data.bool) {
-//                 window.location.href('http://ssucontent/');
-//             }
-//         }
-//     })
-// });
 
 
 // Прикрепляем textarea сообщения в кнопкам
 $('body').on('keyup','.model-text',function () {
    $('.duplicate-message').val($(this).val()); 
 });
-
-// $('.confirmRequired').on('click', function () {
-//     if ($('.group.required :checked').length > 0) {
-//     // if ($('.group').hasClass('required') == null) {
-//     //     if ($('.group').children('input').text() == "") {
-//             alert(1);
-//         // }
-//     } else {
-//         alert(0);
-//     }
-//     return false;
-// });

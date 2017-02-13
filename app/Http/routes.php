@@ -16,6 +16,8 @@ Route::group(['middleware' => 'auth'], function(){
 	Route::get('/registration', 'UserControlController@index');
 	Route::post('/registration', 'UserControlController@registration');
     Route::get('/removeUser/{id}', 'UserControlController@removeUser');
+    Route::get('/editUsers/{id}', 'UserControlController@editUsers');
+    Route::post('/updateEditUsers/{id}', 'UserControlController@updateEditUsers');
 
     // Управление формамии homeUser
     Route::post('/submitFillForm', 'ViewFormController@submitFillForm');
